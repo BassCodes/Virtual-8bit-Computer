@@ -28,43 +28,39 @@ export class UI {
 		for (let i = 0; i < 8; i++) {
 			const reg_cell = el("div", `R_${i}`);
 			reg_cell.textContent = "00";
-			reg_cell.setAttribute("contenteditable", "true");
-			reg_cell.setAttribute("spellcheck", "false");
+			// reg_cell.setAttribute("contenteditable", "true");
+			// reg_cell.setAttribute("spellcheck", "false");
 			registers.appendChild(reg_cell);
 			this.register_cells.push(reg_cell);
 		}
-		// eslint-disable-next-line prefer-arrow-callback
-		registers.addEventListener("input", function (e) {
-			const allowed_chars = "0123456789ABCDEFG";
-			const r = e.target as HTMLElement;
-			let data = (r.textContent as string).toUpperCase();
+		// // eslint-disable-next-line prefer-arrow-callback
+		// registers.addEventListener("input", function (e) {
+		// 	const allowed_chars = "0123456789ABCDEFG";
+		// 	const r = e.target as HTMLElement;
+		// 	let data = (r.textContent as string).toUpperCase();
 
-			for (let i = 0; i < data.length; i++) {
-				if (!allowed_chars.includes(data[i])) {
-					data = "00";
-					break;
-				}
-			}
+		// 	for (let i = 0; i < data.length; i++) {
+		// 		if (!allowed_chars.includes(data[i])) {
+		// 			data = "00";
+		// 			break;
+		// 		}
+		// 	}
 
-			if (data.length > 2) {
-				// data = r.textContent?.substring(0, 2) ?? "00";
-			}
-			e.preventDefault();
-			return false;
-			// r.textContent = ;
-		});
+		// 	e.preventDefault();
+		// 	return false;
+		// });
 
-		registers.addEventListener("keydown", (e) => {
-			if (e.key === "Enter") {
-				e.preventDefault();
-				(e.target as HTMLElement).blur();
-			}
-		});
-		registers.addEventListener("blur", (e) => {
-			const allowed_chars = "0123456789ABCDEFG";
-			const r = e.target as HTMLElement;
-			const data = (r.textContent as string).toUpperCase();
-		});
+		// registers.addEventListener("keydown", (e) => {
+		// 	if (e.key === "Enter") {
+		// 		e.preventDefault();
+		// 		(e.target as HTMLElement).blur();
+		// 	}
+		// });
+		// registers.addEventListener("blur", (e) => {
+		// 	const allowed_chars = "0123456789ABCDEFG";
+		// 	const r = e.target as HTMLElement;
+		// 	const data = (r.textContent as string).toUpperCase();
+		// });
 
 		this.registers = registers;
 
@@ -95,7 +91,7 @@ export class UI {
 		});
 	}
 
-	start_auto(speed: number = 0): void {
+	start_auto(speed: number = 200): void {
 		if (this.step_func === null) {
 			return;
 		}
@@ -125,7 +121,7 @@ export class UI {
 		this.step_func = f;
 	}
 
-	stateUpdateEvent(state: ComputerState): void {
+	state_update_event(state: ComputerState): void {
 		for (let i = 0; i < 256; i++) {
 			const current = this.program_memory_cells[i];
 			current.className = "";

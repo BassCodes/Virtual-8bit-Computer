@@ -13,7 +13,7 @@ function main(): void {
 
 	const ui = new UI(container);
 
-	const computer = new Computer(ui.stateUpdateEvent.bind(ui));
+	const computer = new Computer(ui.state_update_event.bind(ui));
 
 	computer.load_program(program);
 	ui.set_step_func(computer.cycle.bind(computer));

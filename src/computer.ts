@@ -85,7 +85,7 @@ export class Computer {
 		if (this.current_instr === null) {
 			const parsed_instruction = Computer.parse_instruction(current_byte);
 			if (parsed_instruction === null) {
-				console.log("invalid instruction");
+				// console.log("invalid instruction");
 				this.step_forward();
 				return;
 			}
@@ -104,7 +104,6 @@ export class Computer {
 		}
 
 		if (this.current_instr.params.length !== this.current_instr.params_found) {
-			// console.log(`Parameter count not fulfilled. Found new parameter ${current_byte}`);
 			this.current_instr.params[this.current_instr.params_found] = current_byte;
 			this.current_instr.params_found += 1;
 		}
@@ -137,12 +136,12 @@ export class Computer {
 			case Instr.Print: {
 				const [register_no] = inst.params;
 				const value = this.registers[register_no];
-				console.log(value);
+				// console.log(value);
 				break;
 			}
 			case Instr.Goto: {
 				const [parameter] = inst.params;
-				console.log(`Goto ${parameter}`);
+				// console.log(`Goto ${parameter}`);
 				this.program_counter = parameter;
 				return false;
 			}
@@ -159,7 +158,7 @@ export class Computer {
 				if (register_no >= this.registers.length) {
 					throw new Error(`Got register number ${register_no} in assign register`);
 				}
-				console.log(`Set register ${register_no} to ${new_value}`);
+				// console.log(`Set register ${register_no} to ${new_value}`);
 				this.registers[register_no] = new_value;
 				break;
 			}
@@ -232,8 +231,16 @@ export class Computer {
 
 				const char = String.fromCharCode(ASCIIbyte);
 
-				console.log(char);
+				// console.log(char);
 				$("printout").textContent += char;
+				break;
+			}
+			case Instr.HaltCatchFire: {
+				throw new Error("FIRE FIRE FIRE FIRE");
+			}
+			case Instr.CopyRegReg: {
+				const [register_no_to, register_no_from] = inst.params;
+				this.registers[register_no_to] = this.registers[register_no_from];
 				break;
 			}
 			default:
