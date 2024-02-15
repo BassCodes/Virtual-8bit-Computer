@@ -29,6 +29,7 @@ body {
 	padding: 10px;
 	margin-left: 20px;
 	word-wrap: break-word;
+	word-break: break-all;
 }
 
 #program_memory div.program_counter {

@@ -21,6 +21,7 @@ export enum Instr {
 	GreaterThan,
 	Print,
 	PrintASCII,
+	HaltCatchFire,
 }
 
 const InstParamCount = new Map();
@@ -46,6 +47,7 @@ InstParamCount.set(Instr.GreaterThan, 3);
 
 InstParamCount.set(Instr.Print, 1);
 InstParamCount.set(Instr.PrintASCII, 1);
+InstParamCount.set(Instr.HaltCatchFire, 0);
 
 export type TempInstrState = {
 	pos: u8;
@@ -286,6 +288,7 @@ export class Computer {
 
 		if (byte === 0xff) return Instr.Print;
 		if (byte === 0xfe) return Instr.PrintASCII;
+		if (byte === 0x66) return Instr.HaltCatchFire;
 		return null;
 	}
 }

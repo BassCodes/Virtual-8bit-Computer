@@ -22,5 +22,6 @@ INSTRUCTIONS
 0x51: Less than      - 3 Parameter - If byte in register (P1) less than byte in register (P2), set byte in register (P3) to 0x01
 0x52: Greater than   - 3 Parameter - If byte in register (P1) greater than byte in register (P2), set byte in register (P3) to 0x01
 --- Development ---
-0xFE: Print byte as ASCII from register (invalid does nothing)	- 1 Parameter - Prints the ASCII byte in register (P1) to console
-0xFF: Print byte from register   								- 1 Parameter - Prints the byte in register (P1) to console
+0xFE: Print byte as ASCII from register - 1 Parameter - Prints the ASCII byte in register (P1) to console
+0xFF: Print byte from register   		- 1 Parameter - Prints the byte in register (P1) to console
+0x66: Halt and Catch Fire               - 0 Parameter - Fire! FIRE EVERYWHERE!!!!!
