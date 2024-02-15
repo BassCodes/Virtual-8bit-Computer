@@ -1,0 +1,26 @@
+INSTRUCTIONS
+--- Control Flow ---
+0x00: NoOp            - 0 Parameter
+0x10: Goto            - 1 Parameter - moves the program counter to (P1) in program memory
+0x11: Goto if low bit - 2 Parameter - Moves the program counter to (P1) if register (P2)'s least significant bit is 1.
+--- Memory and register management ---
+0x20: Load to register           - 2 Parameter - Loads into register (P1) the byte at processing memory location (P2)
+0x21: Write register to memory   - 2 Parameter - Writes the byte in register (P1) to the processing memory location (P2)
+0x28: Copy Register -> Register  - 2 Parameter - Copies byte from register (P1) to register (P2)
+0x2F: Assign value to register   - 2 Parameter - Assigns register (P1) to value (P2)
+--- Operations ---
+0x40: Add registers  - 2 Parameter - Adds the contents of (P1) and (P2) and stores result to register (P1). (Overflow will be taken mod 256)
+0x41: Reserved
+--- Bit Operations ---
+0x48: Bitwise and    - 2 Parameter - Ands & each bit of register (P1) and register (P2) and stores result to register (P1)
+0x49: Bitwise or     - you get the point
+0x4A: Bitwise not    - 1 Parameter - Inverts each bit of register (P1)
+0x4B: Left bit shift - 2 Parameter - Shifts bits in register (P1) to the left by (P2) and stores result to register (P1)
+0x4C: right bit shift- 2 Parameter -  same as left
+--- Comparison Operations ---
+0x50: Equals         - 3 Parameter - If byte in register (P1) equals byte in register (P2), set byte in register (P3) to 0x01
+0x51: Less than      - 3 Parameter - If byte in register (P1) less than byte in register (P2), set byte in register (P3) to 0x01
+0x52: Greater than   - 3 Parameter - If byte in register (P1) greater than byte in register (P2), set byte in register (P3) to 0x01
+--- Development ---
+0xFE: Print byte as ASCII from register (invalid does nothing)	- 1 Parameter - Prints the ASCII byte in register (P1) to console
+0xFF: Print byte from register   								- 1 Parameter - Prints the byte in register (P1) to console

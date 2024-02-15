@@ -1,0 +1,61 @@
+#program_memory {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+	grid-gap: 5px;
+	padding: 10px;
+}
+
+#program_memory div {
+	aspect-ratio: 1;
+	text-align: center;
+	margin: auto;
+}
+
+body {
+	color: gray;
+	background-color: black;
+	font-size: 2.5em;
+	font-family: monospace;
+}
+
+#main {
+	display: flex;
+	flex-direction: row;
+}
+
+#printout {
+	border: 4px dashed yellow;
+	width: 1000px;
+	padding: 10px;
+	margin-left: 20px;
+	word-wrap: break-word;
+}
+
+#program_memory div.program_counter {
+	outline: 3px solid orange;
+}
+
+#program_memory {
+	border: 5px solid yellow;
+}
+
+#program_memory div.instruction_argument {
+	outline: 3px dashed purple;
+}
+#program_memory div.current_instruction {
+	outline: 3px dashed greenyellow;
+}
+
+#registers {
+	border: 5px solid yellow;
+	max-width: fit-content;
+	display: flex;
+	column-gap: 5px;
+	padding: 10px;
+}
+
+#container {
+	font-family: monospace;
+	max-width: min-content;
+	max-height: min-content;
+}

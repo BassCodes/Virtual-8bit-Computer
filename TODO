@@ -1,0 +1,5 @@
+Highlight memory cells based on what they have been used for
+add screen (VRAM?)
+live memory and register editing
+draw lines between registers and memory when used
+add description for the current instruction
