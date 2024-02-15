@@ -12,7 +12,7 @@ export class UI {
 	constructor(parent: HTMLElement) {
 		this.container = parent;
 
-		const program_mem = el("div", "program_memory");
+		const program_mem = $("memory");
 		this.program_memory_cells = [];
 		for (let i = 0; i < 256; i++) {
 			const mem_cell = el("div", `p_${i}`);
@@ -24,7 +24,7 @@ export class UI {
 		this.program_memory = program_mem;
 
 		this.register_cells = [];
-		const registers = el("div", "registers");
+		const registers = $("registers");
 		for (let i = 0; i < 8; i++) {
 			const reg_cell = el("div", `R_${i}`);
 			reg_cell.textContent = "00";
@@ -64,7 +64,7 @@ export class UI {
 
 		this.registers = registers;
 
-		this.container.append(registers, program_mem);
+		// this.container.append(registers, program_mem);
 		this.step_func = null;
 		this.auto_running = false;
 		const pp_button = $("pause_play_button");

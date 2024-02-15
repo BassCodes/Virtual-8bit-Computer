@@ -3,10 +3,10 @@ export type u8 = number;
 
 export const $ = (s: string): HTMLElement => document.getElementById(s) as HTMLElement;
 export function el(type: string, id?: string): HTMLElement {
-	const div = document.createElement(type);
+	const element = document.createElement(type);
 	if (id === undefined) {
-		return div;
+		return element;
 	}
-	div.id = id;
-	return div;
+	element.id = id;
+	return element;
 }

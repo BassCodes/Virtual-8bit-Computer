@@ -133,12 +133,6 @@ export class Computer {
 		}
 
 		switch (inst.instr) {
-			case Instr.Print: {
-				const [register_no] = inst.params;
-				const value = this.registers[register_no];
-				// console.log(value);
-				break;
-			}
 			case Instr.Goto: {
 				const [parameter] = inst.params;
 				// console.log(`Goto ${parameter}`);
@@ -223,6 +217,12 @@ export class Computer {
 				if (this.registers[register_no_1] > this.registers[register_no_2]) {
 					this.registers[register_out] = 0x01;
 				}
+				break;
+			}
+			case Instr.Print: {
+				const [register_no] = inst.params;
+				const value = this.registers[register_no];
+				$("printout").textContent += this.registers[register_no].toString(10);
 				break;
 			}
 			case Instr.PrintASCII: {

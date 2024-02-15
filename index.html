@@ -9,11 +9,30 @@
 	</head>
 	<body>
 		<div id="main">
-			<div id="container"></div>
+			<div id="title">VIRTUAL 8-BIT COMPUTER</div>
+			<div id="container">
+				<div id="subcontainer">
+					<div id="registers"></div>
+					<div id="labelcontainer">
+						<div id="registers_label">￩REGISTERS</div>
+						<div id="memory_label">MEMORY↯</div>
+					</div>
+				</div>
+				<div id="memory"></div>
+			</div>
 			<div id="printout"></div>
 		</div>
-		<button type="button" id="pause_play_button">Start</button>
-		<button type="button" id="step_button">step</button>
-		<input type="file" name="binary_upload" id="binary_upload" />
+		<div id="controls_bar">
+			<button type="button" id="pause_play_button">Start</button>
+			<button type="button" id="step_button">Step</button>
+			<label for="binary_upload" class="button">Load Binary</label>
+			<input
+				id="binary_upload"
+				name="binary_upload"
+				id="binary_upload"
+				style="visibility: hidden"
+				type="file"
+			/>
+		</div>
 	</body>
 </html>
