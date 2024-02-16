@@ -1,24 +1,33 @@
 import { ComputerState } from "./computer";
-import { CpuEvent, MemoryCellType } from "./events";
-import { $, el, u8 } from "./etc";
+import { CpuEvent, CpuEventHandler, MemoryCellType, UiEvent, UiEventHandler } from "./events";
+import { $, el, format_hex, u8 } from "./etc";
+import { Instruction, ParameterType } from "./instructionSet";
 import { EventHandler } from "./eventHandler";
 
 export class UI {
 	container: HTMLElement;
 	program_memory: HTMLElement;
-	program_memory_cells: Array<HTMLElement>;
+	program_memory_cells: Array<HTMLElement> = [];
 	registers: HTMLElement;
-	register_cells: Array<HTMLElement>;
-	step_func: null | (() => void);
-
-	program_counter: u8;
+	printout: HTMLElement;
+	instruction_explainer: HTMLElement;
+	register_cells: Array<HTMLElement> = [];
+	instruction_parsing_addresses: Array<u8> = [];
+	program_counter: u8 = 0;
 
 	auto_running: boolean;
-	constructor(parent: HTMLElement, cpu_events: EventHandler<CpuEvent>) {
+
+	events: UiEventHandler = new EventHandler<UiEvent>() as UiEventHandler;
+
+	constructor(parent: HTMLElement) {
+		for (const [, e_type] of Object.entries(UiEvent)) {
+			this.events.register_event(e_type as UiEvent);
+		}
+		this.events.seal();
 		this.container = parent;
-		this.program_counter = 0;
+		this.printout = $("printout");
+		this.instruction_explainer = $("instruction_explainer");
 		const program_mem = $("memory");
-		this.program_memory_cells = [];
 		for (let i = 0; i < 256; i++) {
 			const mem_cell = el("div", `p_${i}`);
 			mem_cell.textContent = "00";
@@ -28,10 +37,9 @@ export class UI {
 		this.program_memory_cells[0].classList.add("div", "program_counter");
 		this.program_memory = program_mem;
 
-		this.register_cells = [];
 		const registers = $("registers");
 		for (let i = 0; i < 8; i++) {
-			const reg_cell = el("div", `R_${i}`);
+			const reg_cell = el("div", `r_${i}`);
 			reg_cell.textContent = "00";
 			registers.appendChild(reg_cell);
 			this.register_cells.push(reg_cell);
@@ -39,7 +47,6 @@ export class UI {
 
 		this.registers = registers;
 
-		this.step_func = null;
 		this.auto_running = false;
 		const pp_button = $("pause_play_button");
 		if (pp_button === null) {
@@ -54,48 +61,32 @@ export class UI {
 				pp_button.textContent = "Storp";
 			}
 		});
-		document.getElementById("step_button")?.addEventListener("click", () => {
+		$("step_button")?.addEventListener("click", () => {
 			if (this.auto_running) {
 				this.stop_auto();
 			}
-			if (this.step_func === null) {
-				return;
-			}
-			this.step_func();
-		});
 
-		cpu_events.add_listener(CpuEvent.MemoryChanged, (e) => {
-			const { address, value } = e as { address: u8; value: u8 };
-			this.program_memory_cells[address].textContent = value.toString(16).toUpperCase().padStart(2, "0");
+			this.events.dispatch(UiEvent.RequestCpuCycle, null);
 		});
-		cpu_events.add_listener(CpuEvent.RegisterChanged, (e) => {
-			const { register_no, value } = e as { register_no: u8; value: u8 };
-			this.register_cells[register_no].textContent = value.toString(16).toUpperCase().padStart(2, "0");
+	}
+
+	init_events(cpu_events: CpuEventHandler): void {
+		cpu_events.listen(CpuEvent.MemoryChanged, ({ address, value }) => {
+			this.program_memory_cells[address].textContent = format_hex(value);
 		});
-		cpu_events.add_listener(CpuEvent.ProgramCounterChanged, (e) => {
-			const { counter } = e as { counter: u8 };
+		cpu_events.listen(CpuEvent.RegisterChanged, ({ register_no, value }) => {
+			this.register_cells[register_no].textContent = format_hex(value);
+		});
+		cpu_events.listen(CpuEvent.ProgramCounterChanged, ({ counter }) => {
 			this.program_memory_cells[this.program_counter].classList.remove("program_counter");
 			this.program_memory_cells[counter].classList.add("program_counter");
 			this.program_counter = counter;
 		});
-		cpu_events.add_listener(CpuEvent.Print, (e) => {
-			const { data } = e as { data: u8 };
-			const printout = $("printout");
-			if (printout === null) {
-				throw new Error("Couldn't get printout");
-			}
-			printout.textContent = (printout.textContent ?? "") + data;
+		cpu_events.listen(CpuEvent.Print, (char) => {
+			this.printout.textContent = (this.printout.textContent ?? "") + char;
 		});
-		cpu_events.add_listener(CpuEvent.Reset, () => {
-			this.stop_auto();
-			this.program_memory_cells.forEach((c) => {
-				c.className = "";
-				c.textContent = "00";
-			});
-			this.register_cells.forEach((r) => {
-				r.textContent = "00";
-			});
-			this.program_counter = 0;
+		cpu_events.listen(CpuEvent.Reset, () => {
+			this.reset();
 		});
 
 		const map: Map<MemoryCellType, string> = new Map();
@@ -105,8 +96,8 @@ export class UI {
 		map.set(MemoryCellType.InvalidInstruction, "invalid_instruction");
 		map.set(MemoryCellType.Memory, "memory");
 		map.set(MemoryCellType.Register, "register");
-		cpu_events.add_listener(CpuEvent.MemoryByteParsed, (e) => {
-			const { type, pos } = e as { type: MemoryCellType; pos: u8 };
+		cpu_events.listen(CpuEvent.MemoryByteParsed, (e) => {
+			const { type, pos, code } = e;
 			const css_class = map.get(type);
 			if (css_class === undefined) {
 				throw new Error("Something went wrong");
@@ -115,27 +106,74 @@ export class UI {
 				if (other_class === css_class) continue;
 				this.program_memory_cells[pos].classList.remove(other_class);
 			}
+			if (type === MemoryCellType.Instruction) {
+				while (this.instruction_parsing_addresses.length > 0) {
+					const num = this.instruction_parsing_addresses.pop();
+					if (num === undefined) {
+						throw new Error("Shouldn't happen");
+					}
+					this.program_memory_cells[num].classList.remove("instruction_argument");
+					this.program_memory_cells[num].classList.remove("current_instruction");
+				}
+				this.instruction_explainer.innerHTML = "";
+				const { instr } = e as { instr: Instruction };
+				this.program_memory_cells[pos].classList.add("current_instruction");
+				this.instruction_parsing_addresses.push(pos);
+				const instr_box = el("div", "expl_box");
+				const instr_icon = el("span", "expl_icon");
+				instr_icon.classList.add(css_class);
+				instr_icon.setAttribute("title", css_class.toUpperCase());
+				instr_icon.textContent = format_hex(code);
+				const instr_box_text = el("span", "expl_text");
+				instr_box_text.textContent = `${instr.name}`;
+				instr_box.appendChild(instr_icon);
+				instr_box.appendChild(instr_box_text);
+				this.instruction_explainer.appendChild(instr_box);
+			} else if (type !== MemoryCellType.InvalidInstruction) {
+				const { param } = e as { param: ParameterType };
+				this.program_memory_cells[pos].classList.add("instruction_argument");
+				this.instruction_parsing_addresses.push(pos);
+				const instr_box = el("div", "expl_box");
+				const instr_icon = el("span", "expl_icon");
+				instr_icon.classList.add(css_class);
+				instr_icon.setAttribute("title", css_class.toUpperCase());
+				instr_icon.textContent = format_hex(code);
+				const instr_box_text = el("span", "expl_text");
+				instr_box_text.textContent = `${param.desc}`;
+				instr_box.appendChild(instr_icon);
+				instr_box.appendChild(instr_box_text);
+				this.instruction_explainer.appendChild(instr_box);
+			}
 			this.program_memory_cells[pos].classList.add(css_class);
 		});
+
+		cpu_events.listen(CpuEvent.InstructionExecuted, ({ instr }) => {});
+	}
+
+	reset(): void {
+		this.stop_auto();
+		this.program_memory_cells.forEach((c) => {
+			c.className = "";
+			c.textContent = "00";
+		});
+		this.register_cells.forEach((r) => {
+			r.textContent = "00";
+		});
+		this.program_counter = 0;
+		this.program_memory_cells[0].classList.add("program_counter");
+		this.printout.textContent = "";
 	}
 
 	start_auto(speed: number = 200): void {
-		if (this.step_func === null) {
-			return;
-		}
 		if (this.auto_running) {
 			return;
 		}
 		this.auto_running = true;
 		const loop = (): void => {
-			if (this.step_func === null) {
-				this.auto_running = false;
-				return;
-			}
 			if (this.auto_running === false) {
 				return;
 			}
-			this.step_func();
+			this.events.dispatch(UiEvent.RequestCpuCycle, null);
 			setTimeout(loop, speed);
 			// requestAnimationFrame(loop);
 		};
@@ -144,10 +182,6 @@ export class UI {
 
 	stop_auto(): void {
 		this.auto_running = false;
-	}
-
-	set_step_func(f: () => void): void {
-		this.step_func = f;
 	}
 
 	state_update_event(state: ComputerState): void {

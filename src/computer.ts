@@ -1,5 +1,5 @@
-import { CpuEvent, MemoryCellType } from "./events";
-import { u8 } from "./etc";
+import { CpuEvent, CpuEventHandler, MemoryCellType, UiEvent, UiEventHandler } from "./events";
+import { byte_array_to_js_source, format_hex, u8 } from "./etc";
 import { EventHandler } from "./eventHandler";
 import { ConstParam, Instruction, ISA, MemorParam, RegisParam } from "./instructionSet";
 
@@ -17,21 +17,13 @@ export type ComputerState = {
 };
 
 export class Computer {
-	private memory: Uint8Array;
-	private program_counter: u8;
-	private registers: Uint8Array;
-	private current_instr: TempInstrState | null;
-	events: EventHandler<CpuEvent>;
+	private memory = new Uint8Array(256);
+	private registers = new Uint8Array(8);
+	private program_counter: u8 = 0;
+	private current_instr: TempInstrState | null = null;
+	events: CpuEventHandler = new EventHandler<CpuEvent>() as CpuEventHandler;
 
 	constructor() {
-		// 256 bytes for both program and general purpose memory.
-		this.memory = new Uint8Array(256);
-		// 8 registers
-		this.registers = new Uint8Array(8);
-		this.program_counter = 0;
-		this.current_instr = null;
-		this.events = new EventHandler<CpuEvent>();
-
 		// Add events
 		for (const [, e_type] of Object.entries(CpuEvent)) {
 			this.events.register_event(e_type as CpuEvent);
@@ -47,8 +39,9 @@ export class Computer {
 				this.events.dispatch(CpuEvent.MemoryByteParsed, {
 					type: MemoryCellType.InvalidInstruction,
 					pos: this.program_counter,
+					code: current_byte,
 				});
-				console.log(`Invalid instruction: ${current_byte.toString(16).toUpperCase().padStart(2, "0")}`);
+				console.log(`Invalid instruction: ${format_hex(current_byte)}`);
 				this.step_forward();
 				return;
 			}
@@ -62,6 +55,7 @@ export class Computer {
 				type: MemoryCellType.Instruction,
 				pos: this.program_counter,
 				instr: parsed_instruction,
+				code: current_byte,
 			});
 		}
 
@@ -80,7 +74,15 @@ export class Computer {
 			} else if (b instanceof MemorParam) {
 				a = MemoryCellType.Memory;
 			}
-			this.events.dispatch(CpuEvent.MemoryByteParsed, { type: a, pos: this.program_counter, param: b });
+			if (a === undefined) {
+				throw new Error("Shouldn't");
+			}
+			this.events.dispatch(CpuEvent.MemoryByteParsed, {
+				type: a,
+				pos: this.program_counter,
+				code: current_byte,
+				param: b,
+			});
 			this.current_instr.params[this.current_instr.params_found] = current_byte;
 			this.current_instr.params_found += 1;
 			if (this.current_instr.params.length !== this.current_instr.params_found) {
@@ -93,10 +95,10 @@ export class Computer {
 			noStep: function (): void {
 				this.should_step = false;
 			},
-			event: this.events.dispatch.bind(this.events),
+			dispatch: this.events.dispatch.bind(this.events),
 		};
 		this.current_instr.instr.execute(this, this.current_instr.params, execution_post_action_state);
-
+		this.events.dispatch(CpuEvent.InstructionExecuted, { instr: this.current_instr.instr });
 		this.current_instr = null;
 
 		if (execution_post_action_state.should_step) {
@@ -136,9 +138,20 @@ export class Computer {
 		this.events.dispatch(CpuEvent.Reset, null);
 	}
 
+	init_events(ui: UiEventHandler): void {
+		ui.listen(UiEvent.RequestCpuCycle, () => {
+			this.cycle();
+		});
+	}
+
 	load_memory(program: Array<u8>): void {
+		console.log(byte_array_to_js_source(program));
 		const max_loop = Math.min(this.memory.length, program.length);
 		for (let i = 0; i < max_loop; i++) {
+			// Don't fire event if no change is made
+			if (this.memory[i] === program[i]) {
+				continue;
+			}
 			this.memory[i] = program[i];
 			this.events.dispatch(CpuEvent.MemoryChanged, { address: i, value: program[i] });
 		}

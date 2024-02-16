@@ -1,4 +1,4 @@
-import { u8 } from "./etc";
+import { format_hex, u8 } from "./etc";
 import { Instruction, InstructionSet } from "./instructionSet";
 
 export function generate_isa(iset: InstructionSet): string {
@@ -13,7 +13,7 @@ export function generate_isa(iset: InstructionSet): string {
 		max_instr_name_len = Math.max(max_instr_name_len, short_description.length);
 	}
 	for (const instruction of instructions) {
-		const hex_code = instruction[0].toString(16).toUpperCase().padStart(2, "0");
+		const hex_code = format_hex(instruction[0]);
 		const short_description = instruction[1].name.padEnd(max_instr_name_len, " ");
 		const parameter_count = instruction[1].params.length;
 		const description = instruction[1].desc;

@@ -1,10 +1,10 @@
-import { CpuEvent } from "./events";
-import { u8 } from "./etc";
+import { CpuEvent, CpuEventHandler } from "./events";
+import { format_hex, u8 } from "./etc";
 
-class ParameterType {
-	readonly description: string;
+export class ParameterType {
+	readonly desc: string;
 	constructor(description: string) {
-		this.description = description;
+		this.desc = description;
 	}
 }
 
@@ -24,7 +24,7 @@ interface GenericComputer {
 interface AfterExecutionComputerAction {
 	// Does not step forward the program counter
 	noStep: () => void;
-	event: (e: CpuEvent, data: unknown) => void;
+	dispatch: CpuEventHandler["dispatch"];
 }
 
 export interface Instruction {
@@ -43,7 +43,7 @@ export class InstructionSet {
 
 	insertInstruction(hexCode: u8, instruction: Instruction): void {
 		if (this.instructions.has(hexCode)) {
-			throw new Error(`Instruction "${hexCode.toString(16)}" already exists`);
+			throw new Error(`Instruction "${format_hex(hexCode)}" already exists`);
 		}
 		this.instructions.set(hexCode, instruction);
 	}
@@ -75,17 +75,17 @@ ISA.insertInstruction(0x10, {
 
 ISA.insertInstruction(0x20, {
 	name: "LoadToRegister",
-	desc: "Sets the byte in register (P1) to be the contents of memory cell (P2)",
-	params: [new RegisParam(""), new MemorParam("")],
+	desc: "Sets the byte in register (P1) to be the contents of memory cell at address in register (P2)",
+	params: [new RegisParam("Set this register to"), new MemorParam("the byte held in this memory address")],
 	execute(c, p) {
 		const [register_no, mem_address] = p;
-		c.setRegister(register_no, c.getMemory(mem_address));
+		c.setRegister(register_no, c.getMemory(c.getRegister(mem_address)));
 	},
 });
 
 ISA.insertInstruction(0x21, {
 	name: "SaveToMemory",
-	desc: "Writes the byte in register (P1) to the processing memory location (P2)",
+	desc: "Writes the byte in register (P1) to the memory cell (P2)",
 	params: [new RegisParam(""), new MemorParam("")],
 	execute(c, p) {
 		const [register_no, mem_address] = p;
@@ -96,7 +96,7 @@ ISA.insertInstruction(0x21, {
 ISA.insertInstruction(0x2f, {
 	name: "AssignRegister",
 	desc: "Assigns constant value (P2) to register (P1)",
-	params: [new RegisParam(""), new ConstParam("")],
+	params: [new RegisParam("Set this register"), new ConstParam("to this constant")],
 	execute(c, p) {
 		const [register_no, value] = p;
 		c.setRegister(register_no, value);
@@ -104,9 +104,9 @@ ISA.insertInstruction(0x2f, {
 });
 
 ISA.insertInstruction(0x11, {
-	name: "GotoIfLowBit",
+	name: "GotoIfLowBitHigh",
 	desc: "Moves the CPU instruction counter to the value in (P1) if the value in register (P2) has the lowest bit true",
-	params: [new ConstParam("new instruction counter location"), new RegisParam("Register to check")],
+	params: [new ConstParam("Set program counter to this constant"), new RegisParam("if this register's 1 bit is set")],
 	execute(c, p, a) {
 		const [new_address, check_register_no] = p;
 		if (c.getRegister(check_register_no) % 2 === 1) {
@@ -150,24 +150,28 @@ ISA.insertInstruction(0x40, {
 
 ISA.insertInstruction(0x50, {
 	name: "Equals",
-	desc: "If byte in register (P1) equals byte in register (P2), set byte in register (P3) to 0x01",
-	params: [new RegisParam(""), new RegisParam(""), new RegisParam("")],
+	desc: "If byte in register (P2) equals byte in register (P3), set byte in register (P1) to 0x01",
+	params: [
+		new RegisParam("Set this register to be 0x01"),
+		new RegisParam("if this register and"),
+		new RegisParam("this register are equal (else 0x00)"),
+	],
 	execute(c, p) {
 		const [register_no_1, register_no_2, register_no_3] = p;
-		const truth = c.getRegister(register_no_1) === c.getRegister(register_no_2) ? 0x01 : 0x00;
-		c.setRegister(register_no_3, truth);
+		const truth = c.getRegister(register_no_2) === c.getRegister(register_no_3) ? 0x01 : 0x00;
+		c.setRegister(register_no_1, truth);
 	},
 });
 
 ISA.insertInstruction(0xfe, {
 	name: "PrintASCII",
 	desc: "Prints the ASCII byte in register (P1) to console",
-	params: [new RegisParam("")],
+	params: [new RegisParam("Register to print from")],
 	execute(c, p, a) {
 		const register_no = p[0];
 		const asciiByte = c.getRegister(register_no);
 
 		const char = String.fromCharCode(asciiByte);
-		a.event(CpuEvent.Print, { data: char });
+		a.dispatch(CpuEvent.Print, char);
 	},
 });

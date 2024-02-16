@@ -1,18 +1,16 @@
 export class Event<T> {
 	identifier: T;
-	callbacks: Array<(event_data: unknown) => void>;
+	callbacks: Array<(event_data: unknown) => void> = [];
 	constructor(identifier: T) {
 		this.identifier = identifier;
-		this.callbacks = [];
 	}
 }
 
 export class EventHandler<T> {
-	events: Array<Event<T>>;
+	events: Array<Event<T>> = [];
 	private sealed: boolean;
 	constructor() {
 		this.sealed = false;
-		this.events = [];
 	}
 
 	seal(): void {
@@ -38,7 +36,7 @@ export class EventHandler<T> {
 			callback(event_data);
 		}
 	}
-	add_listener(identifier: T, callback: (event_data: unknown) => void): void {
+	listen(identifier: T, callback: (event_data: unknown) => void): void {
 		if (!this.sealed) throw new Error("Event handler must be sealed before adding listener");
 		const event = this.events.find((e) => e.identifier === identifier);
 		if (event === undefined) {
