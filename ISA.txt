@@ -9,7 +9,9 @@ INSTRUCTIONS
 0x28: Copy Register -> Register  - 2 Parameter - Copies byte from register (P1) to register (P2)
 0x2F: Assign value to register   - 2 Parameter - Assigns register (P1) to value (P2)
 --- Operations ---
-0x40: Add registers  - 2 Parameter - Adds the contents of (P1) and (P2) and stores result to register (P1). (Overflow will be taken mod 256)
+0x30: increment register - 1 Parameter - Increments register (P1) by 1.
+0x31: decrement register - 1 Parameter - Decrements register (P1) by 1.
+0x40: Add registers      - 2 Parameter - Adds the contents of (P1) and (P2) and stores result to register (P1). (Overflow will be taken mod 256)
 0x41: Reserved
 --- Bit Operations ---
 0x48: Bitwise and    - 2 Parameter - Ands & each bit of register (P1) and register (P2) and stores result to register (P1)

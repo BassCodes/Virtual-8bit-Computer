@@ -1,5 +1,6 @@
-Highlight memory cells based on what they have been used for
-add screen (VRAM?)
-live memory and register editing
-draw lines between registers and memory when used
-add description for the current instruction
+Add screen (VRAM?)
+Live memory and register editing (Probably should pause autostep when it reaches the cell you're modifying)
+Draw lines between registers and memory when used
+Explain mode to explain what instructions are doing
+Window showing ISA
+Save binary button

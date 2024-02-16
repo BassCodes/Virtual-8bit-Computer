@@ -1,5 +1,7 @@
 import { ComputerState } from "./computer";
-import { $, el } from "./etc";
+import { CpuEvent, MemoryCellType } from "./events";
+import { $, el, u8 } from "./etc";
+import { EventHandler } from "./eventHandler";
 
 export class UI {
 	container: HTMLElement;
@@ -8,15 +10,18 @@ export class UI {
 	registers: HTMLElement;
 	register_cells: Array<HTMLElement>;
 	step_func: null | (() => void);
-	auto_running: boolean;
-	constructor(parent: HTMLElement) {
-		this.container = parent;
 
+	program_counter: u8;
+
+	auto_running: boolean;
+	constructor(parent: HTMLElement, cpu_events: EventHandler<CpuEvent>) {
+		this.container = parent;
+		this.program_counter = 0;
 		const program_mem = $("memory");
 		this.program_memory_cells = [];
 		for (let i = 0; i < 256; i++) {
 			const mem_cell = el("div", `p_${i}`);
-			mem_cell.textContent = "0x00";
+			mem_cell.textContent = "00";
 			program_mem.appendChild(mem_cell);
 			this.program_memory_cells.push(mem_cell);
 		}
@@ -28,43 +33,12 @@ export class UI {
 		for (let i = 0; i < 8; i++) {
 			const reg_cell = el("div", `R_${i}`);
 			reg_cell.textContent = "00";
-			// reg_cell.setAttribute("contenteditable", "true");
-			// reg_cell.setAttribute("spellcheck", "false");
 			registers.appendChild(reg_cell);
 			this.register_cells.push(reg_cell);
 		}
-		// // eslint-disable-next-line prefer-arrow-callback
-		// registers.addEventListener("input", function (e) {
-		// 	const allowed_chars = "0123456789ABCDEFG";
-		// 	const r = e.target as HTMLElement;
-		// 	let data = (r.textContent as string).toUpperCase();
-
-		// 	for (let i = 0; i < data.length; i++) {
-		// 		if (!allowed_chars.includes(data[i])) {
-		// 			data = "00";
-		// 			break;
-		// 		}
-		// 	}
-
-		// 	e.preventDefault();
-		// 	return false;
-		// });
-
-		// registers.addEventListener("keydown", (e) => {
-		// 	if (e.key === "Enter") {
-		// 		e.preventDefault();
-		// 		(e.target as HTMLElement).blur();
-		// 	}
-		// });
-		// registers.addEventListener("blur", (e) => {
-		// 	const allowed_chars = "0123456789ABCDEFG";
-		// 	const r = e.target as HTMLElement;
-		// 	const data = (r.textContent as string).toUpperCase();
-		// });
 
 		this.registers = registers;
 
-		// this.container.append(registers, program_mem);
 		this.step_func = null;
 		this.auto_running = false;
 		const pp_button = $("pause_play_button");
@@ -89,6 +63,60 @@ export class UI {
 			}
 			this.step_func();
 		});
+
+		cpu_events.add_listener(CpuEvent.MemoryChanged, (e) => {
+			const { address, value } = e as { address: u8; value: u8 };
+			this.program_memory_cells[address].textContent = value.toString(16).toUpperCase().padStart(2, "0");
+		});
+		cpu_events.add_listener(CpuEvent.RegisterChanged, (e) => {
+			const { register_no, value } = e as { register_no: u8; value: u8 };
+			this.register_cells[register_no].textContent = value.toString(16).toUpperCase().padStart(2, "0");
+		});
+		cpu_events.add_listener(CpuEvent.ProgramCounterChanged, (e) => {
+			const { counter } = e as { counter: u8 };
+			this.program_memory_cells[this.program_counter].classList.remove("program_counter");
+			this.program_memory_cells[counter].classList.add("program_counter");
+			this.program_counter = counter;
+		});
+		cpu_events.add_listener(CpuEvent.Print, (e) => {
+			const { data } = e as { data: u8 };
+			const printout = $("printout");
+			if (printout === null) {
+				throw new Error("Couldn't get printout");
+			}
+			printout.textContent = (printout.textContent ?? "") + data;
+		});
+		cpu_events.add_listener(CpuEvent.Reset, () => {
+			this.stop_auto();
+			this.program_memory_cells.forEach((c) => {
+				c.className = "";
+				c.textContent = "00";
+			});
+			this.register_cells.forEach((r) => {
+				r.textContent = "00";
+			});
+			this.program_counter = 0;
+		});
+
+		const map: Map<MemoryCellType, string> = new Map();
+
+		map.set(MemoryCellType.Constant, "constant");
+		map.set(MemoryCellType.Instruction, "instruction");
+		map.set(MemoryCellType.InvalidInstruction, "invalid_instruction");
+		map.set(MemoryCellType.Memory, "memory");
+		map.set(MemoryCellType.Register, "register");
+		cpu_events.add_listener(CpuEvent.MemoryByteParsed, (e) => {
+			const { type, pos } = e as { type: MemoryCellType; pos: u8 };
+			const css_class = map.get(type);
+			if (css_class === undefined) {
+				throw new Error("Something went wrong");
+			}
+			for (const other_class of map.values()) {
+				if (other_class === css_class) continue;
+				this.program_memory_cells[pos].classList.remove(other_class);
+			}
+			this.program_memory_cells[pos].classList.add(css_class);
+		});
 	}
 
 	start_auto(speed: number = 200): void {
@@ -109,6 +137,7 @@ export class UI {
 			}
 			this.step_func();
 			setTimeout(loop, speed);
+			// requestAnimationFrame(loop);
 		};
 		loop();
 	}
@@ -122,25 +151,12 @@ export class UI {
 	}
 
 	state_update_event(state: ComputerState): void {
-		for (let i = 0; i < 256; i++) {
-			const current = this.program_memory_cells[i];
-			current.className = "";
-			current.textContent = state.memory[i].toString(16).toUpperCase().padStart(2, "0");
-		}
-		this.program_memory_cells[state.program_counter].classList.add("program_counter");
 		const current_instr = state.current_instruction;
 		if (current_instr !== null) {
 			this.program_memory_cells[current_instr.pos].classList.add("current_instruction");
 			for (let i = 0; i < current_instr.params_found; i++) {
 				const offset = i + 1 + current_instr.pos;
 				this.program_memory_cells[offset].classList.add("instruction_argument");
-			}
-		}
-		for (let i = 0; i < state.registers.length; i++) {
-			const new_text = state.registers[i].toString(16).toUpperCase().padStart(2, "0");
-			const old = this.register_cells[i].textContent;
-			if (new_text !== old) {
-				this.register_cells[i].textContent = new_text;
 			}
 		}
 	}
