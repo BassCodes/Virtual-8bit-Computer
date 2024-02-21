@@ -4,30 +4,27 @@
 		<meta charset="UTF-8" />
 		<script src="./dist/main.js"></script>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Document</title>
-		<link rel="stylesheet" href="style.css" />
+		<title>Virtual 8-Bit Computer</title>
 	</head>
 	<body>
 		<div id="main">
 			<div id="title">VIRTUAL 8-BIT COMPUTER</div>
-			<div id="container">
-				<div id="subcontainer">
-					<div id="registers"></div>
-					<div id="labelcontainer">
-						<div id="registers_label">￩REGISTERS</div>
-						<div id="memory_label">MEMORY↯</div>
-					</div>
-				</div>
-				<div id="memory"></div>
+			<div id="registers"></div>
+			<div id="labelcontainer">
+				<div id="registers_label">￩REGISTERS</div>
+				<div id="memory_label">MEMORY↯</div>
 			</div>
+			<div id="memory"></div>
 			<div id="instruction_explainer"></div>
 			<div id="printout"></div>
-		</div>
-		<div id="controls_bar">
-			<button type="button" id="pause_play_button">Start</button>
-			<button type="button" id="step_button">Step</button>
-			<label for="binary_upload" class="button">Load Binary</label>
-			<input id="binary_upload" name="binary_upload" id="binary_upload" style="visibility: hidden" type="file" />
+			<div id="controls_bar">
+				<button type="button" id="pause_play_button">Start</button>
+				<button type="button" id="step_button">Step</button>
+				<label for="binary_upload" class="button">Load Binary</label>
+				<input id="binary_upload" name="binary_upload" id="binary_upload" style="display: none" type="file" />
+				<input type="range" name="" id="delay_range" min="0" max="1500" />
+			</div>
+			<span id="cycles"></span>
 		</div>
 		<pre id="ISA"></pre>
 	</body>

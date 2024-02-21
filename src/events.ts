@@ -6,18 +6,14 @@ export enum CpuEvent {
 	MemoryChanged,
 	RegisterChanged,
 	ProgramCounterChanged,
-	MemoryByteParsed,
+	InstructionParsed,
+	ParameterParsed,
+	InvalidParsed,
 	InstructionExecuted,
+	ClockCycle,
 	Print,
 	Reset,
-}
-
-export enum MemoryCellType {
-	Instruction,
-	InvalidInstruction,
-	Register,
-	Memory,
-	Constant,
+	Halt,
 }
 
 // Handily explained in https://www.cgjennings.ca/articles/typescript-events/
@@ -25,8 +21,12 @@ interface CpuEventMap {
 	[CpuEvent.MemoryChanged]: { address: u8; value: u8 };
 	[CpuEvent.RegisterChanged]: { register_no: u8; value: u8 };
 	[CpuEvent.ProgramCounterChanged]: { counter: u8 };
+	[CpuEvent.Halt]: null;
 	[CpuEvent.Reset]: null;
-	[CpuEvent.MemoryByteParsed]: { type: MemoryCellType; pos: u8; code: u8; param?: ParameterType; instr?: Instruction };
+	[CpuEvent.ClockCycle]: null;
+	[CpuEvent.InstructionParsed]: { pos: u8; code: u8; instr: Instruction };
+	[CpuEvent.ParameterParsed]: { pos: u8; code: u8; param: ParameterType };
+	[CpuEvent.InvalidParsed]: { pos: u8; code: u8 };
 	[CpuEvent.InstructionExecuted]: { instr: Instruction };
 	[CpuEvent.Print]: string;
 }
@@ -38,10 +38,12 @@ export interface CpuEventHandler extends EventHandler<CpuEvent> {
 
 export enum UiEvent {
 	RequestCpuCycle,
+	RequestMemoryChange,
 }
 
 interface UiEventMap {
-	[UiEvent.RequestCpuCycle]: null;
+	[UiEvent.RequestCpuCycle]: number;
+	[UiEvent.RequestMemoryChange]: { address: u8; value: u8 };
 }
 
 export interface UiEventHandler extends EventHandler<UiEvent> {

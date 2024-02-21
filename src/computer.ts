@@ -1,7 +1,7 @@
-import { CpuEvent, CpuEventHandler, MemoryCellType, UiEvent, UiEventHandler } from "./events";
+import { CpuEvent, CpuEventHandler, UiEvent, UiEventHandler } from "./events";
 import { byte_array_to_js_source, format_hex, u8 } from "./etc";
 import { EventHandler } from "./eventHandler";
-import { ConstParam, Instruction, ISA, MemorParam, RegisParam } from "./instructionSet";
+import { Instruction, ISA } from "./instructionSet";
 
 export type TempInstrState = {
 	pos: u8;
@@ -9,16 +9,11 @@ export type TempInstrState = {
 	instr: Instruction;
 	params: Uint8Array;
 };
-export type ComputerState = {
-	memory: Uint8Array;
-	program_counter: u8;
-	registers: Uint8Array;
-	current_instruction: TempInstrState | null;
-};
 
 export class Computer {
 	private memory = new Uint8Array(256);
 	private registers = new Uint8Array(8);
+	private call_stack: Array<u8> = [];
 	private program_counter: u8 = 0;
 	private current_instr: TempInstrState | null = null;
 	events: CpuEventHandler = new EventHandler<CpuEvent>() as CpuEventHandler;
@@ -36,13 +31,13 @@ export class Computer {
 		if (this.current_instr === null) {
 			const parsed_instruction = ISA.getInstruction(current_byte);
 			if (parsed_instruction === null) {
-				this.events.dispatch(CpuEvent.MemoryByteParsed, {
-					type: MemoryCellType.InvalidInstruction,
+				this.events.dispatch(CpuEvent.InvalidParsed, {
 					pos: this.program_counter,
 					code: current_byte,
 				});
 				console.log(`Invalid instruction: ${format_hex(current_byte)}`);
 				this.step_forward();
+				this.events.dispatch(CpuEvent.ClockCycle, null);
 				return;
 			}
 			this.current_instr = {
@@ -51,8 +46,7 @@ export class Computer {
 				params_found: 0,
 				params: new Uint8Array(parsed_instruction.params.length),
 			};
-			this.events.dispatch(CpuEvent.MemoryByteParsed, {
-				type: MemoryCellType.Instruction,
+			this.events.dispatch(CpuEvent.InstructionParsed, {
 				pos: this.program_counter,
 				instr: parsed_instruction,
 				code: current_byte,
@@ -61,32 +55,23 @@ export class Computer {
 
 		if (this.current_instr.pos === this.program_counter && this.current_instr.params.length > 0) {
 			this.step_forward();
+			this.events.dispatch(CpuEvent.ClockCycle, null);
 			return;
 		}
 
 		if (this.current_instr.params.length !== this.current_instr.params_found) {
-			let a;
 			const b = this.current_instr.instr.params[this.current_instr.params_found];
-			if (b instanceof ConstParam) {
-				a = MemoryCellType.Constant;
-			} else if (b instanceof RegisParam) {
-				a = MemoryCellType.Register;
-			} else if (b instanceof MemorParam) {
-				a = MemoryCellType.Memory;
-			}
-			if (a === undefined) {
-				throw new Error("Shouldn't");
-			}
-			this.events.dispatch(CpuEvent.MemoryByteParsed, {
-				type: a,
+
+			this.events.dispatch(CpuEvent.ParameterParsed, {
+				param: b,
 				pos: this.program_counter,
 				code: current_byte,
-				param: b,
 			});
 			this.current_instr.params[this.current_instr.params_found] = current_byte;
 			this.current_instr.params_found += 1;
 			if (this.current_instr.params.length !== this.current_instr.params_found) {
 				this.step_forward();
+				this.events.dispatch(CpuEvent.ClockCycle, null);
 				return;
 			}
 		}
@@ -104,6 +89,7 @@ export class Computer {
 		if (execution_post_action_state.should_step) {
 			this.step_forward();
 		}
+		this.events.dispatch(CpuEvent.ClockCycle, null);
 	}
 
 	getMemory(address: u8): u8 {
@@ -130,18 +116,30 @@ export class Computer {
 		this.program_counter = new_value;
 	}
 
+	pushCallStack(address: u8): boolean {
+		if (this.call_stack.length >= 8) return false;
+		this.call_stack.push(address);
+		return true;
+	}
+
+	popCallStack(): u8 | null {
+		return this.call_stack.pop() ?? null;
+	}
+
 	reset(): void {
+		this.events.dispatch(CpuEvent.Reset, null);
 		this.memory = new Uint8Array(256);
 		this.registers = new Uint8Array(8);
+		this.call_stack = [];
 		this.current_instr = null;
 		this.program_counter = 0;
-		this.events.dispatch(CpuEvent.Reset, null);
 	}
 
 	init_events(ui: UiEventHandler): void {
-		ui.listen(UiEvent.RequestCpuCycle, () => {
-			this.cycle();
+		ui.listen(UiEvent.RequestCpuCycle, (n) => {
+			for (let i = 0; i < n; i++) this.cycle();
 		});
+		ui.listen(UiEvent.RequestMemoryChange, ({ address, value }) => this.setMemory(address, value));
 	}
 
 	load_memory(program: Array<u8>): void {
@@ -149,9 +147,8 @@ export class Computer {
 		const max_loop = Math.min(this.memory.length, program.length);
 		for (let i = 0; i < max_loop; i++) {
 			// Don't fire event if no change is made
-			if (this.memory[i] === program[i]) {
-				continue;
-			}
+			if (this.memory[i] === program[i]) continue;
+
 			this.memory[i] = program[i];
 			this.events.dispatch(CpuEvent.MemoryChanged, { address: i, value: program[i] });
 		}

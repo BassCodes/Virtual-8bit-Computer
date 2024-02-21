@@ -1,0 +1,192 @@
+* {
+	box-sizing: border-box;
+}
+
+pre {
+	font-size: 0.5em;
+}
+
+:root {
+	--Border: Yellow;
+	--mem-instruction: greenyellow;
+	--mem-register: Purple;
+	--mem-constant: lightgray;
+	--mem-memory: lightgray;
+	--mem-invalid: red;
+}
+
+body {
+	color: gray;
+	background-color: black;
+	font-size: 2.5em;
+	font-family: monospace;
+}
+
+#labelcontainer {
+	column-gap: 18px;
+	font-size: 0.85em;
+	display: flex;
+	align-items: center;
+	user-select: none;
+	grid-area: regmemlabel;
+}
+
+#main {
+	justify-content: center;
+	display: grid;
+	grid-template-columns: min-content max-content max-content 10px 500px;
+	grid-template-rows: min-content 1.5fr 10px 2fr 2fr min-content;
+	grid-template-areas:
+		"cycles registers regmemlabel . explainer "
+		"title .         .           . explainer "
+		"title .         .           . ."
+		"title .         .           . printout "
+		"title .         .           . printout "
+		".     buttons   buttons     buttons    buttons";
+	#memory {
+		grid-column: 2/4;
+		grid-row: 2/6;
+	}
+	#cycles {
+		grid-area: cycles;
+		text-align: left;
+		align-self: center;
+		font-size: 0.48em;
+	}
+	#title {
+		grid-area: title;
+		writing-mode: vertical-lr;
+		text-align: left;
+		user-select: none;
+		transform: scale(-1, -1);
+	}
+}
+
+#printout {
+	border: 4px dashed yellow;
+	grid-area: printout;
+	padding: 10px;
+	word-wrap: break-word;
+	word-break: break-all;
+	max-height: 200px;
+	overflow-x: scroll;
+}
+
+#instruction_explainer {
+	grid-area: explainer;
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	border: 5px dashed yellow;
+	#expl_box {
+		padding-inline: 20px;
+		padding-block-start: 10px;
+	}
+
+	#expl_text {
+		font-size: 0.6em;
+		text-align: center;
+		vertical-align: center;
+	}
+
+	#expl_icon {
+		margin-inline-end: 0.5em;
+		font-size: 30px;
+		padding: 5px;
+		color: var(--color);
+		outline: 3px dashed var(--color);
+	}
+}
+
+.invalid {
+	--color: var(--mem-invalid);
+}
+.constant {
+	--color: var(--mem-constant);
+}
+.register {
+	--color: var(--mem-register);
+}
+.memory {
+	--color: var(--mem-memory);
+}
+.instruction {
+	--color: var(--mem-instruction);
+}
+
+#memory {
+	grid-area: memory;
+	display: grid;
+	grid-template-columns: repeat(16, min-content);
+	gap: 5px;
+	padding: 10px;
+	border: 5px solid yellow;
+	div {
+		text-align: center;
+		color: var(--color);
+	}
+	.program_counter {
+		outline: 3px solid orange;
+	}
+	.instruction_argument {
+		outline: 3px dashed purple;
+	}
+	.current_instruction {
+		outline: 3px dashed greenyellow;
+	}
+
+	.invalid {
+		&::after {
+			user-select: none;
+			float: right;
+			position: relative;
+			right: 0.5em;
+			width: 0px;
+			font-size: 0.5em;
+			content: "!";
+		}
+	}
+}
+
+#registers {
+	grid-area: registers;
+	border: 5px solid yellow;
+	border-bottom: none;
+
+	grid-template-columns: repeat(8, min-content);
+	max-width: fit-content;
+	display: grid;
+	column-gap: 5px;
+	color: lightgray;
+	padding: 10px;
+
+	div {
+		max-height: min-content;
+		// margin-block: auto;
+	}
+}
+
+button,
+label.button {
+	border: 4px solid yellow;
+	color: gray;
+	margin: 10px;
+	margin-inline: 0px;
+	padding: 10px;
+	font-size: 0.8em;
+	font-family: monospace;
+	background-color: transparent;
+	cursor: pointer;
+	user-select: none;
+}
+
+button:hover,
+label.button:hover {
+	color: white;
+}
+
+#controls_bar {
+	grid-area: buttons;
+	display: flex;
+	gap: 10px;
+}

@@ -1,41 +1,40 @@
-import { ComputerState } from "./computer";
-import { CpuEvent, CpuEventHandler, MemoryCellType, UiEvent, UiEventHandler } from "./events";
+import { CpuEvent, CpuEventHandler, UiEvent, UiEventHandler } from "./events";
 import { $, el, format_hex, u8 } from "./etc";
-import { Instruction, ParameterType } from "./instructionSet";
 import { EventHandler } from "./eventHandler";
+import { InstructionExplainer } from "./ui/instructionExplainer";
+import { MemoryView } from "./ui/memoryView";
+import { ParamType } from "./instructionSet";
+import { frequencyIndicator } from "./ui/frequencyIndicator";
+// Certainly the messiest portion of this program
+// Needs to be broken into components
+
+let delay = 100;
 
 export class UI {
-	container: HTMLElement;
-	program_memory: HTMLElement;
-	program_memory_cells: Array<HTMLElement> = [];
 	registers: HTMLElement;
 	printout: HTMLElement;
-	instruction_explainer: HTMLElement;
 	register_cells: Array<HTMLElement> = [];
-	instruction_parsing_addresses: Array<u8> = [];
-	program_counter: u8 = 0;
 
 	auto_running: boolean;
 
 	events: UiEventHandler = new EventHandler<UiEvent>() as UiEventHandler;
 
-	constructor(parent: HTMLElement) {
+	frequencyIndicator: frequencyIndicator;
+	memory: MemoryView;
+	instruction_explainer: InstructionExplainer;
+
+	constructor() {
 		for (const [, e_type] of Object.entries(UiEvent)) {
 			this.events.register_event(e_type as UiEvent);
 		}
 		this.events.seal();
-		this.container = parent;
+
+		this.memory = new MemoryView($("memory"));
+		this.frequencyIndicator = new frequencyIndicator($("cycles"));
+
+		this.instruction_explainer = new InstructionExplainer($("instruction_explainer"));
+
 		this.printout = $("printout");
-		this.instruction_explainer = $("instruction_explainer");
-		const program_mem = $("memory");
-		for (let i = 0; i < 256; i++) {
-			const mem_cell = el("div", `p_${i}`);
-			mem_cell.textContent = "00";
-			program_mem.appendChild(mem_cell);
-			this.program_memory_cells.push(mem_cell);
-		}
-		this.program_memory_cells[0].classList.add("div", "program_counter");
-		this.program_memory = program_mem;
 
 		const registers = $("registers");
 		for (let i = 0; i < 8; i++) {
@@ -66,21 +65,24 @@ export class UI {
 				this.stop_auto();
 			}
 
-			this.events.dispatch(UiEvent.RequestCpuCycle, null);
+			this.events.dispatch(UiEvent.RequestCpuCycle, 1);
+		});
+
+		$("delay_range").addEventListener("input", (e) => {
+			delay = parseInt((e.target as HTMLInputElement).value, 10);
+			// console.log(delay);
 		});
 	}
 
 	init_events(cpu_events: CpuEventHandler): void {
 		cpu_events.listen(CpuEvent.MemoryChanged, ({ address, value }) => {
-			this.program_memory_cells[address].textContent = format_hex(value);
+			this.memory.set_cell_value(address, value);
 		});
 		cpu_events.listen(CpuEvent.RegisterChanged, ({ register_no, value }) => {
 			this.register_cells[register_no].textContent = format_hex(value);
 		});
 		cpu_events.listen(CpuEvent.ProgramCounterChanged, ({ counter }) => {
-			this.program_memory_cells[this.program_counter].classList.remove("program_counter");
-			this.program_memory_cells[counter].classList.add("program_counter");
-			this.program_counter = counter;
+			this.memory.set_program_counter(counter);
 		});
 		cpu_events.listen(CpuEvent.Print, (char) => {
 			this.printout.textContent = (this.printout.textContent ?? "") + char;
@@ -89,78 +91,51 @@ export class UI {
 			this.reset();
 		});
 
-		const map: Map<MemoryCellType, string> = new Map();
+		this.frequencyIndicator.init_cpu_events(cpu_events);
+		this.memory.init_cpu_events(cpu_events);
+		this.instruction_explainer.init_cpu_events(cpu_events);
 
-		map.set(MemoryCellType.Constant, "constant");
-		map.set(MemoryCellType.Instruction, "instruction");
-		map.set(MemoryCellType.InvalidInstruction, "invalid_instruction");
-		map.set(MemoryCellType.Memory, "memory");
-		map.set(MemoryCellType.Register, "register");
-		cpu_events.listen(CpuEvent.MemoryByteParsed, (e) => {
-			const { type, pos, code } = e;
-			const css_class = map.get(type);
-			if (css_class === undefined) {
-				throw new Error("Something went wrong");
+		cpu_events.listen(CpuEvent.ParameterParsed, ({ param, code, pos }) => {
+			this.memory.add_cell_class(pos, "instruction_argument");
+			this.instruction_explainer.add_param(param, pos, code);
+			const t = param.type;
+			this.memory.remove_cell_class(pos, "constant", "register", "memory", "instruction", "invalid");
+			let name: string = "";
+			if (t === ParamType.Const) {
+				name = "constant";
+			} else if (t === ParamType.Memory) {
+				name = "memory";
+			} else if (t === ParamType.Register) {
+				name = "register";
+			} else {
+				throw new Error("unreachable");
 			}
-			for (const other_class of map.values()) {
-				if (other_class === css_class) continue;
-				this.program_memory_cells[pos].classList.remove(other_class);
-			}
-			if (type === MemoryCellType.Instruction) {
-				while (this.instruction_parsing_addresses.length > 0) {
-					const num = this.instruction_parsing_addresses.pop();
-					if (num === undefined) {
-						throw new Error("Shouldn't happen");
-					}
-					this.program_memory_cells[num].classList.remove("instruction_argument");
-					this.program_memory_cells[num].classList.remove("current_instruction");
-				}
-				this.instruction_explainer.innerHTML = "";
-				const { instr } = e as { instr: Instruction };
-				this.program_memory_cells[pos].classList.add("current_instruction");
-				this.instruction_parsing_addresses.push(pos);
-				const instr_box = el("div", "expl_box");
-				const instr_icon = el("span", "expl_icon");
-				instr_icon.classList.add(css_class);
-				instr_icon.setAttribute("title", css_class.toUpperCase());
-				instr_icon.textContent = format_hex(code);
-				const instr_box_text = el("span", "expl_text");
-				instr_box_text.textContent = `${instr.name}`;
-				instr_box.appendChild(instr_icon);
-				instr_box.appendChild(instr_box_text);
-				this.instruction_explainer.appendChild(instr_box);
-			} else if (type !== MemoryCellType.InvalidInstruction) {
-				const { param } = e as { param: ParameterType };
-				this.program_memory_cells[pos].classList.add("instruction_argument");
-				this.instruction_parsing_addresses.push(pos);
-				const instr_box = el("div", "expl_box");
-				const instr_icon = el("span", "expl_icon");
-				instr_icon.classList.add(css_class);
-				instr_icon.setAttribute("title", css_class.toUpperCase());
-				instr_icon.textContent = format_hex(code);
-				const instr_box_text = el("span", "expl_text");
-				instr_box_text.textContent = `${param.desc}`;
-				instr_box.appendChild(instr_icon);
-				instr_box.appendChild(instr_box_text);
-				this.instruction_explainer.appendChild(instr_box);
-			}
-			this.program_memory_cells[pos].classList.add(css_class);
+			this.memory.add_cell_class(pos, name);
 		});
+		cpu_events.listen(CpuEvent.InstructionParsed, ({ instr, code, pos }) => {
+			this.instruction_explainer.add_instruction(instr, pos, code);
 
-		cpu_events.listen(CpuEvent.InstructionExecuted, ({ instr }) => {});
+			this.memory.remove_all_cell_class("instruction_argument");
+			this.memory.remove_all_cell_class("current_instruction");
+			this.memory.add_cell_class(pos, "current_instruction");
+			this.memory.remove_cell_class(pos, "constant", "register", "memory", "invalid");
+			this.memory.add_cell_class(pos, "instruction");
+		});
+		cpu_events.listen(CpuEvent.InvalidParsed, ({ code, pos }) => {
+			this.memory.remove_cell_class(pos, "constant", "register", "memory", "instruction");
+			this.memory.add_cell_class(pos, "invalid");
+			this.instruction_explainer.add_invalid(pos, code);
+		});
 	}
 
 	reset(): void {
 		this.stop_auto();
-		this.program_memory_cells.forEach((c) => {
-			c.className = "";
-			c.textContent = "00";
-		});
 		this.register_cells.forEach((r) => {
 			r.textContent = "00";
 		});
-		this.program_counter = 0;
-		this.program_memory_cells[0].classList.add("program_counter");
+		this.frequencyIndicator.reset();
+		this.instruction_explainer.reset();
+		this.memory.reset();
 		this.printout.textContent = "";
 	}
 
@@ -173,25 +148,13 @@ export class UI {
 			if (this.auto_running === false) {
 				return;
 			}
-			this.events.dispatch(UiEvent.RequestCpuCycle, null);
-			setTimeout(loop, speed);
-			// requestAnimationFrame(loop);
+			this.events.dispatch(UiEvent.RequestCpuCycle, 1);
+			setTimeout(loop, delay);
 		};
 		loop();
 	}
 
 	stop_auto(): void {
 		this.auto_running = false;
-	}
-
-	state_update_event(state: ComputerState): void {
-		const current_instr = state.current_instruction;
-		if (current_instr !== null) {
-			this.program_memory_cells[current_instr.pos].classList.add("current_instruction");
-			for (let i = 0; i < current_instr.params_found; i++) {
-				const offset = i + 1 + current_instr.pos;
-				this.program_memory_cells[offset].classList.add("instruction_argument");
-			}
-		}
 	}
 }

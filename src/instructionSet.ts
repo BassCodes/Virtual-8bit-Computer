@@ -1,16 +1,36 @@
 import { CpuEvent, CpuEventHandler } from "./events";
 import { format_hex, u8 } from "./etc";
 
-export class ParameterType {
+export enum ParamType {
+	Const,
+	Register,
+	Memory,
+}
+
+export abstract class ParameterType {
 	readonly desc: string;
-	constructor(description: string) {
+	readonly type: ParamType;
+	constructor(description: string, p_type: ParamType) {
 		this.desc = description;
+		this.type = p_type;
 	}
 }
 
-export class ConstParam extends ParameterType {}
-export class RegisParam extends ParameterType {}
-export class MemorParam extends ParameterType {}
+class ConstParam extends ParameterType {
+	constructor(d: string) {
+		super(d, ParamType.Const);
+	}
+}
+class RegisParam extends ParameterType {
+	constructor(d: string) {
+		super(d, ParamType.Register);
+	}
+}
+class MemorParam extends ParameterType {
+	constructor(d: string) {
+		super(d, ParamType.Memory);
+	}
+}
 
 interface GenericComputer {
 	getMemory: (address: u8) => u8;
@@ -19,6 +39,8 @@ interface GenericComputer {
 	getProgramCounter: () => u8;
 	getRegister: (number: u8) => u8;
 	setRegister: (number: u8, value: u8) => void;
+	pushCallStack: (address: u8) => boolean;
+	popCallStack: () => u8 | null;
 }
 
 interface AfterExecutionComputerAction {
@@ -31,7 +53,11 @@ export interface Instruction {
 	readonly name: string;
 	readonly desc: string;
 	readonly params: Array<ParameterType>;
-	execute: (computer_reference: GenericComputer, parameters: Uint8Array, a: AfterExecutionComputerAction) => void;
+	readonly execute: (
+		computer_reference: GenericComputer,
+		parameters: Uint8Array,
+		a: AfterExecutionComputerAction
+	) => void;
 }
 
 export class InstructionSet {
@@ -54,6 +80,8 @@ export class InstructionSet {
 }
 
 export const ISA = new InstructionSet();
+
+// The definitions for actual instructions.
 
 ISA.insertInstruction(0x00, {
 	name: "NoOp",
@@ -86,7 +114,7 @@ ISA.insertInstruction(0x20, {
 ISA.insertInstruction(0x21, {
 	name: "SaveToMemory",
 	desc: "Writes the byte in register (P1) to the memory cell (P2)",
-	params: [new RegisParam(""), new MemorParam("")],
+	params: [new RegisParam("Write the byte in this register"), new MemorParam("To this memory address")],
 	execute(c, p) {
 		const [register_no, mem_address] = p;
 		c.setMemory(mem_address, c.getRegister(register_no));
@@ -115,6 +143,7 @@ ISA.insertInstruction(0x11, {
 		}
 	},
 });
+
 ISA.insertInstruction(0x30, {
 	name: "Increment",
 	desc: "Increments the value within register (P1) by 1",
@@ -122,7 +151,8 @@ ISA.insertInstruction(0x30, {
 	execute(c, p) {
 		const register_no = p[0];
 		const current_value = c.getRegister(register_no);
-		c.setRegister(register_no, current_value + 1);
+		const new_value = (current_value + 1) % 256;
+		c.setRegister(register_no, new_value);
 	},
 });
 
@@ -133,14 +163,18 @@ ISA.insertInstruction(0x31, {
 	execute(c, p) {
 		const register_no = p[0];
 		const current_value = c.getRegister(register_no);
-		c.setRegister(register_no, current_value - 1);
+		let new_value = current_value - 1;
+		if (new_value === -1) {
+			new_value = 255;
+		}
+		c.setRegister(register_no, new_value);
 	},
 });
 
 ISA.insertInstruction(0x40, {
 	name: "Add",
 	desc: "Adds the contents of (P1) and (P2) and stores result to register (P1). (Overflow will be taken mod 256)",
-	params: [new RegisParam(""), new RegisParam("")],
+	params: [new RegisParam("set this register to"), new RegisParam("it's sum with the value in this register")],
 	execute(c, p) {
 		const [register_no_1, register_no_2] = p;
 		const new_value = (c.getRegister(register_no_1) + c.getRegister(register_no_2)) % 256;
@@ -173,5 +207,83 @@ ISA.insertInstruction(0xfe, {
 
 		const char = String.fromCharCode(asciiByte);
 		a.dispatch(CpuEvent.Print, char);
+	},
+});
+
+ISA.insertInstruction(0x48, {
+	name: "Bitwise And",
+	desc: "Takes each bit in register (P1) and compares to the respective bit in register (P2). Each bit in register (P1) is set to 1 if the respective bit in both registers are 1",
+	params: [new RegisParam(""), new RegisParam("")],
+	execute(c, p) {
+		const [register_no_1, register_no_2] = p;
+		const new_value = c.getRegister(register_no_1) & c.getMemory(register_no_2);
+		c.setRegister(register_no_1, new_value);
+	},
+});
+
+ISA.insertInstruction(0xff, {
+	name: "Print",
+	desc: "Prints the byte in register (P1) to console as base 10",
+	params: [new RegisParam("Register to print from")],
+	execute(c, p, a) {
+		const register_no = p[0];
+		const byte = c.getRegister(register_no);
+
+		a.dispatch(CpuEvent.Print, byte.toString(10));
+	},
+});
+
+ISA.insertInstruction(0xfd, {
+	name: "Print 16 bit",
+	desc: "Prints the byte in register (P1) as the upper half and the byte in register (P2) as the lower half of a 16 bit number. Formats to decimal",
+	params: [new RegisParam("Upper 8 bits of number"), new RegisParam("Lower 8 bits of number")],
+	execute(c, p, a) {
+		const [upper_register_no, lower_register_no] = p;
+		const upper = c.getRegister(upper_register_no);
+		const lower = c.getRegister(lower_register_no);
+		const sum = upper * 16 * 16 + lower;
+
+		a.dispatch(CpuEvent.Print, sum.toString(10));
+	},
+});
+
+ISA.insertInstruction(0x66, {
+	name: "Halt and Catch Fire",
+	desc: "Stops program execu..... Fire! FIRE EVERYWHERE!",
+	params: [],
+	execute(c, p, a) {
+		a.dispatch(CpuEvent.Halt, null);
+	},
+});
+
+ISA.insertInstruction(0xa0, {
+	name: "Call",
+	desc: "",
+	params: [new ConstParam("the subroutine at this memory address")],
+	execute(c, p, a) {
+		const current_address = c.getProgramCounter();
+		const success = c.pushCallStack(current_address);
+		// TODO Handle success/failure
+
+		const new_address = p[0];
+		c.setProgramCounter(new_address);
+
+		a.noStep();
+	},
+});
+
+ISA.insertInstruction(0xa1, {
+	name: "Return",
+	desc: "",
+	params: [],
+	execute(c, p, a) {
+		const new_address = c.popCallStack();
+		if (new_address === null) {
+			throw new Error("TODO handle this");
+		}
+
+		c.setProgramCounter(new_address + 1);
+
+		a.noStep();
 	},
 });

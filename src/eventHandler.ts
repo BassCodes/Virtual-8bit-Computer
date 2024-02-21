@@ -27,7 +27,7 @@ export class EventHandler<T> {
 		const event = new Event<T>(identifier);
 		this.events.push(event);
 	}
-	dispatch(identifier: T, event_data: unknown): void {
+	dispatch(identifier: T, event_data?: unknown): void {
 		const event = this.events.find((e) => e.identifier === identifier);
 		if (event === undefined) {
 			throw new Error("Event not found");
