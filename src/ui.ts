@@ -1,26 +1,25 @@
 import { CpuEvent, CpuEventHandler, UiEvent, UiEventHandler } from "./events";
 import { $, el, format_hex } from "./etc";
-import { EventHandler } from "./eventHandler";
 import { InstructionExplainer } from "./ui/instructionExplainer";
 import { MemoryView } from "./ui/memoryView";
-import { ParamType } from "./instructionSet";
 import { frequencyIndicator } from "./ui/frequencyIndicator";
+import { RegisterView } from "./ui/registerView";
 // Certainly the messiest portion of this program
 // Needs to be broken into components
+// Breaking up into components has started but has yet to conclude
 
 let delay = 100;
 
 export class UI {
-	registers: HTMLElement;
 	printout: HTMLElement;
-	register_cells: Array<HTMLElement> = [];
 
 	auto_running: boolean;
 
-	events: UiEventHandler = new EventHandler<UiEvent>() as UiEventHandler;
+	events: UiEventHandler = new UiEventHandler();
 
 	frequencyIndicator: frequencyIndicator;
 	memory: MemoryView;
+	registers: RegisterView;
 	instruction_explainer: InstructionExplainer;
 
 	constructor() {
@@ -29,22 +28,12 @@ export class UI {
 		}
 		this.events.seal();
 
-		this.memory = new MemoryView($("memory"));
-		this.frequencyIndicator = new frequencyIndicator($("cycles"));
-
-		this.instruction_explainer = new InstructionExplainer($("instruction_explainer"));
+		this.memory = new MemoryView($("memory"), this.events);
+		this.frequencyIndicator = new frequencyIndicator($("cycles"), this.events);
+		this.instruction_explainer = new InstructionExplainer($("instruction_explainer"), this.events);
+		this.registers = new RegisterView($("registers"), this.events);
 
 		this.printout = $("printout");
-
-		const registers = $("registers");
-		for (let i = 0; i < 8; i++) {
-			const reg_cell = el("div", `r_${i}`);
-			reg_cell.textContent = "00";
-			registers.appendChild(reg_cell);
-			this.register_cells.push(reg_cell);
-		}
-
-		this.registers = registers;
 
 		this.auto_running = false;
 		const pp_button = $("pause_play_button");
@@ -75,13 +64,14 @@ export class UI {
 	}
 
 	init_events(cpu_events: CpuEventHandler): void {
-		cpu_events.listen(CpuEvent.RegisterChanged, ({ register_no, value }) => {
-			this.register_cells[register_no].textContent = format_hex(value);
-		});
 		cpu_events.listen(CpuEvent.Print, (char) => {
 			this.printout.textContent = (this.printout.textContent ?? "") + char;
 		});
+		cpu_events.listen(CpuEvent.Reset, () => {
+			this.reset();
+		});
 
+		this.registers.init_cpu_events(cpu_events);
 		this.frequencyIndicator.init_cpu_events(cpu_events);
 		this.memory.init_cpu_events(cpu_events);
 		this.instruction_explainer.init_cpu_events(cpu_events);
@@ -89,9 +79,7 @@ export class UI {
 
 	reset(): void {
 		this.stop_auto();
-		this.register_cells.forEach((r) => {
-			r.textContent = "00";
-		});
+		this.registers.reset();
 		this.frequencyIndicator.reset();
 		this.instruction_explainer.reset();
 		this.memory.reset();

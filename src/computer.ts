@@ -1,8 +1,7 @@
 import { CpuEvent, CpuEventHandler, UiEvent, UiEventHandler } from "./events";
 import { byte_array_to_js_source, format_hex } from "./etc";
-import { EventHandler } from "./eventHandler";
 import { Instruction, ISA } from "./instructionSet";
-import { m256, u8 } from "./num";
+import { m256, u1, u3, u8 } from "./num";
 
 export type TempInstrState = {
 	pos: u8;
@@ -11,14 +10,25 @@ export type TempInstrState = {
 	params: Array<u8>;
 };
 
+// It would be a shame not to use the `Uint8Array` type JS provides to store memory and other byte arrays.
+// Unfortunately Typescript defines indexing a `Uint8Array` to return a generic `number`, not the constrained `u8`.
+// This redefines it.
+declare global {
+	interface Uint8Array {
+		[key: number]: u8;
+	}
+}
+
+const bank_count = 1; // 1 additional bank: video memory
+
 export class Computer {
-	private memory = new Array<u8>(256);
-	private registers = new Array<u8>(256);
+	private memory: Uint8Array = new Uint8Array(256 + 256 * bank_count);
+	private registers: Uint8Array = new Uint8Array(8);
 	private call_stack: Array<u8> = [];
 	private program_counter: u8 = 0;
-	private bank: u8 = 0;
+	private bank: u1 = 0;
 	private current_instr: TempInstrState | null = null;
-	events: CpuEventHandler = new EventHandler<CpuEvent>() as CpuEventHandler;
+	events: CpuEventHandler = new CpuEventHandler();
 
 	constructor() {
 		// Add events
@@ -29,7 +39,8 @@ export class Computer {
 	}
 
 	cycle(): void {
-		const current_byte = this.memory[this.program_counter];
+		const current_byte = this.getMemory(this.program_counter, 0);
+
 		if (this.current_instr === null) {
 			const parsed_instruction = ISA.getInstruction(current_byte);
 			if (parsed_instruction === null) {
@@ -39,7 +50,7 @@ export class Computer {
 				});
 				console.log(`Invalid instruction: ${format_hex(current_byte)}`);
 				this.step_forward();
-				this.events.dispatch(CpuEvent.ClockCycle, null);
+				this.events.dispatch(CpuEvent.Cycle);
 				return;
 			}
 			this.current_instr = {
@@ -57,7 +68,7 @@ export class Computer {
 
 		if (this.current_instr.pos === this.program_counter && this.current_instr.params.length > 0) {
 			this.step_forward();
-			this.events.dispatch(CpuEvent.ClockCycle, null);
+			this.events.dispatch(CpuEvent.Cycle);
 			return;
 		}
 
@@ -73,7 +84,7 @@ export class Computer {
 			this.current_instr.params_found += 1;
 			if (this.current_instr.params.length !== this.current_instr.params_found) {
 				this.step_forward();
-				this.events.dispatch(CpuEvent.ClockCycle, null);
+				this.events.dispatch(CpuEvent.Cycle);
 				return;
 			}
 		}
@@ -91,21 +102,28 @@ export class Computer {
 		if (execution_post_action_state.should_step) {
 			this.step_forward();
 		}
-		this.events.dispatch(CpuEvent.ClockCycle, null);
+		this.events.dispatch(CpuEvent.Cycle);
 	}
 
-	getMemory(address: u8): u8 {
-		return this.memory[address];
+	getMemory(address: u8, bank_override?: u1): u8 {
+		if (bank_override !== undefined) {
+			const value = this.memory[address + 256 * bank_override] as u8;
+			return value;
+		}
+		const value = this.memory[address + 256 * this.bank] as u8;
+		return value;
 	}
+
 	setMemory(address: u8, value: u8): void {
 		this.events.dispatch(CpuEvent.MemoryChanged, { address, value });
-		this.memory[address] = value;
+		this.memory[address + 256 * bank_count] = value;
 	}
 
-	getRegister(register_no: u8): u8 {
-		return this.registers[register_no];
+	getRegister(register_no: u3): u8 {
+		return this.registers[register_no] as u8;
 	}
-	setRegister(register_no: u8, value: u8): void {
+
+	setRegister(register_no: u3, value: u8): void {
 		this.events.dispatch(CpuEvent.RegisterChanged, { register_no, value });
 		this.registers[register_no] = value;
 	}
@@ -113,6 +131,7 @@ export class Computer {
 	getProgramCounter(): u8 {
 		return this.program_counter;
 	}
+
 	setProgramCounter(new_value: u8): void {
 		this.events.dispatch(CpuEvent.ProgramCounterChanged, { counter: new_value });
 		this.program_counter = new_value;
@@ -128,22 +147,22 @@ export class Computer {
 		return this.call_stack.pop() ?? null;
 	}
 
-	setBank(bank_no: u8): void {
+	setBank(bank_no: u1): void {
 		this.bank = bank_no;
 	}
 
 	reset(): void {
-		this.events.dispatch(CpuEvent.Reset, null);
-		this.memory = new Array<u8>(256);
-		this.registers = new Array<u8>(8);
+		this.events.dispatch(CpuEvent.Reset);
+		this.memory = new Uint8Array(256);
+		this.registers = new Uint8Array(8);
 		this.call_stack = [];
 		this.current_instr = null;
 		this.program_counter = 0;
 	}
 
 	init_events(ui: UiEventHandler): void {
-		ui.listen(UiEvent.RequestCpuCycle, (n) => {
-			for (let i = 0; i < n; i++) this.cycle();
+		ui.listen(UiEvent.RequestCpuCycle, (cycle_count) => {
+			for (let i = 0; i < cycle_count; i++) this.cycle();
 		});
 		ui.listen(UiEvent.RequestMemoryChange, ({ address, value }) => this.setMemory(address, value));
 	}
@@ -161,7 +180,7 @@ export class Computer {
 		this.program_counter = 0;
 	}
 
-	dump_memory(): Array<u8> {
+	dump_memory(): Uint8Array {
 		return this.memory;
 	}
 

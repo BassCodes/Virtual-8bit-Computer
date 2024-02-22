@@ -5,15 +5,17 @@ import { u8 } from "../num.js";
 import { UiComponent } from "./uiComponent";
 
 type MemoryCell = {
-	el: HTMLElement;
+	el: HTMLDivElement;
 };
 
 export class MemoryView implements UiComponent {
 	element: HTMLElement;
 	cells: Array<MemoryCell> = [];
 	program_counter: number = 0;
-	constructor(element: HTMLElement) {
+	events: UiEventHandler;
+	constructor(element: HTMLElement, e: UiEventHandler) {
 		this.element = element;
+		this.events = e;
 		for (let i = 0; i < 256; i++) {
 			const mem_cell_el = el("div");
 			mem_cell_el.textContent = "00";
@@ -58,20 +60,13 @@ export class MemoryView implements UiComponent {
 	}
 
 	reset(): void {
-		this.element.innerHTML = "";
 		for (let i = 0; i < 256; i++) {
-			const mem_cell_el = el("div");
-			mem_cell_el.textContent = "00";
-			this.element.appendChild(mem_cell_el);
-			const mem_cell = { el: mem_cell_el };
-			this.cells.push(mem_cell);
+			this.cells[i].el.textContent = "00";
+			this.cells[i].el.className = "";
 		}
 		this.set_program_counter(0);
 	}
 
-	init_events(eh: UiEventHandler): void {
-		this;
-	}
 	init_cpu_events(c: CpuEventHandler): void {
 		c.listen(CpuEvent.MemoryChanged, ({ address, value }) => {
 			this.set_cell_value(address, value);

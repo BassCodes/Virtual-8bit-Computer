@@ -6,8 +6,10 @@ import { UiComponent } from "./uiComponent";
 
 export class InstructionExplainer implements UiComponent {
 	element: HTMLElement;
-	constructor(element: HTMLElement) {
+	events: UiEventHandler;
+	constructor(element: HTMLElement, e: UiEventHandler) {
 		this.element = element;
+		this.events = e;
 	}
 	add_instruction(instr: Instruction, pos: u8, byte: u8): void {
 		this.reset();
@@ -47,7 +49,6 @@ export class InstructionExplainer implements UiComponent {
 		this.add_box(format_hex(byte), "Invalid Instruction", "invalid");
 	}
 
-	init_events(eh: UiEventHandler): void {}
 	init_cpu_events(c: CpuEventHandler): void {
 		c.listen(CpuEvent.ParameterParsed, ({ param, code, pos }) => {
 			this.add_param(param, pos, code);

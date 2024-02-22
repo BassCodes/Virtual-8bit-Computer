@@ -1,3 +1,8 @@
+/**
+ * @file Automatic generation of instruction set description
+ * @copyright Alexander Bass 2024
+ * @license GPL-3.0
+ */
 import { format_hex } from "./etc";
 import { Instruction, InstructionSet } from "./instructionSet";
 import { u8 } from "./num.js";

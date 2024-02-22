@@ -7,8 +7,10 @@ export class frequencyIndicator implements UiComponent {
 	private count: number = 0;
 	private last_value: number = 0;
 	private last_time: number = 0;
-	constructor(element: HTMLElement) {
+	events: UiEventHandler;
+	constructor(element: HTMLElement, e: UiEventHandler) {
 		this.element = element;
+		this.events = e;
 		this.start();
 	}
 
@@ -39,9 +41,6 @@ export class frequencyIndicator implements UiComponent {
 		this.count = 0;
 	}
 
-	init_events(eh: UiEventHandler): void {
-		this;
-	}
 	clock_cycle(): void {
 		this.count += 1;
 	}
@@ -51,7 +50,7 @@ export class frequencyIndicator implements UiComponent {
 		this.last_value = 0;
 	}
 	init_cpu_events(c: CpuEventHandler): void {
-		c.listen(CpuEvent.ClockCycle, () => {
+		c.listen(CpuEvent.Cycle, () => {
 			this.count += 1;
 		});
 	}

@@ -1,3 +1,8 @@
+/**
+ * @file CPU instruction definitions & type definitions for parameters and instructions
+ * @copyright Alexander Bass 2024
+ * @license GPL-3.0
+ */
 import { CpuEvent, CpuEventHandler } from "./events";
 import { format_hex } from "./etc";
 import { isU3, m256, u1, u3, u8 } from "./num";
@@ -77,6 +82,7 @@ export class InstructionSet {
 	}
 
 	getInstruction(hexCode: u8): Instruction | null {
+		// console.log(format_hex(hexCode));
 		return this.instructions.get(hexCode) ?? null;
 	}
 }
@@ -111,8 +117,9 @@ ISA.insertInstruction(0x20, {
 		const [register_no, register_2] = p;
 		if (!isU3(register_no)) throw new Error("TODO");
 		if (!isU3(register_2)) throw new Error("TODO");
+		const mem_value = c.getMemory(c.getRegister(register_2));
 
-		c.setRegister(register_no, c.getMemory(c.getRegister(register_2)));
+		c.setRegister(register_no, mem_value);
 	},
 });
 
@@ -273,7 +280,7 @@ ISA.insertInstruction(0x66, {
 	desc: "Stops program execu..... Fire! FIRE EVERYWHERE!",
 	params: [],
 	execute(c, p, a) {
-		a.dispatch(CpuEvent.Halt, null);
+		a.dispatch(CpuEvent.Halt);
 	},
 });
 

@@ -1,3 +1,8 @@
+/**
+ * @file Virtual 8-Bit Computer
+ * @copyright Alexander Bass 2024
+ * @license GPL-3.0
+ */
 import { Computer } from "./computer";
 import { $ } from "./etc";
 import { ISA } from "./instructionSet";
@@ -6,6 +11,13 @@ import { UI } from "./ui";
 import { u8 } from "./num";
 
 import "./style.scss";
+
+declare global {
+	interface Window {
+		comp: Computer;
+		ui: UI;
+	}
+}
 
 function main(): void {
 	const program: Array<u8> = [
@@ -48,20 +60,23 @@ function main(): void {
 	ui.init_events(computer.events);
 	computer.load_memory(program);
 	computer.init_events(ui.events);
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	(<any>window).comp = computer;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	(<any>window).ui = ui;
+
+	window.comp = computer;
+	window.ui = ui;
 
 	$("ISA").textContent = generate_isa(ISA);
 
 	$("binary_upload").addEventListener("change", (e) => {
-		if (e.target === null) {
+		const t = e.target;
+		if (t === null) {
 			return;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const file: File = (<any>e.target).files[0];
+		const file: File | undefined = (t as HTMLInputElement).files?.[0];
+		if (file === undefined) {
+			console.log("No files attribute on file input");
+			return;
+		}
 		const reader = new FileReader();
 		console.log(file);
 		reader.addEventListener("load", (e) => {
@@ -70,7 +85,6 @@ function main(): void {
 				if (data instanceof ArrayBuffer) {
 					const view = new Uint8Array(data);
 					const array = [...view] as Array<u8>;
-					ui.stop_auto();
 					computer.reset();
 					computer.load_memory(array);
 				} else {
@@ -83,8 +97,7 @@ function main(): void {
 
 	$("save_button").addEventListener("click", () => {
 		const memory = computer.dump_memory();
-		const buffer = new Uint8Array(memory);
-		const blob = new Blob([buffer], { type: "application/octet-stream" });
+		const blob = new Blob([memory], { type: "application/octet-stream" });
 		const url = URL.createObjectURL(blob);
 
 		const link = document.createElement("a");

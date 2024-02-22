@@ -1,3 +1,9 @@
+/**
+ * @file Generic Event handler similar to the DOM event handlers
+ * @copyright Alexander Bass 2024
+ * @license GPL-3.0
+ */
+
 export class Event<T> {
 	identifier: T;
 	callbacks: Array<(event_data: unknown) => void> = [];
