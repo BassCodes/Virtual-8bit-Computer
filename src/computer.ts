@@ -1,20 +1,22 @@
 import { CpuEvent, CpuEventHandler, UiEvent, UiEventHandler } from "./events";
-import { byte_array_to_js_source, format_hex, u8 } from "./etc";
+import { byte_array_to_js_source, format_hex } from "./etc";
 import { EventHandler } from "./eventHandler";
 import { Instruction, ISA } from "./instructionSet";
+import { m256, u8 } from "./num";
 
 export type TempInstrState = {
 	pos: u8;
 	params_found: number;
 	instr: Instruction;
-	params: Uint8Array;
+	params: Array<u8>;
 };
 
 export class Computer {
-	private memory = new Uint8Array(256);
-	private registers = new Uint8Array(8);
+	private memory = new Array<u8>(256);
+	private registers = new Array<u8>(256);
 	private call_stack: Array<u8> = [];
 	private program_counter: u8 = 0;
+	private bank: u8 = 0;
 	private current_instr: TempInstrState | null = null;
 	events: CpuEventHandler = new EventHandler<CpuEvent>() as CpuEventHandler;
 
@@ -44,7 +46,7 @@ export class Computer {
 				pos: this.program_counter,
 				instr: parsed_instruction,
 				params_found: 0,
-				params: new Uint8Array(parsed_instruction.params.length),
+				params: new Array<u8>(parsed_instruction.params.length),
 			};
 			this.events.dispatch(CpuEvent.InstructionParsed, {
 				pos: this.program_counter,
@@ -126,10 +128,14 @@ export class Computer {
 		return this.call_stack.pop() ?? null;
 	}
 
+	setBank(bank_no: u8): void {
+		this.bank = bank_no;
+	}
+
 	reset(): void {
 		this.events.dispatch(CpuEvent.Reset, null);
-		this.memory = new Uint8Array(256);
-		this.registers = new Uint8Array(8);
+		this.memory = new Array<u8>(256);
+		this.registers = new Array<u8>(8);
 		this.call_stack = [];
 		this.current_instr = null;
 		this.program_counter = 0;
@@ -144,19 +150,23 @@ export class Computer {
 
 	load_memory(program: Array<u8>): void {
 		console.log(byte_array_to_js_source(program));
-		const max_loop = Math.min(this.memory.length, program.length);
-		for (let i = 0; i < max_loop; i++) {
+		const max_loop: u8 = Math.min(255, program.length) as u8;
+		for (let i: u8 = 0; i < 255; i++) {
 			// Don't fire event if no change is made
 			if (this.memory[i] === program[i]) continue;
 
 			this.memory[i] = program[i];
-			this.events.dispatch(CpuEvent.MemoryChanged, { address: i, value: program[i] });
+			this.events.dispatch(CpuEvent.MemoryChanged, { address: i as u8, value: program[i] });
 		}
 		this.program_counter = 0;
 	}
 
+	dump_memory(): Array<u8> {
+		return this.memory;
+	}
+
 	private step_forward(): void {
-		this.program_counter = (this.program_counter + 1) % 256;
+		this.program_counter = m256(this.program_counter + 1);
 		this.events.dispatch(CpuEvent.ProgramCounterChanged, { counter: this.program_counter });
 	}
 }

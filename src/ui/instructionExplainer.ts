@@ -1,6 +1,7 @@
-import { el, format_hex, u8 } from "../etc";
+import { el, format_hex } from "../etc";
 import { CpuEvent, CpuEventHandler, UiEventHandler } from "../events";
 import { Instruction, ParamType, ParameterType } from "../instructionSet";
+import { u8 } from "../num";
 import { UiComponent } from "./uiComponent";
 
 export class InstructionExplainer implements UiComponent {
@@ -41,13 +42,23 @@ export class InstructionExplainer implements UiComponent {
 		this.add_box(format_hex(byte), param.desc, name);
 	}
 
-	add_invalid(pos: u8, byte: u8) {
+	add_invalid(pos: u8, byte: u8): void {
 		this.reset();
 		this.add_box(format_hex(byte), "Invalid Instruction", "invalid");
 	}
 
 	init_events(eh: UiEventHandler): void {}
-	init_cpu_events(c: CpuEventHandler) {}
+	init_cpu_events(c: CpuEventHandler): void {
+		c.listen(CpuEvent.ParameterParsed, ({ param, code, pos }) => {
+			this.add_param(param, pos, code);
+		});
+		c.listen(CpuEvent.InstructionParsed, ({ instr, code, pos }) => {
+			this.add_instruction(instr, pos, code);
+		});
+		c.listen(CpuEvent.InvalidParsed, ({ code, pos }) => {
+			this.add_invalid(pos, code);
+		});
+	}
 
 	reset(): void {
 		this.element.innerHTML = "";

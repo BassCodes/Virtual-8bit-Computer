@@ -13,6 +13,7 @@ export class frequencyIndicator implements UiComponent {
 	}
 
 	start(): void {
+		this.last_time = performance.now();
 		if (this.running !== null) {
 			throw new Error("Tried starting frequencyIndicator twice!");
 		}
@@ -26,10 +27,15 @@ export class frequencyIndicator implements UiComponent {
 	}
 
 	update_indicator(): void {
-		if (this.last_value !== this.count) {
-			this.element.textContent = `${this.count}hz`;
-			this.last_value = this.count;
+		const new_time = performance.now();
+		const dt = (new_time - this.last_time) / 1000 || 1;
+		const value = Math.round(this.count / dt);
+
+		if (this.last_value !== value) {
+			this.element.textContent = `${value}hz`;
+			this.last_value = value;
 		}
+		this.last_time = new_time;
 		this.count = 0;
 	}
 
@@ -44,7 +50,7 @@ export class frequencyIndicator implements UiComponent {
 		this.count = 0;
 		this.last_value = 0;
 	}
-	init_cpu_events(c: CpuEventHandler) {
+	init_cpu_events(c: CpuEventHandler): void {
 		c.listen(CpuEvent.ClockCycle, () => {
 			this.count += 1;
 		});

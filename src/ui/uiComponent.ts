@@ -1,4 +1,3 @@
-import { u8 } from "../etc";
 import { CpuEventHandler, UiEventHandler } from "../events";
 
 export interface UiComponent {

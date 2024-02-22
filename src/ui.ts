@@ -1,5 +1,5 @@
 import { CpuEvent, CpuEventHandler, UiEvent, UiEventHandler } from "./events";
-import { $, el, format_hex, u8 } from "./etc";
+import { $, el, format_hex } from "./etc";
 import { EventHandler } from "./eventHandler";
 import { InstructionExplainer } from "./ui/instructionExplainer";
 import { MemoryView } from "./ui/memoryView";
@@ -75,57 +75,16 @@ export class UI {
 	}
 
 	init_events(cpu_events: CpuEventHandler): void {
-		cpu_events.listen(CpuEvent.MemoryChanged, ({ address, value }) => {
-			this.memory.set_cell_value(address, value);
-		});
 		cpu_events.listen(CpuEvent.RegisterChanged, ({ register_no, value }) => {
 			this.register_cells[register_no].textContent = format_hex(value);
 		});
-		cpu_events.listen(CpuEvent.ProgramCounterChanged, ({ counter }) => {
-			this.memory.set_program_counter(counter);
-		});
 		cpu_events.listen(CpuEvent.Print, (char) => {
 			this.printout.textContent = (this.printout.textContent ?? "") + char;
-		});
-		cpu_events.listen(CpuEvent.Reset, () => {
-			this.reset();
 		});
 
 		this.frequencyIndicator.init_cpu_events(cpu_events);
 		this.memory.init_cpu_events(cpu_events);
 		this.instruction_explainer.init_cpu_events(cpu_events);
-
-		cpu_events.listen(CpuEvent.ParameterParsed, ({ param, code, pos }) => {
-			this.memory.add_cell_class(pos, "instruction_argument");
-			this.instruction_explainer.add_param(param, pos, code);
-			const t = param.type;
-			this.memory.remove_cell_class(pos, "constant", "register", "memory", "instruction", "invalid");
-			let name: string = "";
-			if (t === ParamType.Const) {
-				name = "constant";
-			} else if (t === ParamType.Memory) {
-				name = "memory";
-			} else if (t === ParamType.Register) {
-				name = "register";
-			} else {
-				throw new Error("unreachable");
-			}
-			this.memory.add_cell_class(pos, name);
-		});
-		cpu_events.listen(CpuEvent.InstructionParsed, ({ instr, code, pos }) => {
-			this.instruction_explainer.add_instruction(instr, pos, code);
-
-			this.memory.remove_all_cell_class("instruction_argument");
-			this.memory.remove_all_cell_class("current_instruction");
-			this.memory.add_cell_class(pos, "current_instruction");
-			this.memory.remove_cell_class(pos, "constant", "register", "memory", "invalid");
-			this.memory.add_cell_class(pos, "instruction");
-		});
-		cpu_events.listen(CpuEvent.InvalidParsed, ({ code, pos }) => {
-			this.memory.remove_cell_class(pos, "constant", "register", "memory", "instruction");
-			this.memory.add_cell_class(pos, "invalid");
-			this.instruction_explainer.add_invalid(pos, code);
-		});
 	}
 
 	reset(): void {

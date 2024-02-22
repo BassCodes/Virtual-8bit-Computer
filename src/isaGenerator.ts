@@ -1,5 +1,6 @@
-import { format_hex, u8 } from "./etc";
+import { format_hex } from "./etc";
 import { Instruction, InstructionSet } from "./instructionSet";
+import { u8 } from "./num.js";
 
 export function generate_isa(iset: InstructionSet): string {
 	const instructions: Array<[u8, Instruction]> = [];

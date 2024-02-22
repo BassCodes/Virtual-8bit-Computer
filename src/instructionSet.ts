@@ -1,5 +1,6 @@
 import { CpuEvent, CpuEventHandler } from "./events";
-import { format_hex, u8 } from "./etc";
+import { format_hex } from "./etc";
+import { isU3, m256, u1, u3, u8 } from "./num";
 
 export enum ParamType {
 	Const,
@@ -37,10 +38,11 @@ interface GenericComputer {
 	setMemory: (address: u8, value: u8) => void;
 	setProgramCounter: (address: u8) => void;
 	getProgramCounter: () => u8;
-	getRegister: (number: u8) => u8;
-	setRegister: (number: u8, value: u8) => void;
+	getRegister: (number: u3) => u8;
+	setRegister: (number: u3, value: u8) => void;
 	pushCallStack: (address: u8) => boolean;
 	popCallStack: () => u8 | null;
+	setBank: (bank_no: u1) => void;
 }
 
 interface AfterExecutionComputerAction {
@@ -55,7 +57,7 @@ export interface Instruction {
 	readonly params: Array<ParameterType>;
 	readonly execute: (
 		computer_reference: GenericComputer,
-		parameters: Uint8Array,
+		parameters: Array<u8>,
 		a: AfterExecutionComputerAction
 	) => void;
 }
@@ -104,10 +106,13 @@ ISA.insertInstruction(0x10, {
 ISA.insertInstruction(0x20, {
 	name: "LoadToRegister",
 	desc: "Sets the byte in register (P1) to be the contents of memory cell at address in register (P2)",
-	params: [new RegisParam("Set this register to"), new MemorParam("the byte held in this memory address")],
+	params: [new RegisParam("Set this register to"), new RegisParam("the byte held in this memory address")],
 	execute(c, p) {
-		const [register_no, mem_address] = p;
-		c.setRegister(register_no, c.getMemory(c.getRegister(mem_address)));
+		const [register_no, register_2] = p;
+		if (!isU3(register_no)) throw new Error("TODO");
+		if (!isU3(register_2)) throw new Error("TODO");
+
+		c.setRegister(register_no, c.getMemory(c.getRegister(register_2)));
 	},
 });
 
@@ -117,6 +122,7 @@ ISA.insertInstruction(0x21, {
 	params: [new RegisParam("Write the byte in this register"), new MemorParam("To this memory address")],
 	execute(c, p) {
 		const [register_no, mem_address] = p;
+		if (!isU3(register_no)) throw new Error("TODO");
 		c.setMemory(mem_address, c.getRegister(register_no));
 	},
 });
@@ -127,6 +133,7 @@ ISA.insertInstruction(0x2f, {
 	params: [new RegisParam("Set this register"), new ConstParam("to this constant")],
 	execute(c, p) {
 		const [register_no, value] = p;
+		if (!isU3(register_no)) throw new Error("TODO");
 		c.setRegister(register_no, value);
 	},
 });
@@ -137,6 +144,7 @@ ISA.insertInstruction(0x11, {
 	params: [new ConstParam("Set program counter to this constant"), new RegisParam("if this register's 1 bit is set")],
 	execute(c, p, a) {
 		const [new_address, check_register_no] = p;
+		if (!isU3(check_register_no)) throw new Error("TODO");
 		if (c.getRegister(check_register_no) % 2 === 1) {
 			c.setProgramCounter(new_address);
 			a.noStep();
@@ -150,8 +158,9 @@ ISA.insertInstruction(0x30, {
 	params: [new RegisParam("register to be incremented")],
 	execute(c, p) {
 		const register_no = p[0];
+		if (!isU3(register_no)) throw new Error("TODO");
 		const current_value = c.getRegister(register_no);
-		const new_value = (current_value + 1) % 256;
+		const new_value = m256(current_value + 1);
 		c.setRegister(register_no, new_value);
 	},
 });
@@ -162,12 +171,13 @@ ISA.insertInstruction(0x31, {
 	params: [new RegisParam("register to be decremented")],
 	execute(c, p) {
 		const register_no = p[0];
+		if (!isU3(register_no)) throw new Error("TODO");
 		const current_value = c.getRegister(register_no);
 		let new_value = current_value - 1;
 		if (new_value === -1) {
 			new_value = 255;
 		}
-		c.setRegister(register_no, new_value);
+		c.setRegister(register_no, new_value as u8);
 	},
 });
 
@@ -177,7 +187,9 @@ ISA.insertInstruction(0x40, {
 	params: [new RegisParam("set this register to"), new RegisParam("it's sum with the value in this register")],
 	execute(c, p) {
 		const [register_no_1, register_no_2] = p;
-		const new_value = (c.getRegister(register_no_1) + c.getRegister(register_no_2)) % 256;
+		if (!isU3(register_no_1)) throw new Error("TODO");
+		if (!isU3(register_no_2)) throw new Error("TODO");
+		const new_value = m256(c.getRegister(register_no_1) + c.getRegister(register_no_2));
 		c.setRegister(register_no_1, new_value);
 	},
 });
@@ -192,6 +204,9 @@ ISA.insertInstruction(0x50, {
 	],
 	execute(c, p) {
 		const [register_no_1, register_no_2, register_no_3] = p;
+		if (!isU3(register_no_1)) throw new Error("TODO");
+		if (!isU3(register_no_2)) throw new Error("TODO");
+		if (!isU3(register_no_3)) throw new Error("TODO");
 		const truth = c.getRegister(register_no_2) === c.getRegister(register_no_3) ? 0x01 : 0x00;
 		c.setRegister(register_no_1, truth);
 	},
@@ -203,6 +218,7 @@ ISA.insertInstruction(0xfe, {
 	params: [new RegisParam("Register to print from")],
 	execute(c, p, a) {
 		const register_no = p[0];
+		if (!isU3(register_no)) throw new Error("TODO");
 		const asciiByte = c.getRegister(register_no);
 
 		const char = String.fromCharCode(asciiByte);
@@ -216,8 +232,10 @@ ISA.insertInstruction(0x48, {
 	params: [new RegisParam(""), new RegisParam("")],
 	execute(c, p) {
 		const [register_no_1, register_no_2] = p;
+		if (!isU3(register_no_1)) throw new Error("TODO");
+		if (!isU3(register_no_2)) throw new Error("TODO");
 		const new_value = c.getRegister(register_no_1) & c.getMemory(register_no_2);
-		c.setRegister(register_no_1, new_value);
+		c.setRegister(register_no_1, new_value as u8);
 	},
 });
 
@@ -227,6 +245,7 @@ ISA.insertInstruction(0xff, {
 	params: [new RegisParam("Register to print from")],
 	execute(c, p, a) {
 		const register_no = p[0];
+		if (!isU3(register_no)) throw new Error("TODO");
 		const byte = c.getRegister(register_no);
 
 		a.dispatch(CpuEvent.Print, byte.toString(10));
@@ -239,6 +258,8 @@ ISA.insertInstruction(0xfd, {
 	params: [new RegisParam("Upper 8 bits of number"), new RegisParam("Lower 8 bits of number")],
 	execute(c, p, a) {
 		const [upper_register_no, lower_register_no] = p;
+		if (!isU3(upper_register_no)) throw new Error("TODO");
+		if (!isU3(lower_register_no)) throw new Error("TODO");
 		const upper = c.getRegister(upper_register_no);
 		const lower = c.getRegister(lower_register_no);
 		const sum = upper * 16 * 16 + lower;
@@ -282,8 +303,14 @@ ISA.insertInstruction(0xa1, {
 			throw new Error("TODO handle this");
 		}
 
-		c.setProgramCounter(new_address + 1);
+		c.setProgramCounter(m256(new_address + 1));
 
 		a.noStep();
 	},
+});
+ISA.insertInstruction(0xb1, {
+	name: "Set bank",
+	desc: "Selects which bank of memory to write and read to",
+	params: [new ConstParam("Bank number")],
+	execute(c, p, a) {},
 });

@@ -1,5 +1,4 @@
 Add screen (VRAM?)
+- Bank switching
 Live memory and register editing (Probably should pause autostep when it reaches the cell you're modifying)
-Draw lines between registers and memory when used
-
-Save binary button
+HCF flames

@@ -1,6 +1,6 @@
-import { u8 } from "./etc";
 import { EventHandler } from "./eventHandler";
 import { Instruction, ParameterType } from "./instructionSet";
+import { u8 } from "./num.js";
 
 export enum CpuEvent {
 	MemoryChanged,
