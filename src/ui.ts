@@ -4,6 +4,8 @@ import { InstructionExplainer } from "./ui/instructionExplainer";
 import { MemoryView } from "./ui/memoryView";
 import { frequencyIndicator } from "./ui/frequencyIndicator";
 import { RegisterView } from "./ui/registerView";
+import { Screen } from "./ui/screen";
+import { UiComponent, UiComponentConstructor } from "./ui/uiComponent.js";
 // Certainly the messiest portion of this program
 // Needs to be broken into components
 // Breaking up into components has started but has yet to conclude
@@ -17,10 +19,7 @@ export class UI {
 
 	events: UiEventHandler = new UiEventHandler();
 
-	frequencyIndicator: frequencyIndicator;
-	memory: MemoryView;
-	registers: RegisterView;
-	instruction_explainer: InstructionExplainer;
+	private components: Array<UiComponent>;
 
 	constructor() {
 		for (const [, e_type] of Object.entries(UiEvent)) {
@@ -28,18 +27,18 @@ export class UI {
 		}
 		this.events.seal();
 
-		this.memory = new MemoryView($("memory"), this.events);
-		this.frequencyIndicator = new frequencyIndicator($("cycles"), this.events);
-		this.instruction_explainer = new InstructionExplainer($("instruction_explainer"), this.events);
-		this.registers = new RegisterView($("registers"), this.events);
+		this.components = [];
 
+		this.register_component(MemoryView, $("memory"));
+		this.register_component(frequencyIndicator, $("cycles"));
+		this.register_component(InstructionExplainer, $("instruction_explainer"));
+		this.register_component(RegisterView, $("registers"));
+		this.register_component(Screen, $("screen") as HTMLCanvasElement);
 		this.printout = $("printout");
 
 		this.auto_running = false;
 		const pp_button = $("pause_play_button");
-		if (pp_button === null) {
-			throw new Error("Cant find pause_play button");
-		}
+
 		pp_button.addEventListener("click", () => {
 			if (this.auto_running) {
 				this.stop_auto();
@@ -49,7 +48,7 @@ export class UI {
 				pp_button.textContent = "Storp";
 			}
 		});
-		$("step_button")?.addEventListener("click", () => {
+		$("step_button").addEventListener("click", () => {
 			if (this.auto_running) {
 				this.stop_auto();
 			}
@@ -62,6 +61,14 @@ export class UI {
 			// console.log(delay);
 		});
 	}
+	private register_component(c: UiComponentConstructor, e: HTMLElement): void {
+		if (e === undefined) {
+			console.log(c);
+			throw new Error("Could not find HTML element while registering UI component");
+		}
+		const component = new c(e, this.events);
+		this.components.push(component);
+	}
 
 	init_events(cpu_events: CpuEventHandler): void {
 		cpu_events.listen(CpuEvent.Print, (char) => {
@@ -71,18 +78,16 @@ export class UI {
 			this.reset();
 		});
 
-		this.registers.init_cpu_events(cpu_events);
-		this.frequencyIndicator.init_cpu_events(cpu_events);
-		this.memory.init_cpu_events(cpu_events);
-		this.instruction_explainer.init_cpu_events(cpu_events);
+		for (const c of this.components) {
+			c.init_cpu_events(cpu_events);
+		}
 	}
 
 	reset(): void {
 		this.stop_auto();
-		this.registers.reset();
-		this.frequencyIndicator.reset();
-		this.instruction_explainer.reset();
-		this.memory.reset();
+		for (const c of this.components) {
+			c.reset();
+		}
 		this.printout.textContent = "";
 	}
 

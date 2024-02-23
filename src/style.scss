@@ -142,6 +142,10 @@ body {
 	.current_instruction {
 		outline: 3px dashed var(--color);
 	}
+
+	div.last_access {
+		color: orange;
+	}
 	.invalid {
 		&::after {
 			user-select: none;

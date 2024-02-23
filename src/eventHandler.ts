@@ -42,6 +42,17 @@ export class EventHandler<T> {
 			callback(event_data);
 		}
 	}
+
+	/**
+	 * Listens to all events with one listener. Ideally used for debugging
+	 * @param callback called for event called on this event handler
+	 */
+	firehose(callback: (identifier: T, data: unknown) => void): void {
+		this.events.forEach((e) => {
+			const identifier = e.identifier;
+			e.callbacks.push(callback.bind(undefined, identifier));
+		});
+	}
 	listen(identifier: T, callback: (event_data: unknown) => void): void {
 		if (!this.sealed) throw new Error("Event handler must be sealed before adding listener");
 		const event = this.events.find((e) => e.identifier === identifier);

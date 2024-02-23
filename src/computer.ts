@@ -10,19 +10,9 @@ export type TempInstrState = {
 	params: Array<u8>;
 };
 
-// It would be a shame not to use the `Uint8Array` type JS provides to store memory and other byte arrays.
-// Unfortunately Typescript defines indexing a `Uint8Array` to return a generic `number`, not the constrained `u8`.
-// This redefines it.
-declare global {
-	interface Uint8Array {
-		[key: number]: u8;
-	}
-}
-
-const bank_count = 1; // 1 additional bank: video memory
-
 export class Computer {
-	private memory: Uint8Array = new Uint8Array(256 + 256 * bank_count);
+	private memory: Uint8Array = new Uint8Array(256);
+	private vram: Uint8Array = new Uint8Array(256);
 	private registers: Uint8Array = new Uint8Array(8);
 	private call_stack: Array<u8> = [];
 	private program_counter: u8 = 0;
@@ -39,7 +29,7 @@ export class Computer {
 	}
 
 	cycle(): void {
-		const current_byte = this.getMemory(this.program_counter, 0);
+		const current_byte = this.getMemorySilent(this.program_counter, 0);
 
 		if (this.current_instr === null) {
 			const parsed_instruction = ISA.getInstruction(current_byte);
@@ -104,19 +94,35 @@ export class Computer {
 		}
 		this.events.dispatch(CpuEvent.Cycle);
 	}
+	private getMemorySilent(address: u8, bank_override?: u1): u8 {
+		const banks = [this.memory, this.vram];
+
+		const bank = banks[bank_override ?? this.bank];
+		const value = bank[address] as u8;
+
+		return value;
+	}
 
 	getMemory(address: u8, bank_override?: u1): u8 {
-		if (bank_override !== undefined) {
-			const value = this.memory[address + 256 * bank_override] as u8;
-			return value;
-		}
-		const value = this.memory[address + 256 * this.bank] as u8;
+		const value = this.getMemorySilent(address, bank_override);
+		this.events.dispatch(CpuEvent.MemoryAccessed, { address, bank: this.bank, value });
 		return value;
 	}
 
 	setMemory(address: u8, value: u8): void {
-		this.events.dispatch(CpuEvent.MemoryChanged, { address, value });
-		this.memory[address + 256 * bank_count] = value;
+		let bank: Uint8Array | undefined;
+		if (this.bank === 0) {
+			bank = this.memory;
+		} else if (this.bank === 1) {
+			bank = this.vram;
+		} else {
+			const _: never = this.bank;
+		}
+		if (bank === undefined) {
+			throw new Error("unreachable");
+		}
+		bank[address] = value;
+		this.events.dispatch(CpuEvent.MemoryChanged, { address, bank: this.bank, value });
 	}
 
 	getRegister(register_no: u3): u8 {
@@ -148,6 +154,7 @@ export class Computer {
 	}
 
 	setBank(bank_no: u1): void {
+		this.events.dispatch(CpuEvent.SwitchBank, { bank: bank_no });
 		this.bank = bank_no;
 	}
 
@@ -175,7 +182,7 @@ export class Computer {
 			if (this.memory[i] === program[i]) continue;
 
 			this.memory[i] = program[i];
-			this.events.dispatch(CpuEvent.MemoryChanged, { address: i as u8, value: program[i] });
+			this.events.dispatch(CpuEvent.MemoryChanged, { address: i as u8, bank: 0, value: program[i] });
 		}
 		this.program_counter = 0;
 	}

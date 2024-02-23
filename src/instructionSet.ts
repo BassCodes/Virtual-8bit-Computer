@@ -286,7 +286,7 @@ ISA.insertInstruction(0x66, {
 
 ISA.insertInstruction(0xa0, {
 	name: "Call",
-	desc: "",
+	desc: "Calls a subroute",
 	params: [new ConstParam("the subroutine at this memory address")],
 	execute(c, p, a) {
 		const current_address = c.getProgramCounter();
@@ -302,7 +302,7 @@ ISA.insertInstruction(0xa0, {
 
 ISA.insertInstruction(0xa1, {
 	name: "Return",
-	desc: "",
+	desc: "returns from a subroutine",
 	params: [],
 	execute(c, p, a) {
 		const new_address = c.popCallStack();
@@ -319,5 +319,11 @@ ISA.insertInstruction(0xb1, {
 	name: "Set bank",
 	desc: "Selects which bank of memory to write and read to",
 	params: [new ConstParam("Bank number")],
-	execute(c, p, a) {},
+	execute(c, p) {
+		const bank_no = p[0];
+		if (!(bank_no === 1 || bank_no === 0)) {
+			throw new Error("TODO");
+		}
+		c.setBank(bank_no);
+	},
 });

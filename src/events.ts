@@ -5,7 +5,7 @@
  */
 import { EventHandler } from "./eventHandler";
 import { Instruction, ParameterType } from "./instructionSet";
-import { u3, u8 } from "./num";
+import { u1, u3, u8 } from "./num";
 
 //
 // CPU Event Handler Definition
@@ -22,25 +22,26 @@ export enum CpuEvent {
 	Print,
 	Reset,
 	Halt,
-	ClockStarted,
-	ClockStopped,
+	// ClockStarted,
+	// ClockStopped,
+	MemoryAccessed,
+	SwitchBank,
 }
 
-type VoidDataCpuEventList =
-	| CpuEvent.Halt
-	| CpuEvent.Reset
-	| CpuEvent.Cycle
-	| CpuEvent.ClockStarted
-	| CpuEvent.ClockStopped;
+type VoidDataCpuEventList = CpuEvent.Halt | CpuEvent.Reset | CpuEvent.Cycle;
+// | CpuEvent.ClockStarted
+// | CpuEvent.ClockStopped;
 
 interface CpuEventMap {
-	[CpuEvent.MemoryChanged]: { address: u8; value: u8 };
+	[CpuEvent.MemoryChanged]: { address: u8; bank: u1; value: u8 };
+	[CpuEvent.MemoryAccessed]: { address: u8; bank: u1; value: u8 };
 	[CpuEvent.RegisterChanged]: { register_no: u3; value: u8 };
 	[CpuEvent.ProgramCounterChanged]: { counter: u8 };
 	[CpuEvent.InstructionParsed]: { pos: u8; code: u8; instr: Instruction };
 	[CpuEvent.ParameterParsed]: { pos: u8; code: u8; param: ParameterType };
 	[CpuEvent.InvalidParsed]: { pos: u8; code: u8 };
 	[CpuEvent.InstructionExecuted]: { instr: Instruction };
+	[CpuEvent.SwitchBank]: { bank: u1 };
 	[CpuEvent.Print]: string;
 }
 

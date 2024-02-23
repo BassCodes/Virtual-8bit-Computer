@@ -1,4 +1,13 @@
-Add screen (VRAM?)
-- Bank switching
 Live memory and register editing (Probably should pause autostep when it reaches the cell you're modifying)
 HCF flames
+add hcf
+Move start/stop/auto logic into computer
+Speed control slider behavior
+Speed control slider styling
+
+Determine how to implement 16 bit integers in code (new instructions?)
+
+UI for screen (toggling (click an icon?))
+UI for togging other UI elements
+
+Instruction assign memory based on register

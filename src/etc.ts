@@ -40,3 +40,5 @@ export function el(type: string, id?: string): HTMLElement | undefined {
 	element.id = id;
 	return element;
 }
+
+export type NonEmptyArray<T> = T[] & { 0: T };
