@@ -30,6 +30,13 @@ export type u4 = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 
 
 export const m256 = (number: number): u8 => (number % 256) as u8;
 
+export function isU2(n: number): n is u2 {
+	if (n < 4 && n >= 0) {
+		return true;
+	}
+	return false;
+}
+
 /**
  * Determines whether a number is a u3 type (unsigned 3-bit integer).
  * Does not check for non integers

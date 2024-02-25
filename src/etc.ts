@@ -42,3 +42,5 @@ export function el(type: string, id?: string): HTMLElement | undefined {
 }
 
 export type NonEmptyArray<T> = T[] & { 0: T };
+
+export const SVG_NS = "http://www.w3.org/2000/svg";

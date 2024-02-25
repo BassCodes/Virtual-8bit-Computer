@@ -43,12 +43,6 @@ export class Screen implements UiComponent {
 
 	setPixel(x: u4, y: u4, value: u8): void {
 		const point: [number, number] = [x * this.scale[0], y * this.scale[1]];
-		// const RED_SCALE = 255 / 2 ** 2;
-		// const GREEN_SCALE = 255 / 2 ** 2;
-		// const BLUE_SCALE = 255 / 2 ** 2;
-		// const red = ((value >> 4) & 0b11) * RED_SCALE;
-		// const green = ((value >> 2) & 0b11) * GREEN_SCALE;
-		// const blue = (value & 0b11) * BLUE_SCALE;
 
 		const RED_SCALE = 255 / 2 ** 3;
 		const GREEN_SCALE = 255 / 2 ** 3;
@@ -58,7 +52,6 @@ export class Screen implements UiComponent {
 		const blue = (value & 0b11) * BLUE_SCALE;
 
 		const color = `rgb(${red},${green},${blue})`;
-		console.log(x, y, value, color);
 		this.ctx.fillStyle = color;
 		this.ctx.fillRect(...point, ...this.scale);
 	}

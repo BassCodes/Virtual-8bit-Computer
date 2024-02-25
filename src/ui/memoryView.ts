@@ -31,7 +31,8 @@ export class MemoryView extends CelledViewer implements UiComponent {
 	}
 
 	init_cpu_events(c: CpuEventHandler): void {
-		c.listen(CpuEvent.MemoryAccessed, ({ address, value }) => {
+		c.listen(CpuEvent.MemoryAccessed, ({ address, bank, value }) => {
+			if (bank !== 0) return;
 			if (this.last_accessed_cell !== address) {
 				if (this.last_accessed_cell !== null) {
 					this.remove_cell_class(this.last_accessed_cell, "last_access");

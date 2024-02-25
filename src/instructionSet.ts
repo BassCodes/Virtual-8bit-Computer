@@ -5,7 +5,7 @@
  */
 import { CpuEvent, CpuEventHandler } from "./events";
 import { format_hex } from "./etc";
-import { isU3, m256, u1, u3, u8 } from "./num";
+import { isU2, isU3, m256, u2, u3, u8 } from "./num";
 
 export enum ParamType {
 	Const,
@@ -47,7 +47,9 @@ interface GenericComputer {
 	setRegister: (number: u3, value: u8) => void;
 	pushCallStack: (address: u8) => boolean;
 	popCallStack: () => u8 | null;
-	setBank: (bank_no: u1) => void;
+	setBank: (bank_no: u2) => void;
+	getCarry(): boolean;
+	setCarry(state: boolean): void;
 }
 
 interface AfterExecutionComputerAction {
@@ -112,7 +114,7 @@ ISA.insertInstruction(0x10, {
 ISA.insertInstruction(0x20, {
 	name: "LoadToRegister",
 	desc: "Sets the byte in register (P1) to be the contents of memory cell at address in register (P2)",
-	params: [new RegisParam("Set this register to"), new RegisParam("the byte held in this memory address")],
+	params: [new RegisParam("Set this register to"), new RegisParam("the byte in the memory addressed by this register")],
 	execute(c, p) {
 		const [register_no, register_2] = p;
 		if (!isU3(register_no)) throw new Error("TODO");
@@ -197,6 +199,21 @@ ISA.insertInstruction(0x40, {
 		if (!isU3(register_no_1)) throw new Error("TODO");
 		if (!isU3(register_no_2)) throw new Error("TODO");
 		const new_value = m256(c.getRegister(register_no_1) + c.getRegister(register_no_2));
+		c.setRegister(register_no_1, new_value);
+	},
+});
+ISA.insertInstruction(0x41, {
+	name: "Subtract",
+	desc: "Subtracts the contents of (P2) from (P1) and stores result to register (P1).",
+	params: [
+		new RegisParam("set this register to"),
+		new RegisParam("the difference between it in the value in this register"),
+	],
+	execute(c, p) {
+		const [register_no_1, register_no_2] = p;
+		if (!isU3(register_no_1)) throw new Error("TODO");
+		if (!isU3(register_no_2)) throw new Error("TODO");
+		const new_value = m256(c.getRegister(register_no_1) - c.getRegister(register_no_2));
 		c.setRegister(register_no_1, new_value);
 	},
 });
@@ -321,7 +338,7 @@ ISA.insertInstruction(0xb1, {
 	params: [new ConstParam("Bank number")],
 	execute(c, p) {
 		const bank_no = p[0];
-		if (!(bank_no === 1 || bank_no === 0)) {
+		if (!isU2(bank_no)) {
 			throw new Error("TODO");
 		}
 		c.setBank(bank_no);

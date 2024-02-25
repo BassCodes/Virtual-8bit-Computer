@@ -17,6 +17,7 @@ declare global {
 	interface Window {
 		comp: Computer;
 		ui: UI;
+		firehose: () => void;
 	}
 }
 
@@ -78,7 +79,6 @@ function main(): void {
 	ui.init_events(computer.events);
 	computer.load_memory(program);
 	computer.init_events(ui.events);
-
 	window.comp = computer;
 	window.ui = ui;
 
@@ -112,10 +112,17 @@ function main(): void {
 		});
 		reader.readAsArrayBuffer(file);
 	});
-
-	// computer.events.firehose((ident, data) => {
-	// 	console.log(`New Event: ${CpuEvent[ident]}. data: `, data);
-	// });
+	let fire = false;
+	window.firehose = (): void => {
+		if (fire === false) {
+			computer.events.firehose((ident, data) => {
+				console.log(`New Event: ${CpuEvent[ident]}. data: `, data);
+			});
+			fire = true;
+		} else {
+			console.error("Firehose already started");
+		}
+	};
 
 	$("save_button").addEventListener("click", () => {
 		const memory = computer.dump_memory();
@@ -125,11 +132,15 @@ function main(): void {
 		const link = document.createElement("a");
 		link.href = url;
 		link.download = "bin.bin";
-		link.style.display = "none";
 		link.click();
 	});
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-	main();
+	// at least you know it's bad
+	try {
+		main();
+	} catch (e) {
+		alert(e);
+	}
 });
