@@ -1,5 +1,7 @@
-import { CpuEvent, CpuEventHandler, UiEventHandler } from "../events";
+import { CpuEvent, CpuEventHandler, UiEvent, UiEventHandler } from "../events";
+import { u3 } from "../num";
 import { CelledViewer } from "./celledViewer";
+import { EditorContext } from "./editableHex";
 import { UiComponent } from "./uiComponent";
 
 export class RegisterView extends CelledViewer implements UiComponent {
@@ -7,6 +9,23 @@ export class RegisterView extends CelledViewer implements UiComponent {
 	constructor(element: HTMLElement, e: UiEventHandler) {
 		super(8, 1, element);
 		this.events = e;
+
+		const list = this.cells.map((c) => c.el);
+		const editor = new EditorContext(list, this.width, this.height, (i, value) => {
+			this.events.dispatch(UiEvent.RequestRegisterChange, { register_no: i as u3, value });
+		});
+		this.events.listen(UiEvent.EditOn, () => {
+			editor.enable();
+			for (const cell of this.cells) {
+				cell.el.className = "";
+			}
+		});
+		this.events.listen(UiEvent.EditOff, () => {
+			editor.disable();
+			for (const cell of this.cells) {
+				cell.el.className = "";
+			}
+		});
 	}
 
 	init_cpu_events(c: CpuEventHandler): void {

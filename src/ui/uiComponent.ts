@@ -7,11 +7,11 @@ import { CpuEventHandler, UiEventHandler } from "../events";
 
 export interface UiComponent {
 	element: HTMLElement;
-	/** Allows listening and emitting UiEvent's*/
+	/** Allows listening and emitting UiEvents*/
 	events: UiEventHandler;
 	reset: () => void;
-	/**  Allows listening CPUEvent's*/
-	init_cpu_events: (c: CpuEventHandler) => void;
+	/**  Allows listening CPUEvents*/
+	init_cpu_events?: (c: CpuEventHandler) => void;
 }
 
 export interface UiComponentConstructor {

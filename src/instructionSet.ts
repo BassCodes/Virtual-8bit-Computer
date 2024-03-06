@@ -170,6 +170,34 @@ ISA.insertInstruction(0x13, {
 		c.setRegister(register_no_2, c.getRegister(register_no_1));
 	},
 });
+ISA.insertInstruction(0x14, {
+	name: "Load RM -> R",
+	desc: "Copy the byte in memory addressed by register (P1) to register (P2)",
+	params: [
+		new RegisParam("Copy the byte in the memory cell addressed in this register"),
+		new RegisParam("To this register"),
+	],
+	execute(c, p) {
+		const [register_no_1, register_no_2] = p;
+		if (!isU3(register_no_1)) throw new Error("todo");
+		if (!isU3(register_no_2)) throw new Error("todo");
+		c.setRegister(register_no_2, c.getMemory(c.getRegister(register_no_1)));
+	},
+});
+ISA.insertInstruction(0x15, {
+	name: "Save R -> RM",
+	desc: "Copy the byte in register (P1) to the memory cell addressed in register (P2)",
+	params: [
+		new RegisParam("Copy the value in this register"),
+		new RegisParam("To the memory cell addressed in this register"),
+	],
+	execute(c, p) {
+		const [register_no_1, register_no_2] = p;
+		if (!isU3(register_no_1)) throw new Error("todo");
+		if (!isU3(register_no_2)) throw new Error("todo");
+		c.setMemory(c.getRegister(register_no_2), c.getRegister(register_no_1));
+	},
+});
 
 ISA.insertInstruction(0x17, {
 	name: "Zero Register",
@@ -608,6 +636,7 @@ ISA.insertInstruction(0x50, {
 		c.setRegister(register_no_1, m256(sum));
 	},
 });
+
 ISA.insertInstruction(0x51, {
 	name: "Add",
 	desc: "Adds to the byte in register (P1) with the value in register (P2)",
@@ -620,8 +649,9 @@ ISA.insertInstruction(0x51, {
 		c.setRegister(register_no_1, m256(sum));
 	},
 });
+
 ISA.insertInstruction(0x52, {
-	name: "Add",
+	name: "Subtract",
 	desc: "Subtracts from the value in register (P1) by the value in register (P2)",
 	params: [new RegisParam("set this register to"), new RegisParam("it's difference with the value in this register")],
 	execute(c, p) {
@@ -635,8 +665,9 @@ ISA.insertInstruction(0x52, {
 		c.setRegister(register_no_1, m256(difference));
 	},
 });
+
 ISA.insertInstruction(0x53, {
-	name: "Add",
+	name: "Subtract",
 	desc: "Subtracts from the value in register (P1) by the constant value (P2)",
 	params: [new RegisParam("set this register to"), new ConstParam("it's difference with this constant")],
 	execute(c, p) {

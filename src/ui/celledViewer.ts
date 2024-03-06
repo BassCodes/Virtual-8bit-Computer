@@ -6,7 +6,6 @@
 import { NonEmptyArray, el, format_hex } from "../etc";
 import { u8 } from "../num";
 
-// TODO, make generic
 interface GenericCell {
 	el: HTMLElement;
 }
@@ -22,7 +21,7 @@ export abstract class CelledViewer {
 		this.height = height;
 		for (let i = 0; i < this.width * this.height; i++) {
 			const mem_cell_el = el("div");
-			mem_cell_el.textContent = "00";
+			mem_cell_el.append("0", "0");
 			this.element.appendChild(mem_cell_el);
 			const mem_cell = { el: mem_cell_el };
 			this.cells.push(mem_cell);
@@ -31,7 +30,7 @@ export abstract class CelledViewer {
 
 	reset(): void {
 		for (let i = 0; i < this.height * this.width; i++) {
-			this.cells[i].el.textContent = "00";
+			this.set_cell_value(i as u8, 0);
 			this.cells[i].el.className = "";
 		}
 	}
@@ -59,6 +58,10 @@ export abstract class CelledViewer {
 	}
 
 	set_cell_value(address: u8, value: u8): void {
-		this.cells[address].el.textContent = format_hex(value);
+		const str = format_hex(value);
+		const a = str[0];
+		const b = str[1];
+		this.cells[address].el.textContent = "";
+		this.cells[address].el.append(a, b);
 	}
 }

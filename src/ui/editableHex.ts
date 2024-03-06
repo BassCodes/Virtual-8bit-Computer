@@ -1,122 +1,112 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function set_caret(el: any, pos: number): boolean {
-	const selection = window.getSelection();
-	const range = document.createRange();
-	if (selection === null) {
-		return false;
-	}
+// This file was cobbled together and is the messiest part of this project
 
-	selection.removeAllRanges();
-	range.selectNode(el);
+import { at } from "../etc";
+import { u8 } from "../num";
 
-	range.setStart(el, pos);
-	range.setEnd(el, pos);
-	range.collapse(true);
-	selection.removeAllRanges();
-	selection.addRange(range);
-	el.focus();
-	return true;
-}
+const HEX_CHARACTERS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
 
-function get_caret(el: HTMLElement): null | number {
-	const sel = window.getSelection();
-	if (sel === null) {
-		return null;
-	}
-	const pos = sel.getRangeAt(0).startOffset;
-	const endPos = pos + Array.from(el.innerHTML.slice(0, pos)).length - el.innerHTML.slice(0, pos).split("").length;
-	return endPos;
-}
+export class EditorContext {
+	private list: Array<HTMLElement>;
+	private width: number;
+	private height: number;
+	private enabled: boolean = false;
+	private current_cell_info: { left?: string; right?: string; old?: string };
+	private edit_callback: (n: number, value: u8) => void;
+	constructor(list: Array<HTMLElement>, width: number, height: number, callback: (n: number, value: u8) => void) {
+		this.list = list;
+		this.width = width;
+		this.height = height;
+		this.edit_callback = callback;
+		this.current_cell_info = {};
 
-const hex_characters = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
-function replace_non_hex(c: string): string {
-	if (hex_characters.includes(c)) {
-		return c;
-	}
-	return "0";
-}
+		for (const [i, cell] of this.list.entries()) {
+			cell.setAttribute("spellcheck", "false");
+			cell.addEventListener("keydown", (e) => {
+				this.keydown(e, i);
+			});
+			cell.addEventListener("focus", () => {
+				if (!this.enabled) return;
+				this.current_cell_info.old = cell.textContent ?? "00";
+				this.current_cell_info.left = undefined;
+				this.current_cell_info.right = undefined;
+				cell.classList.add("caret_selected");
 
-function editable_constraints(e: Event): boolean {
-	const target = e.target as HTMLDivElement;
-	const text = target.innerHTML ?? "";
-	if (text.length !== 2) {
-		const pos = get_caret(target);
-		const new_str = [...(target.textContent ?? "").substring(0, 2).padStart(2, "0").toUpperCase()]
-			.map(replace_non_hex)
-			.join("");
-		target.innerHTML = "";
-		// For the caret selection to work right, each character must be its own node, complicating this greatly
-		target.append(new_str.substring(0, 1), new_str.substring(1));
+				// Reset cursor position (I know there's an API for this, but this is a simpler, more robust solution)
+				cell.textContent = cell.textContent ?? "00";
+			});
 
-		if (pos !== null) {
-			if (pos >= 2) {
-				return true;
-			}
-			set_caret(target, pos);
+			cell.addEventListener("blur", () => {
+				const left = this.current_cell_info.left;
+				const right = this.current_cell_info.right;
+				cell.classList.remove("caret_selected");
+				if (left === undefined || right === undefined) {
+					cell.textContent = this.current_cell_info.old ?? "00";
+				} else if (left !== undefined && right !== undefined) {
+					const text = `${left}${right}`;
+					cell.textContent = text;
+					const val = Number.parseInt(text, 16) as u8;
+					this.edit_callback(i, val);
+					cell.classList.add("recent_edit");
+				}
+			});
 		}
 	}
-	return false;
-}
 
-function at<T>(l: Array<T>, i: number): T | null {
-	if (i < 0) {
-		return null;
+	enable(): void {
+		this.enabled = true;
+		for (const cell of this.list) {
+			cell.setAttribute("contenteditable", "true");
+		}
 	}
-	if (i >= l.length) {
-		return null;
+	disable(): void {
+		this.enabled = false;
+		for (const cell of this.list) {
+			cell.removeAttribute("contenteditable");
+			cell.blur();
+		}
+		this.current_cell_info = {};
 	}
-	return l[i];
-}
 
-export function make_editable(
-	list: Array<HTMLElement>,
-	width: number,
-	height: number,
-	on_edit: (n: number, value: string) => void
-): void {
-	for (const [i, cell] of list.entries()) {
-		cell.setAttribute("contenteditable", "true");
-		cell.setAttribute("spellcheck", "false");
-		const next: null | HTMLElement = at(list, i + 1);
-		const prev: null | HTMLElement = at(list, i - 1);
-		const up: null | HTMLElement = at(list, i - width);
-		const down: null | HTMLElement = at(list, i + width);
-		cell.addEventListener("keydown", (e) => {
-			const caret_position = get_caret(cell);
-			const k = e.key;
-			if (k === "ArrowUp") {
-				(up ?? prev)?.focus();
-				cell.blur();
-			} else if (k === "ArrowDown") {
-				(down ?? next)?.focus();
-				cell.blur();
-			} else if ((k === "ArrowLeft" || k === "Backspace") && caret_position === 0) {
-				prev?.focus();
-				cell.blur();
-			} else if (k === "ArrowRight" && caret_position === 1) {
-				next?.focus();
-				cell.blur();
-			} else if (k === "Enter") {
-				cell.blur();
-			} else if (k === "Escape") {
-				cell.blur();
-				return;
-			} else {
-				return;
-			}
-			e.preventDefault();
-		});
-		let previous_text = cell.textContent ?? "";
-		cell.addEventListener("input", (e) => {
-			const current_text = cell.textContent ?? "";
-			if (current_text !== previous_text) {
-				previous_text = cell.textContent ?? "";
-				on_edit(i, current_text);
-			}
-			if (editable_constraints(e) === true) {
+	private keydown(e: KeyboardEvent, cell_index: number): void {
+		if (!this.enabled) return;
+		const cell = e.target as HTMLElement;
+
+		const next: null | HTMLElement = at(this.list, cell_index + 1);
+		const prev: null | HTMLElement = at(this.list, cell_index - 1);
+		const up: null | HTMLElement = at(this.list, cell_index - this.width);
+		const down: null | HTMLElement = at(this.list, cell_index + this.width);
+
+		const k = e.key;
+		if (k === "ArrowUp") {
+			(up ?? prev)?.focus();
+			cell.blur();
+		} else if (k === "ArrowDown") {
+			(down ?? next)?.focus();
+			cell.blur();
+		} else if (k === "ArrowLeft" || k === "Backspace") {
+			prev?.focus();
+			cell.blur();
+		} else if (k === "ArrowRight") {
+			next?.focus();
+			cell.blur();
+		} else if (k === "Enter") {
+			cell.blur();
+		} else if (k === "Escape") {
+			cell.blur();
+			return;
+		} else if (HEX_CHARACTERS.includes(k.toUpperCase())) {
+			if (this.current_cell_info.left === undefined) {
+				this.current_cell_info.left = k.toUpperCase();
+				cell.innerHTML = `<span class="pending_edit">${this.current_cell_info.left}</span>0`;
+			} else if (this.current_cell_info.right === undefined) {
+				this.current_cell_info.right = k.toUpperCase();
+				cell.textContent = `${this.current_cell_info.left}${this.current_cell_info.right}`;
 				next?.focus();
 				cell.blur();
 			}
-		});
+		} else if (k === "Tab") {
+			return;
+		}
+		e.preventDefault();
 	}
 }

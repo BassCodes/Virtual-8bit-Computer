@@ -1,16 +1,13 @@
 import { CpuEvent, CpuEventHandler, UiEvent, UiEventHandler } from "./events";
-import { $, el, format_hex } from "./etc";
+import { $ } from "./etc";
 import { InstructionExplainer } from "./ui/instructionExplainer";
 import { MemoryView } from "./ui/memoryView";
 import { frequencyIndicator } from "./ui/frequencyIndicator";
 import { RegisterView } from "./ui/registerView";
 import { Screen } from "./ui/screen";
-import { UiComponent, UiComponentConstructor } from "./ui/uiComponent.js";
-// Certainly the messiest portion of this program
-// Needs to be broken into components
-// Breaking up into components has started but has yet to conclude
-
-let delay = 100;
+import { Ribbon } from "./ui/ribbon";
+import { UiComponent, UiComponentConstructor } from "./ui/uiComponent";
+import { pausePlay } from "./ui/pausePlay";
 
 export class UI {
 	printout: HTMLElement;
@@ -34,32 +31,12 @@ export class UI {
 		this.register_component(InstructionExplainer, $("instruction_explainer"));
 		this.register_component(RegisterView, $("registers"));
 		this.register_component(Screen, $("screen") as HTMLCanvasElement);
+		this.register_component(Ribbon, $("ribbon_menu"));
+		this.register_component(pausePlay, $("controls_buttons"));
 		this.printout = $("printout");
 
 		this.auto_running = false;
 		const pp_button = $("pause_play_button");
-
-		pp_button.addEventListener("click", () => {
-			if (this.auto_running) {
-				this.stop_auto();
-				pp_button.textContent = "Starp";
-			} else {
-				this.start_auto();
-				pp_button.textContent = "Storp";
-			}
-		});
-		$("step_button").addEventListener("click", () => {
-			if (this.auto_running) {
-				this.stop_auto();
-			}
-
-			this.events.dispatch(UiEvent.RequestCpuCycle, 1);
-		});
-
-		$("delay_range").addEventListener("input", (e) => {
-			delay = parseInt((e.target as HTMLInputElement).value, 10);
-			// console.log(delay);
-		});
 	}
 	private register_component(c: UiComponentConstructor, e: HTMLElement): void {
 		if (e === undefined) {
@@ -79,34 +56,14 @@ export class UI {
 		});
 
 		for (const c of this.components) {
-			c.init_cpu_events(cpu_events);
+			if (c.init_cpu_events) c.init_cpu_events(cpu_events);
 		}
 	}
 
 	reset(): void {
-		this.stop_auto();
 		for (const c of this.components) {
 			c.reset();
 		}
 		this.printout.textContent = "";
-	}
-
-	start_auto(speed: number = 200): void {
-		if (this.auto_running) {
-			return;
-		}
-		this.auto_running = true;
-		const loop = (): void => {
-			if (this.auto_running === false) {
-				return;
-			}
-			this.events.dispatch(UiEvent.RequestCpuCycle, 1);
-			setTimeout(loop, delay);
-		};
-		loop();
-	}
-
-	stop_auto(): void {
-		this.auto_running = false;
 	}
 }

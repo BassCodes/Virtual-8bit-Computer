@@ -8,21 +8,15 @@ pre {
 
 :root {
 	--Border: #ffff00;
-	// --mem-instruction: #adff2f;
-	// --mem-register: #800080;
-	// --mem-constant: #d3d3d3;
-	// --mem-memory: #d3d3d3;
-	// --mem-invalid: #ff0000;
-	// --mem-instruction: #2f962a;
-	// --mem-register: #dc21d1;
-	// --mem-constant: #d3d3d3;
-	// --mem-memory: #4d86f0;
-	// --mem-invalid: #bf2e2e;
 	--mem-instruction: #3af78f;
 	--mem-memory: #ff26a8;
 	--mem-register: #9e0ef7;
 	--mem-constant: #19f7f0;
 	--mem-invalid: #bf2e2e;
+}
+
+img {
+	image-rendering: pixelated;
 }
 
 body {
@@ -44,13 +38,13 @@ body {
 #main {
 	justify-content: center;
 	display: grid;
-	grid-template-columns: min-content max-content max-content 10px 500px;
+	grid-template-columns: min-content max-content max-content min-content 500px;
 	grid-template-rows: min-content 1.5fr 10px 2fr 2fr min-content;
 	grid-template-areas:
 		"cycles registers regmemlabel . explainer "
-		"title .         .           . explainer "
-		"title .         .           . ."
-		"title .         .           . printout "
+		"title .         .           ribbon explainer "
+		"title .         .           ribbon ."
+		"title .         .           ribbon printout "
 		"title .         .           . printout "
 		".     buttons   buttons     . .";
 	#memory {
@@ -69,6 +63,9 @@ body {
 		text-align: left;
 		user-select: none;
 		transform: scale(-1, -1);
+	}
+	#ribbon_menu {
+		grid-area: ribbon;
 	}
 }
 
@@ -124,6 +121,17 @@ body {
 	--color: var(--mem-instruction);
 }
 
+div[contenteditable] {
+	&.caret_selected {
+		box-sizing: border-box;
+		outline: 2px solid red;
+	}
+	outline: none;
+}
+
+.pending_edit {
+	color: green;
+}
 #memory {
 	grid-area: memory;
 	display: grid;
@@ -131,21 +139,29 @@ body {
 	gap: 5px;
 	padding: 10px;
 	border: 5px solid yellow;
+
 	div {
+		user-select: none;
+		caret-color: transparent;
 		text-align: center;
 		color: var(--color);
 	}
+
 	.program_counter {
 		outline: 3px solid orange;
 	}
+
 	.instruction_argument,
 	.current_instruction {
 		outline: 3px dashed var(--color);
 	}
-
+	.recent_edit {
+		color: lime;
+	}
 	div.last_access {
 		color: orange;
 	}
+
 	.invalid {
 		&::after {
 			user-select: none;
@@ -159,10 +175,31 @@ body {
 	}
 }
 
+div#main.editor {
+	#memory,
+	#registers {
+		border-style: dashed;
+		div {
+			cursor: text;
+		}
+	}
+}
+
+#ribbon_menu {
+	margin-inline: 8px;
+	.editor_toggle {
+		//TODO CHANGE COLORS WHen
+		&.off {
+		}
+		&.on {
+		}
+	}
+}
+
 #registers {
 	grid-area: registers;
 	border: 5px solid yellow;
-	border-bottom: none;
+	border-bottom: none !important;
 
 	grid-template-columns: repeat(8, min-content);
 	max-width: fit-content;
@@ -191,6 +228,25 @@ label.button {
 	user-select: none;
 }
 
+button:disabled {
+	border: 4px solid rgb(255, 255, 128);
+	color: orange;
+	cursor: default;
+}
+
+input[type="range"]:disabled {
+	cursor: default;
+}
+
+button.no_style {
+	border: none;
+	color: inherit;
+	margin: 0;
+	padding: 0;
+	font-size: inherit;
+	background-color: inherit;
+}
+
 button:hover,
 label.button:hover {
 	color: white;
@@ -201,6 +257,10 @@ label.button:hover {
 
 	display: flex;
 	gap: 10px;
+	#controls_buttons {
+		display: flex;
+		gap: inherit;
+	}
 }
 
 input[type="range"] {
@@ -208,8 +268,8 @@ input[type="range"] {
 	-webkit-appearance: none;
 	appearance: none;
 	margin: 18px 0;
-	// width: 100%;
 }
+
 input[type="range"]:focus {
 	outline: none;
 }

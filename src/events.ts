@@ -5,7 +5,7 @@
  */
 import { EventHandler } from "./eventHandler";
 import { Instruction, ParameterType } from "./instructionSet";
-import { u1, u2, u3, u8 } from "./num";
+import { u2, u3, u8 } from "./num";
 
 //
 // CPU Event Handler Definition
@@ -65,18 +65,28 @@ export const CpuEventHandler = EventHandler<CpuEvent> as CpuEventHandlerConstruc
 //
 
 export enum UiEvent {
+	// Maybe move these into a UI -> CPU signal system?
 	RequestCpuCycle,
 	RequestMemoryChange,
+	RequestRegisterChange,
+	// Ui Events
+	EditOn,
+	EditOff,
 }
 
 interface UiEventMap {
 	[UiEvent.RequestCpuCycle]: number;
 	[UiEvent.RequestMemoryChange]: { address: u8; value: u8 };
+	[UiEvent.RequestRegisterChange]: { register_no: u3; value: u8 };
 }
+
+type VoidDataUiEventList = UiEvent.EditOn | UiEvent.EditOff;
 
 export interface UiEventHandler extends EventHandler<UiEvent> {
 	listen<E extends keyof UiEventMap>(type: E, listener: (ev: UiEventMap[E]) => void): void;
 	dispatch<E extends keyof UiEventMap>(type: E, data: UiEventMap[E]): void;
+	listen<E extends VoidDataUiEventList>(type: E, listener: () => void): void;
+	dispatch<E extends VoidDataUiEventList>(type: E): void;
 }
 
 interface UiEventHandlerConstructor {

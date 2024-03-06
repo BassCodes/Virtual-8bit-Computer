@@ -31,13 +31,20 @@ export const byte_array_to_js_source = (bytes: Array<u8>): string => {
  * @param type
  * @param id id attribute to set
  */
-export function el<E extends keyof HTMLElementTagNameMap>(type: E, id?: string): HTMLElementTagNameMap[E];
-export function el(type: string, id?: string): HTMLElement | undefined {
+export function el<E extends keyof HTMLElementTagNameMap>(
+	type: E,
+	id?: string,
+	class_list?: string
+): HTMLElementTagNameMap[E];
+export function el(type: string, id?: string, class_list?: string): HTMLElement | undefined {
 	const element = document.createElement(type);
-	if (id === undefined) {
-		return element;
+	if (id !== undefined) {
+		element.id = id;
 	}
-	element.id = id;
+	if (class_list !== undefined) {
+		element.className = class_list;
+	}
+
 	return element;
 }
 
@@ -48,4 +55,14 @@ export const SVG_NS = "http://www.w3.org/2000/svg";
 export function in_range(check: number, start: number, end: number): boolean {
 	if (check >= start && check <= end) return true;
 	return false;
+}
+
+export function at<T>(l: Array<T>, i: number): T | null {
+	if (i < 0) {
+		return null;
+	}
+	if (i >= l.length) {
+		return null;
+	}
+	return l[i];
 }

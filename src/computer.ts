@@ -1,7 +1,7 @@
 import { CpuEvent, CpuEventHandler, UiEvent, UiEventHandler } from "./events";
 import { byte_array_to_js_source, format_hex } from "./etc";
 import { Instruction, ISA } from "./instructionSet";
-import { m256, u1, u2, u3, u8 } from "./num";
+import { m256, u2, u3, u8 } from "./num";
 
 export type TempInstrState = {
 	pos: u8;
@@ -178,6 +178,7 @@ export class Computer {
 			for (let i = 0; i < cycle_count; i++) this.cycle();
 		});
 		ui.listen(UiEvent.RequestMemoryChange, ({ address, value }) => this.setMemory(address, value));
+		ui.listen(UiEvent.RequestRegisterChange, ({ register_no, value }) => this.setRegister(register_no, value));
 	}
 
 	load_memory(program: Array<u8>): void {

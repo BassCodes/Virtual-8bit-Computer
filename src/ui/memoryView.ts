@@ -1,8 +1,9 @@
-import { CpuEvent, CpuEventHandler, UiEventHandler } from "../events";
+import { CpuEvent, CpuEventHandler, UiEvent, UiEventHandler } from "../events";
 import { ParamType } from "../instructionSet";
 import { u8 } from "../num.js";
 import { UiComponent } from "./uiComponent";
 import { CelledViewer } from "./celledViewer";
+import { EditorContext } from "./editableHex";
 
 type MemoryCell = {
 	el: HTMLDivElement;
@@ -16,6 +17,23 @@ export class MemoryView extends CelledViewer implements UiComponent {
 		super(16, 16, element);
 		this.program_counter = 0;
 		this.events = e;
+
+		const list = this.cells.map((c) => c.el);
+		const editor = new EditorContext(list, this.width, this.height, (i, value) => {
+			this.events.dispatch(UiEvent.RequestMemoryChange, { address: i as u8, value });
+		});
+		this.events.listen(UiEvent.EditOn, () => {
+			editor.enable();
+			for (const cell of this.cells) {
+				cell.el.className = "";
+			}
+		});
+		this.events.listen(UiEvent.EditOff, () => {
+			editor.disable();
+			for (const cell of this.cells) {
+				cell.el.className = "";
+			}
+		});
 	}
 
 	set_program_counter(position: u8): void {
