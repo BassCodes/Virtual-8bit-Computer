@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+		<style>
+			html {
+				color: white;
+				background-color: black;
+				font-family: monospace;
+				font-size: 2em;
+			}
+			body {
+				display: flex;
+				justify-content: center;
+				margin-top: 100px;
+				align-content: center;
+				margin-inline: auto;
+				margin-block: auto;
+			}
+			#cont {
+				margin-top: 100px;
+				display: flex;
+				flex-direction: row;
+			}
+			#cpu,
+			#target {
+				margin-block: auto;
+				border: solid 3px yellow;
+				padding: 6px;
+			}
+			#targets {
+				display: flex;
+				flex-direction: column;
+				gap: 9px;
+			}
+			#connections {
+			}
+			div#target.gray {
+				border-color: gray;
+			}
+			svg polyline {
+				fill: transparent;
+				stroke-width: 3;
+				stroke-linecap: butt;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="cont">
+			<div id="cpu">CPU</div>
+			<svg
+				id="connections"
+				xmlns="http://www.w3.org/2000/svg"
+				viewBox="0 0 100 100"
+				preserveAspectRatio="none"
+				width="100"
+				height="100%"
+			>
+				<polyline points="0,43 50,43 50,10, 100,10" stroke="yellow" />
+				<polyline points="0,48 64,48 64,37, 100,37" stroke="gray" />
+				<polyline points="0,53 64,53 64,63, 100,63" stroke="gray" />
+				<polyline points="0,58 50,58 50,90, 100,90" stroke="gray" />
+			</svg>
+			<div id="targets">
+				<div id="target">Main</div>
+				<div id="target" class="gray">Bank 1</div>
+				<div id="target" class="gray">Bank 2</div>
+				<div id="target" class="gray">VRAM</div>
+			</div>
+		</div>
+	</body>
+</html>

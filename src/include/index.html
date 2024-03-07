@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<script src="main.js"></script>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Virtual 8-Bit Computer</title>
+	</head>
+	<body id="root">
+		<main>
+			<div id="grid">
+				<div id="title">VIRTUAL 8-BIT COMPUTER</div>
+				<div id="registers"></div>
+				<div id="labelcontainer">
+					<div id="registers_label">￩REGISTERS</div>
+					<div id="memory_label">MEMORY↯</div>
+				</div>
+				<div id="memory"></div>
+
+				<div id="controls_bar">
+					<span id="controls_buttons"></span>
+					<label for="binary_upload" class="button">Load Binary</label>
+					<input id="binary_upload" name="binary_upload" id="binary_upload" style="display: none" type="file" />
+					<button type="button" id="save_button">Save</button>
+					<button type="button" id="edit_button"></button>
+				</div>
+				<span id="cycles"></span>
+			</div>
+			<div id="window_box">
+				<div id="instruction_explainer"></div>
+				<div id="printout"></div>
+				<div id="tv"></div>
+			</div>
+		</main>
+
+		<pre id="ISA"></pre>
+	</body>
+</html>

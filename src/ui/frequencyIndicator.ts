@@ -37,6 +37,9 @@ export class frequencyIndicator implements UiComponent {
 			this.element.textContent = `${value}hz`;
 			this.last_value = value;
 		}
+		if (value === 0) {
+			this.element.textContent = "";
+		}
 		this.last_time = new_time;
 		this.count = 0;
 	}

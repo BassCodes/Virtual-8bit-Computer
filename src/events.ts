@@ -72,6 +72,12 @@ export enum UiEvent {
 	// Ui Events
 	EditOn,
 	EditOff,
+	ConsoleOn,
+	ConsoleOff,
+	ExplainerOn,
+	ExplainerOff,
+	VideoOn,
+	VideoOff,
 }
 
 interface UiEventMap {

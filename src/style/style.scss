@@ -1,0 +1,93 @@
+@use "memory_registers";
+@use "windows";
+@use "buttons";
+@use "vars";
+
+* {
+	box-sizing: border-box;
+}
+
+pre {
+	font-size: 0.5em;
+}
+
+img {
+	image-rendering: pixelated;
+}
+
+body {
+	color: #808080;
+	background-color: black;
+	font-size: 2.5em;
+	font-family: monospace;
+}
+
+main {
+	display: flex;
+	justify-content: center;
+}
+
+#grid {
+	justify-content: center;
+	display: grid;
+	grid-template-columns: min-content min-content min-content;
+	grid-template-rows: min-content min-content min-content;
+	grid-template-areas:
+		"cycles registers regmemlabel"
+		"title memory	 memory"
+		".     buttons   buttons     ";
+	#memory {
+		grid-area: memory;
+		// grid-column: 2/4;
+		// grid-row: 2/6;
+	}
+	#window_box {
+		grid-area: windowbox;
+	}
+	#registers {
+		grid-area: registers;
+	}
+	#labelcontainer {
+		grid-area: regmemlabel;
+	}
+	#cycles {
+		grid-area: cycles;
+		text-align: left;
+		align-self: center;
+		font-size: 0.48em;
+		user-select: none;
+	}
+	#title {
+		grid-area: title;
+		writing-mode: vertical-lr;
+		text-align: left;
+		user-select: none;
+		transform: scale(-1, -1);
+	}
+}
+
+.invalid {
+	--color: var(--mem-invalid);
+}
+.constant {
+	--color: var(--mem-constant);
+}
+.register {
+	--color: var(--mem-register);
+}
+.memory {
+	--color: var(--mem-memory);
+}
+.instruction {
+	--color: var(--mem-instruction);
+}
+
+div#main.editor {
+	#memory,
+	#registers {
+		border-style: dashed;
+		div {
+			cursor: text;
+		}
+	}
+}

@@ -10,7 +10,7 @@ import { generate_isa } from "./isaGenerator";
 import { UI } from "./ui";
 import { u8 } from "./num";
 
-import "./style.scss";
+import "./style/style.scss";
 import { CpuEvent } from "./events";
 
 declare global {

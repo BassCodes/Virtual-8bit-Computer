@@ -1,0 +1,69 @@
+#memory {
+	grid-template-columns: repeat(16, min-content);
+
+	.program_counter {
+		outline: 3px solid orange;
+	}
+
+	.instruction_argument,
+	.current_instruction {
+		outline: 3px dashed var(--color);
+	}
+
+	.invalid {
+		&::after {
+			user-select: none;
+			float: right;
+			position: relative;
+			right: 0.5em;
+			width: 0px;
+			font-size: 0.5em;
+			content: "!";
+		}
+	}
+}
+#registers {
+	border-bottom: none !important;
+
+	grid-template-columns: repeat(8, min-content);
+	color: lightgray;
+}
+
+#labelcontainer {
+	column-gap: 18px;
+	font-size: 0.85em;
+	display: flex;
+	align-items: center;
+	user-select: none;
+}
+.celled_viewer {
+	display: grid;
+	max-width: fit-content;
+	gap: 5px;
+	border: 5px solid yellow;
+	padding: 10px;
+	user-select: none;
+
+	div {
+		.pending_edit {
+			color: green;
+		}
+		&.recent_edit {
+			color: lime;
+		}
+		&.last_access {
+			color: orange;
+		}
+		user-select: none;
+		caret-color: transparent;
+		text-align: center;
+		color: var(--color);
+		&[contenteditable] {
+			&.caret_selected {
+				box-sizing: border-box;
+				outline: 2px solid red;
+			}
+			outline: none;
+		}
+	}
+}

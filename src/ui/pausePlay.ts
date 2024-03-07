@@ -1,5 +1,5 @@
 import { el } from "../etc";
-import { UiEventHandler, CpuEventHandler, UiEvent } from "../events";
+import { UiEventHandler, UiEvent } from "../events";
 import { UiComponent } from "./uiComponent";
 
 const MAX_SLIDER = 1000;

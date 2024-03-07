@@ -24,6 +24,14 @@ export class EditorContext {
 			cell.addEventListener("keydown", (e) => {
 				this.keydown(e, i);
 			});
+			cell.addEventListener("input", (e) => {
+				const target = e.target as HTMLElement;
+				if (target === null) return;
+				const text = target.textContent ?? "";
+				if (text.length !== 2) {
+					target.textContent = text.substring(0, 2);
+				}
+			});
 			cell.addEventListener("focus", () => {
 				if (!this.enabled) return;
 				this.current_cell_info.old = cell.textContent ?? "00";

@@ -1,19 +1,16 @@
 import { CpuEvent, CpuEventHandler, UiEvent, UiEventHandler } from "./events";
 import { $ } from "./etc";
-import { InstructionExplainer } from "./ui/instructionExplainer";
+import { InstructionExplainer } from "./ui/windows/instructionExplainer";
 import { MemoryView } from "./ui/memoryView";
 import { frequencyIndicator } from "./ui/frequencyIndicator";
 import { RegisterView } from "./ui/registerView";
-import { Screen } from "./ui/screen";
-import { Ribbon } from "./ui/ribbon";
+import { Screen } from "./ui/windows/screen";
+import { EditButton } from "./ui/edit_button";
 import { UiComponent, UiComponentConstructor } from "./ui/uiComponent";
 import { pausePlay } from "./ui/pausePlay";
+import { Printout } from "./ui/windows/printout";
 
 export class UI {
-	printout: HTMLElement;
-
-	auto_running: boolean;
-
 	events: UiEventHandler = new UiEventHandler();
 
 	private components: Array<UiComponent>;
@@ -30,27 +27,23 @@ export class UI {
 		this.register_component(frequencyIndicator, $("cycles"));
 		this.register_component(InstructionExplainer, $("instruction_explainer"));
 		this.register_component(RegisterView, $("registers"));
-		this.register_component(Screen, $("screen") as HTMLCanvasElement);
-		this.register_component(Ribbon, $("ribbon_menu"));
+		this.register_component(Screen, $("tv"));
+		this.register_component(Printout, $("printout"));
+		this.register_component(EditButton, $("edit_button"));
 		this.register_component(pausePlay, $("controls_buttons"));
-		this.printout = $("printout");
 
-		this.auto_running = false;
 		const pp_button = $("pause_play_button");
 	}
-	private register_component(c: UiComponentConstructor, e: HTMLElement): void {
+	private register_component(ctor: UiComponentConstructor, e: HTMLElement): void {
 		if (e === undefined) {
-			console.log(c);
+			console.log(ctor);
 			throw new Error("Could not find HTML element while registering UI component");
 		}
-		const component = new c(e, this.events);
+		const component = new ctor(e, this.events);
 		this.components.push(component);
 	}
 
 	init_events(cpu_events: CpuEventHandler): void {
-		cpu_events.listen(CpuEvent.Print, (char) => {
-			this.printout.textContent = (this.printout.textContent ?? "") + char;
-		});
 		cpu_events.listen(CpuEvent.Reset, () => {
 			this.reset();
 		});
@@ -64,6 +57,5 @@ export class UI {
 		for (const c of this.components) {
 			c.reset();
 		}
-		this.printout.textContent = "";
 	}
 }

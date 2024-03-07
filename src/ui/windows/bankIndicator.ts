@@ -1,6 +1,6 @@
-import { UiEventHandler, CpuEventHandler, CpuEvent } from "../events";
-import { u1, u2 } from "../num";
-import { UiComponent } from "./uiComponent";
+import { UiEventHandler, CpuEventHandler, CpuEvent } from "../../events";
+import { u1, u2 } from "../../num";
+import { UiComponent } from "../uiComponent";
 
 class BankIndicator implements UiComponent {
 	element: HTMLElement;

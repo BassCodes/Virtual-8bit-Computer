@@ -1,14 +1,14 @@
-import { el, format_hex } from "../etc";
-import { CpuEvent, CpuEventHandler, UiEventHandler } from "../events";
-import { Instruction, ParamType, ParameterType } from "../instructionSet";
-import { u8 } from "../num";
-import { UiComponent } from "./uiComponent";
+import { el, format_hex } from "../../etc";
+import { CpuEvent, CpuEventHandler, UiEventHandler } from "../../events";
+import { Instruction, ParamType, ParameterType } from "../../instructionSet";
+import { u8 } from "../../num";
+import { WindowBox } from "../windowBox";
+import { UiComponent } from "../uiComponent";
 
-export class InstructionExplainer implements UiComponent {
-	element: HTMLElement;
+export class InstructionExplainer extends WindowBox implements UiComponent {
 	events: UiEventHandler;
 	constructor(element: HTMLElement, e: UiEventHandler) {
-		this.element = element;
+		super(element, "Instruction Explainer");
 		this.events = e;
 	}
 	add_instruction(instr: Instruction, pos: u8, byte: u8): void {
@@ -29,7 +29,7 @@ export class InstructionExplainer implements UiComponent {
 		this.element.appendChild(instr_box);
 	}
 
-	add_param(param: ParameterType, pos: u8, byte: u8): void {
+	add_parameter(param: ParameterType, pos: u8, byte: u8): void {
 		const t = param.type;
 		let name;
 		if (t === ParamType.Const) {
@@ -51,7 +51,7 @@ export class InstructionExplainer implements UiComponent {
 
 	init_cpu_events(c: CpuEventHandler): void {
 		c.listen(CpuEvent.ParameterParsed, ({ param, code, pos }) => {
-			this.add_param(param, pos, code);
+			this.add_parameter(param, pos, code);
 		});
 		c.listen(CpuEvent.InstructionParsed, ({ instr, code, pos }) => {
 			this.add_instruction(instr, pos, code);
@@ -62,6 +62,6 @@ export class InstructionExplainer implements UiComponent {
 	}
 
 	reset(): void {
-		this.element.innerHTML = "";
+		this.element.querySelectorAll("#expl_box").forEach((e) => e.remove());
 	}
 }

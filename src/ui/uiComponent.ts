@@ -9,7 +9,9 @@ export interface UiComponent {
 	element: HTMLElement;
 	/** Allows listening and emitting UiEvents*/
 	events: UiEventHandler;
+	/** Completely reset the state of the component */
 	reset: () => void;
+	soft_reset?: () => void;
 	/**  Allows listening CPUEvents*/
 	init_cpu_events?: (c: CpuEventHandler) => void;
 }

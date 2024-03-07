@@ -1,32 +1,39 @@
-import { UiEventHandler, CpuEventHandler, CpuEvent } from "../events";
-import { u4, u8 } from "../num";
-import { UiComponent } from "./uiComponent";
-export class Screen implements UiComponent {
-	element: HTMLCanvasElement;
+import { el } from "../../etc";
+import { UiEventHandler, CpuEventHandler, CpuEvent } from "../../events";
+import { u4, u8 } from "../../num";
+import { UiComponent } from "../uiComponent";
+import { WindowBox } from "../windowBox";
+export class Screen extends WindowBox implements UiComponent {
 	events: UiEventHandler;
+	screen: HTMLCanvasElement;
 	ctx: CanvasRenderingContext2D;
 	scale: [number, number];
 	constructor(element: HTMLElement, event: UiEventHandler) {
-		this.element = element as HTMLCanvasElement;
+		super(element, "TV", { collapsed: true });
+		this.screen = el("canvas", "screen");
 		this.events = event;
 		const canvas_size = [512, 512];
 		const data_size = [16, 16];
 		this.scale = [canvas_size[0] / data_size[0], canvas_size[1] / data_size[1]];
-		[this.element.width, this.element.height] = canvas_size;
-		const ctx = this.element.getContext("2d");
+		[this.screen.width, this.screen.height] = canvas_size;
+		const ctx = this.screen.getContext("2d");
 		if (ctx === null) {
-			throw new Error("todo");
+			throw new Error("could not load screen");
 		}
 		this.ctx = ctx;
-		// for (let x = 0; x < 16; x++) {
-		// 	for (let y = 0; y < 16; y++) {
-		// 		this.setPixel(x as u4, y as u4, (x + 16 * y) as u8);
-		// 	}
-		// }
+		this.element.appendChild(this.screen);
+	}
+
+	private test_pattern(): void {
+		for (let x = 0; x < 16; x++) {
+			for (let y = 0; y < 16; y++) {
+				this.setPixel(x as u4, y as u4, (x + 16 * y) as u8);
+			}
+		}
 	}
 
 	reset(): void {
-		const ctx = this.element.getContext("2d");
+		const ctx = this.screen.getContext("2d");
 		if (ctx === null) {
 			throw new Error("todo");
 		}

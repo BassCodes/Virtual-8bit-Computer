@@ -1,4 +1,7 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable no-undef */
 const path = require("path");
+const CopyPlugin = require("copy-webpack-plugin");
 
 const config = {
 	entry: "./src/index.ts",
@@ -33,6 +36,11 @@ const config = {
 		filename: "main.js",
 		path: path.resolve(__dirname, "dist"),
 	},
+	plugins: [
+		new CopyPlugin({
+			patterns: [{ from: "./src/include", to: "./" }],
+		}),
+	],
 };
 module.exports = (env, argv) => {
 	if (argv.mode === "development") {

@@ -19,6 +19,7 @@ export abstract class CelledViewer {
 		this.element = element;
 		this.width = width;
 		this.height = height;
+		this.element.classList.add("celled_viewer");
 		for (let i = 0; i < this.width * this.height; i++) {
 			const mem_cell_el = el("div");
 			mem_cell_el.append("0", "0");
