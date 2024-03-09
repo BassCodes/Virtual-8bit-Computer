@@ -43,40 +43,12 @@ function main(): void {
 	const ui = new UI();
 	ui.init_events(computer.events);
 	computer.load_memory(program);
-	computer.init_events(ui.events);
+	computer.init_events(ui.cpu_signaler);
 	window.comp = computer;
 	window.ui = ui;
 
 	$("ISA").textContent = generate_isa(ISA);
 
-	$("binary_upload").addEventListener("change", (e) => {
-		const t = e.target;
-		if (t === null) {
-			return;
-		}
-
-		const file: File | undefined = (t as HTMLInputElement).files?.[0];
-		if (file === undefined) {
-			console.log("No files attribute on file input");
-			return;
-		}
-		const reader = new FileReader();
-		console.log(file);
-		reader.addEventListener("load", (e) => {
-			if (e.target !== null) {
-				const data = e.target.result;
-				if (data instanceof ArrayBuffer) {
-					const view = new Uint8Array(data);
-					const array = [...view] as Array<u8>;
-					computer.reset();
-					computer.load_memory(array);
-				} else {
-					console.log("not array");
-				}
-			}
-		});
-		reader.readAsArrayBuffer(file);
-	});
 	let fire = false;
 	window.firehose = (): void => {
 		if (fire === false) {
@@ -88,17 +60,6 @@ function main(): void {
 			console.error("Firehose already started");
 		}
 	};
-
-	$("save_button").addEventListener("click", () => {
-		const memory = computer.dump_memory();
-		const blob = new Blob([memory], { type: "application/octet-stream" });
-		const url = URL.createObjectURL(blob);
-
-		const link = document.createElement("a");
-		link.href = url;
-		link.download = "bin.bin";
-		link.click();
-	});
 }
 
 document.addEventListener("DOMContentLoaded", () => {

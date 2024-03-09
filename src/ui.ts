@@ -1,28 +1,22 @@
-import { CpuEvent, CpuEventHandler, UiEvent, UiEventHandler } from "./events";
+import { CpuEvent, CpuEventHandler, UiCpuSignalHandler, UiEvent, UiEventHandler } from "./events";
 import { $ } from "./etc";
 import { InstructionExplainer } from "./ui/windows/instructionExplainer";
 import { MemoryView } from "./ui/memoryView";
 import { frequencyIndicator } from "./ui/frequencyIndicator";
 import { RegisterView } from "./ui/registerView";
 import { Screen } from "./ui/windows/screen";
-import { EditButton } from "./ui/edit_button";
+import { EditButton } from "./ui/editButton";
 import { UiComponent, UiComponentConstructor } from "./ui/uiComponent";
 import { pausePlay } from "./ui/pausePlay";
 import { Printout } from "./ui/windows/printout";
+import { SaveLoad } from "./ui/saveLoad";
 
 export class UI {
-	events: UiEventHandler = new UiEventHandler();
-
-	private components: Array<UiComponent>;
+	ui_events: UiEventHandler = new UiEventHandler();
+	cpu_signaler: UiCpuSignalHandler = new UiCpuSignalHandler();
+	private components: Array<UiComponent> = [];
 
 	constructor() {
-		for (const [, e_type] of Object.entries(UiEvent)) {
-			this.events.register_event(e_type as UiEvent);
-		}
-		this.events.seal();
-
-		this.components = [];
-
 		this.register_component(MemoryView, $("memory"));
 		this.register_component(frequencyIndicator, $("cycles"));
 		this.register_component(InstructionExplainer, $("instruction_explainer"));
@@ -31,15 +25,16 @@ export class UI {
 		this.register_component(Printout, $("printout"));
 		this.register_component(EditButton, $("edit_button"));
 		this.register_component(pausePlay, $("controls_buttons"));
-
-		const pp_button = $("pause_play_button");
+		this.register_component(SaveLoad, $("save_load_buttons"));
 	}
+
 	private register_component(ctor: UiComponentConstructor, e: HTMLElement): void {
 		if (e === undefined) {
+			// shouldn't be able to happen, but I sometimes let the type system slide when getting elements from the DOM.
 			console.log(ctor);
 			throw new Error("Could not find HTML element while registering UI component");
 		}
-		const component = new ctor(e, this.events);
+		const component = new ctor(e, this.ui_events, this.cpu_signaler);
 		this.components.push(component);
 	}
 
@@ -48,14 +43,10 @@ export class UI {
 			this.reset();
 		});
 
-		for (const c of this.components) {
-			if (c.init_cpu_events) c.init_cpu_events(cpu_events);
-		}
+		for (const c of this.components) if (c.init_cpu_events) c.init_cpu_events(cpu_events);
 	}
 
 	reset(): void {
-		for (const c of this.components) {
-			c.reset();
-		}
+		for (const c of this.components) if (c.reset) c.reset();
 	}
 }

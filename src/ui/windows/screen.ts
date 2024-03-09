@@ -22,6 +22,7 @@ export class Screen extends WindowBox implements UiComponent {
 		}
 		this.ctx = ctx;
 		this.element.appendChild(this.screen);
+		this.test_pattern();
 	}
 
 	private test_pattern(): void {

@@ -14,29 +14,13 @@ export class Event<T> {
 
 export class EventHandler<T> {
 	events: Array<Event<T>> = [];
-	private sealed: boolean;
-	constructor() {
-		this.sealed = false;
-	}
 
-	seal(): void {
-		if (this.sealed) {
-			throw new Error("Already Sealed");
-		}
-		this.sealed = true;
-	}
-
-	register_event(identifier: T): void {
-		if (this.sealed) {
-			throw new Error("Can't add event to sealed event handler");
-		}
-		const event = new Event<T>(identifier);
-		this.events.push(event);
-	}
 	dispatch(identifier: T, event_data?: unknown): void {
 		const event = this.events.find((e) => e.identifier === identifier);
 		if (event === undefined) {
-			throw new Error("Event not found");
+			// throw new Error("Event not found");
+			console.log(`Event for ${identifier} was dispatched without any listeners. Data:`, event_data);
+			return;
 		}
 		for (const callback of event.callbacks) {
 			callback(event_data);
@@ -54,10 +38,13 @@ export class EventHandler<T> {
 		});
 	}
 	listen(identifier: T, callback: (event_data: unknown) => void): void {
-		if (!this.sealed) throw new Error("Event handler must be sealed before adding listener");
-		const event = this.events.find((e) => e.identifier === identifier);
+		let event = this.events.find((e) => e.identifier === identifier);
 		if (event === undefined) {
-			throw new Error("No event found given identifier");
+			// If no event found, create it.
+			// Type system is used to verify that events are valid.
+			// If this were plain JS, a registerEvent method would likely be better to avoid listening to events that will never exist.
+			event = new Event(identifier);
+			this.events.push(event);
 		}
 		event.callbacks.push(callback);
 	}

@@ -33,13 +33,12 @@ main {
 	grid-template-columns: min-content min-content min-content;
 	grid-template-rows: min-content min-content min-content;
 	grid-template-areas:
-		"cycles registers regmemlabel"
-		"title memory	 memory"
-		".     buttons   buttons     ";
+		".      regmemlabel .       cycles   "
+		". registers   .      bank "
+		"title  memory	    memory  memory"
+		".      buttons     buttons buttons     ";
 	#memory {
 		grid-area: memory;
-		// grid-column: 2/4;
-		// grid-row: 2/6;
 	}
 	#window_box {
 		grid-area: windowbox;
@@ -47,12 +46,15 @@ main {
 	#registers {
 		grid-area: registers;
 	}
+	#memory_bank_view {
+		grid-area: bank;
+	}
 	#labelcontainer {
 		grid-area: regmemlabel;
 	}
 	#cycles {
 		grid-area: cycles;
-		text-align: left;
+		text-align: right;
 		align-self: center;
 		font-size: 0.48em;
 		user-select: none;
@@ -63,6 +65,45 @@ main {
 		text-align: left;
 		user-select: none;
 		transform: scale(-1, -1);
+	}
+}
+
+#labelcontainer {
+	column-gap: 18px;
+	font-size: 0.75em;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	user-select: none;
+}
+
+#memory_bank_view {
+	display: flex;
+	#bank_boxes {
+		display: flex;
+		align-items: flex-end;
+		$pad: 8px;
+		$border-width: 5px;
+		$border: $border-width solid var(--border);
+		button {
+			border-top: $border;
+			border-bottom: unset;
+			padding-inline: $pad + $border-width;
+		}
+		button:first-child {
+			border-left: $border;
+			padding-left: $pad;
+		}
+		button:last-child {
+			padding-right: $pad;
+			border-right: $border;
+		}
+		button.selected {
+			color: lightgray;
+			padding-block: 5px;
+			padding-inline: $pad;
+			border-inline: $border;
+		}
 	}
 }
 
@@ -89,5 +130,40 @@ div#main.editor {
 		div {
 			cursor: text;
 		}
+	}
+}
+
+#controls_bar {
+	grid-area: buttons;
+
+	display: flex;
+	gap: 10px;
+	#controls_buttons {
+		display: flex;
+		gap: inherit;
+		justify-content: inherit;
+	}
+	#save_load_buttons {
+		display: flex;
+		gap: inherit;
+		justify-content: inherit;
+	}
+}
+
+#edit_button {
+	aspect-ratio: 1;
+
+	display: flex;
+	justify-content: center;
+	align-content: center;
+	img {
+		min-height: 30px;
+		min-width: 30px;
+		&:hover {
+			filter: grayscale(100%) brightness(500%);
+		}
+	}
+	&.on img {
+		filter: grayscale(100%) brightness(500%);
 	}
 }

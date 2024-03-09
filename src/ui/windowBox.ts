@@ -1,8 +1,8 @@
 import { el } from "../etc";
 export abstract class WindowBox {
 	element: HTMLElement;
-	readonly title: string;
 	title_bar: HTMLElement;
+	readonly title: string;
 	private resize: HTMLElement;
 	private collapse_button: HTMLButtonElement;
 	private collapsed: boolean = false;

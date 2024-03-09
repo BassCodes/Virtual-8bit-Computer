@@ -29,13 +29,6 @@
 	color: lightgray;
 }
 
-#labelcontainer {
-	column-gap: 18px;
-	font-size: 0.85em;
-	display: flex;
-	align-items: center;
-	user-select: none;
-}
 .celled_viewer {
 	display: grid;
 	max-width: fit-content;

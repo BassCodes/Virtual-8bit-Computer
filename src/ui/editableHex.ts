@@ -8,22 +8,18 @@ const HEX_CHARACTERS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "
 export class EditorContext {
 	private list: Array<HTMLElement>;
 	private width: number;
-	private height: number;
 	private enabled: boolean = false;
 	private current_cell_info: { left?: string; right?: string; old?: string };
 	private edit_callback: (n: number, value: u8) => void;
-	constructor(list: Array<HTMLElement>, width: number, height: number, callback: (n: number, value: u8) => void) {
+	constructor(list: Array<HTMLElement>, width: number, callback: (n: number, value: u8) => void) {
 		this.list = list;
 		this.width = width;
-		this.height = height;
 		this.edit_callback = callback;
 		this.current_cell_info = {};
 
 		for (const [i, cell] of this.list.entries()) {
 			cell.setAttribute("spellcheck", "false");
-			cell.addEventListener("keydown", (e) => {
-				this.keydown(e, i);
-			});
+			cell.addEventListener("keydown", (e) => this.keydown(e, i));
 			cell.addEventListener("input", (e) => {
 				const target = e.target as HTMLElement;
 				if (target === null) return;

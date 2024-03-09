@@ -1,5 +1,5 @@
 import { el, format_hex } from "../../etc";
-import { CpuEvent, CpuEventHandler, UiEventHandler } from "../../events";
+import { CpuEvent, CpuEventHandler, UiCpuSignalHandler, UiEventHandler } from "../../events";
 import { Instruction, ParamType, ParameterType } from "../../instructionSet";
 import { u8 } from "../../num";
 import { WindowBox } from "../windowBox";
@@ -7,9 +7,11 @@ import { UiComponent } from "../uiComponent";
 
 export class InstructionExplainer extends WindowBox implements UiComponent {
 	events: UiEventHandler;
-	constructor(element: HTMLElement, e: UiEventHandler) {
+	cpu_signals: UiCpuSignalHandler;
+	constructor(element: HTMLElement, events: UiEventHandler, cpu_signals: UiCpuSignalHandler) {
 		super(element, "Instruction Explainer");
-		this.events = e;
+		this.cpu_signals = cpu_signals;
+		this.events = events;
 	}
 	add_instruction(instr: Instruction, pos: u8, byte: u8): void {
 		this.reset();

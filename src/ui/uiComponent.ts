@@ -3,19 +3,28 @@
  * @copyright Alexander Bass 2024
  * @license GPL-3.0
  */
-import { CpuEventHandler, UiEventHandler } from "../events";
+import { CpuEventHandler, UiCpuSignalHandler, UiEventHandler } from "../events";
+
+// A UiComponent represents one DOM element and its contents.
+// A UiComponent reacts to events to change its state, and creates events when it wants to communicate with other UiComponents, or with the CPU.
+// These event/signal handlers are available to each UiComponent:
+//  - UiEventHandler: dispatch/listen to events created as a result of Ui actions
+//  - CpuEventHandler: listen to events created as a result of CPU actions
+//	- UiCpuEventSignaler: dispatch signals to request actions from the CPU
 
 export interface UiComponent {
 	element: HTMLElement;
 	/** Allows listening and emitting UiEvents*/
 	events: UiEventHandler;
+	/** Creating signals for the cpu to process */
+	cpu_signals?: UiCpuSignalHandler;
 	/** Completely reset the state of the component */
-	reset: () => void;
+	reset?: () => void;
 	soft_reset?: () => void;
 	/**  Allows listening CPUEvents*/
 	init_cpu_events?: (c: CpuEventHandler) => void;
 }
 
 export interface UiComponentConstructor {
-	new (el: HTMLElement, ue: UiEventHandler): UiComponent;
+	new (el: HTMLElement, ui_event_handler: UiEventHandler, cpu_signaler: UiCpuSignalHandler): UiComponent;
 }

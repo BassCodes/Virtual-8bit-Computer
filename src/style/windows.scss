@@ -14,22 +14,18 @@
 	flex-direction: column;
 	gap: 10px;
 	margin-left: 10px;
-	max-width: 500px;
+	width: 500px;
 	.window {
 		overflow-y: hidden;
 		position: relative;
 		border: 5px Solid var(--border);
 		border-bottom: unset;
-		&.collapsed {
-			.window_title {
-				// border-bottom: unset;
-			}
-		}
+
 		.window_title {
-			position: sticky;
-			user-select: none;
 			display: flex;
+			position: sticky;
 			align-items: center;
+			user-select: none;
 			justify-content: space-between;
 			font-size: 0.6em;
 			color: lightgray;
@@ -45,20 +41,23 @@
 				repeating-linear-gradient(to right, transparent, transparent 2px, transparent 2px, yellow 2px, yellow 4px);
 
 			#text {
-				display: inline-block;
+				word-break: keep-all;
+				white-space: nowrap;
 				text-align: center;
-				height: 100%;
 				padding-inline: 10px;
 				background-color: black;
 			}
 			#collapse_button {
-				height: 23px !important;
+				height: 23px;
 				aspect-ratio: 1;
-				border: 2px solid white;
+				border: 2px solid yellow;
 				background-color: black;
 				margin-right: 3px;
 			}
 		}
+	}
+	.window.collapsed > :not(:first-child) {
+		display: none;
 	}
 }
 
@@ -71,11 +70,10 @@
 }
 
 #instruction_explainer {
-	grid-area: explainer;
 	display: flex;
 	flex-direction: column;
 	gap: 5px;
-	height: 400px;
+	height: 300px;
 	#expl_box {
 		padding-inline: 20px;
 		padding-block-start: 10px;
@@ -97,7 +95,6 @@
 }
 
 #printout {
-	grid-area: printout;
 	height: 500px;
 	word-wrap: break-word;
 	word-break: break-all;

@@ -1,5 +1,5 @@
 import { el } from "../etc";
-import { UiEventHandler, UiEvent } from "../events";
+import { UiEventHandler, UiEvent, CpuEventHandler, UiCpuSignalHandler, UiCpuSignal } from "../events";
 import { UiComponent } from "./uiComponent";
 
 const MAX_SLIDER = 1000;
@@ -12,9 +12,12 @@ export class pausePlay implements UiComponent {
 	events: UiEventHandler;
 	on: boolean = false;
 	cycle_delay: number;
-	constructor(element: HTMLElement, events: UiEventHandler) {
+	cpu_signals: UiCpuSignalHandler;
+
+	constructor(element: HTMLElement, events: UiEventHandler, cpu_signals: UiCpuSignalHandler) {
 		this.element = element;
 		this.events = events;
+		this.cpu_signals = cpu_signals;
 		this.start_button = el("button", "pause_play_button");
 		this.step_button = el("button", "step_button");
 		this.range = el("input", "speed_range");
@@ -72,7 +75,7 @@ export class pausePlay implements UiComponent {
 			if (this.on === false) {
 				return;
 			}
-			this.events.dispatch(UiEvent.RequestCpuCycle, 1);
+			this.cpu_signals.dispatch(UiCpuSignal.RequestCpuCycle, 1);
 			setTimeout(loop, this.cycle_delay);
 		};
 		loop();
@@ -81,7 +84,7 @@ export class pausePlay implements UiComponent {
 		if (this.on) {
 			this.stop();
 		} else {
-			this.events.dispatch(UiEvent.RequestCpuCycle, 1);
+			this.cpu_signals.dispatch(UiCpuSignal.RequestCpuCycle, 1);
 		}
 	}
 

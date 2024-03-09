@@ -1,4 +1,4 @@
-import { CpuEvent, CpuEventHandler, UiEvent, UiEventHandler } from "./events";
+import { CpuEvent, CpuEventHandler, UiCpuSignal, UiCpuSignalHandler, UiEvent, UiEventHandler } from "./events";
 import { byte_array_to_js_source, format_hex } from "./etc";
 import { Instruction, ISA } from "./instructionSet";
 import { m256, u2, u3, u8 } from "./num";
@@ -27,14 +27,6 @@ export class Computer {
 	private bank: u2 = 0;
 	private current_instr: TempInstrState | null = null;
 	events: CpuEventHandler = new CpuEventHandler();
-
-	constructor() {
-		// Add events
-		for (const [, e_type] of Object.entries(CpuEvent)) {
-			this.events.register_event(e_type as CpuEvent);
-		}
-		this.events.seal();
-	}
 
 	cycle(): void {
 		const current_byte = this.getMemorySilent(this.program_counter, 0);
@@ -102,6 +94,7 @@ export class Computer {
 		}
 		this.events.dispatch(CpuEvent.Cycle);
 	}
+
 	private getMemorySilent(address: u8, bank_override?: u2): u8 {
 		const bank = this.banks[bank_override ?? this.bank];
 		const value = bank[address] as u8;
@@ -116,8 +109,8 @@ export class Computer {
 		return value;
 	}
 
-	setMemory(address: u8, value: u8): void {
-		this.banks[this.bank][address] = value;
+	setMemory(address: u8, value: u8, bank?: u2): void {
+		this.banks[bank ?? this.bank][address] = value;
 		this.events.dispatch(CpuEvent.MemoryChanged, { address, bank: this.bank, value });
 	}
 
@@ -173,12 +166,16 @@ export class Computer {
 		this.carry_flag = false;
 	}
 
-	init_events(ui: UiEventHandler): void {
-		ui.listen(UiEvent.RequestCpuCycle, (cycle_count) => {
+	init_events(ui: UiCpuSignalHandler): void {
+		ui.listen(UiCpuSignal.RequestCpuCycle, (cycle_count) => {
 			for (let i = 0; i < cycle_count; i++) this.cycle();
 		});
-		ui.listen(UiEvent.RequestMemoryChange, ({ address, value }) => this.setMemory(address, value));
-		ui.listen(UiEvent.RequestRegisterChange, ({ register_no, value }) => this.setRegister(register_no, value));
+		ui.listen(UiCpuSignal.RequestMemoryChange, ({ address, bank, value }) => this.setMemory(address, value, bank));
+		ui.listen(UiCpuSignal.RequestRegisterChange, ({ register_no, value }) => this.setRegister(register_no, value));
+		ui.listen(UiCpuSignal.RequestMemoryDump, () =>
+			this.events.dispatch(CpuEvent.MemoryDumped, { memory: this.dump_memory() })
+		);
+		ui.listen(UiCpuSignal.RequestCpuReset, () => this.reset());
 	}
 
 	load_memory(program: Array<u8>): void {
@@ -195,8 +192,8 @@ export class Computer {
 		this.program_counter = 0;
 	}
 
-	dump_memory(): Uint8Array {
-		return this.banks[0];
+	dump_memory(): [Uint8Array, Uint8Array, Uint8Array, Uint8Array] {
+		return this.banks;
 	}
 
 	private step_forward(): void {

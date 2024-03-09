@@ -8,9 +8,9 @@ export class frequencyIndicator implements UiComponent {
 	private last_value: number = 0;
 	private last_time: number = 0;
 	events: UiEventHandler;
-	constructor(element: HTMLElement, e: UiEventHandler) {
+	constructor(element: HTMLElement, events: UiEventHandler) {
 		this.element = element;
-		this.events = e;
+		this.events = events;
 		this.start();
 	}
 

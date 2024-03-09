@@ -28,8 +28,21 @@ export type u2 = 0 | 1 | 2 | 3;
 export type u3 = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 export type u4 = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
 
+/**
+ * Takes the input number and returns it modulus 256. Converts to `u8`
+ *
+ * @param number
+ * @returns number mod 256 (u8)
+ */
 export const m256 = (number: number): u8 => (number % 256) as u8;
 
+/**
+ * Determines whether a number is a u2 type (unsigned 2-bit integer).
+ * Does not check for non integers
+ *
+ * @param n Input number to be checked
+ * @returns true or false
+ */
 export function isU2(n: number): n is u2 {
 	if (n < 4 && n >= 0) {
 		return true;
@@ -41,9 +54,8 @@ export function isU2(n: number): n is u2 {
  * Determines whether a number is a u3 type (unsigned 3-bit integer).
  * Does not check for non integers
  *
- * @param n - Input number to be checked
+ * @param n Input number to be checked
  * @returns true or false
- *
  */
 export function isU3(n: number): n is u3 {
 	if (n < 8 && n >= 0) {
@@ -51,13 +63,13 @@ export function isU3(n: number): n is u3 {
 	}
 	return false;
 }
+
 /**
  * Determines whether a number is a u4 type (unsigned 4-bit integer).
  * Does not check for non integers
  *
- * @param n - Input number to be checked
+ * @param n Input number to be checked
  * @returns true or false
- *
  */
 export function isU4(n: number): n is u4 {
 	if (n < 16 && n >= 0) {
@@ -65,13 +77,13 @@ export function isU4(n: number): n is u4 {
 	}
 	return false;
 }
+
 /**
  * Determines whether a number is a u8 type (unsigned 8-bit integer).
  * Does not check for non integers
  *
- * @param n - Input number to be checked
+ * @param n Input number to be checked
  * @returns true or false
- *
  */
 export function isU8(n: number): n is u8 {
 	if (n < 256 && n >= 0) {

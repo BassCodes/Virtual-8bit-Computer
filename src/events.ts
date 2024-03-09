@@ -22,16 +22,13 @@ export enum CpuEvent {
 	Print,
 	Reset,
 	Halt,
-	// ClockStarted,
-	// ClockStopped,
+	MemoryDumped,
 	MemoryAccessed,
 	SwitchBank,
 	SetFlagCarry,
 }
 
 type VoidDataCpuEventList = CpuEvent.Halt | CpuEvent.Reset | CpuEvent.Cycle;
-// | CpuEvent.ClockStarted
-// | CpuEvent.ClockStopped;
 
 interface CpuEventMap {
 	[CpuEvent.MemoryChanged]: { address: u8; bank: u2; value: u8 };
@@ -45,6 +42,7 @@ interface CpuEventMap {
 	[CpuEvent.SwitchBank]: { bank: u2 };
 	[CpuEvent.Print]: string;
 	[CpuEvent.SetFlagCarry]: boolean;
+	[CpuEvent.MemoryDumped]: { memory: [Uint8Array, Uint8Array, Uint8Array, Uint8Array] };
 }
 
 export interface CpuEventHandler extends EventHandler<CpuEvent> {
@@ -61,29 +59,50 @@ interface CpuEventHandlerConstructor {
 export const CpuEventHandler = EventHandler<CpuEvent> as CpuEventHandlerConstructor;
 
 //
+// Ui -> CPU Signaler definition
+//
+
+export enum UiCpuSignal {
+	RequestCpuCycle,
+	RequestMemoryChange,
+	RequestRegisterChange,
+	RequestCpuReset,
+	RequestMemoryDump,
+}
+
+type VoidDataUiCpuSignalList = UiCpuSignal.RequestCpuReset | UiCpuSignal.RequestMemoryDump;
+
+interface UiCpuSignalMap {
+	[UiCpuSignal.RequestCpuCycle]: number;
+	[UiCpuSignal.RequestMemoryChange]: { address: u8; bank: u2; value: u8 };
+	[UiCpuSignal.RequestRegisterChange]: { register_no: u3; value: u8 };
+}
+
+export interface UiCpuSignalHandler extends EventHandler<UiCpuSignal> {
+	listen<E extends VoidDataUiCpuSignalList>(type: E, listener: () => void): void;
+	dispatch<E extends VoidDataUiCpuSignalList>(type: E): void;
+	listen<E extends keyof UiCpuSignalMap>(type: E, listener: (ev: UiCpuSignalMap[E]) => void): void;
+	dispatch<E extends keyof UiCpuSignalMap>(type: E, data: UiCpuSignalMap[E]): void;
+}
+
+interface UICpuSignalHandlerConstructor {
+	new (): UiCpuSignalHandler;
+}
+
+export const UiCpuSignalHandler = EventHandler<UiCpuSignal> as UICpuSignalHandlerConstructor;
+
+//
 // Ui Event Handler Definition
 //
 
 export enum UiEvent {
-	// Maybe move these into a UI -> CPU signal system?
-	RequestCpuCycle,
-	RequestMemoryChange,
-	RequestRegisterChange,
-	// Ui Events
 	EditOn,
 	EditOff,
-	ConsoleOn,
-	ConsoleOff,
-	ExplainerOn,
-	ExplainerOff,
-	VideoOn,
-	VideoOff,
+	ChangeViewBank,
 }
 
 interface UiEventMap {
-	[UiEvent.RequestCpuCycle]: number;
-	[UiEvent.RequestMemoryChange]: { address: u8; value: u8 };
-	[UiEvent.RequestRegisterChange]: { register_no: u3; value: u8 };
+	[UiEvent.ChangeViewBank]: { bank: u2 };
 }
 
 type VoidDataUiEventList = UiEvent.EditOn | UiEvent.EditOff;

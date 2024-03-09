@@ -1,13 +1,15 @@
 import { el } from "../../etc";
-import { CpuEvent, CpuEventHandler, UiEventHandler } from "../../events";
+import { CpuEvent, CpuEventHandler, UiCpuSignalHandler, UiEventHandler } from "../../events";
 import { WindowBox } from "../windowBox";
 import { UiComponent } from "../uiComponent";
 
 export class Printout extends WindowBox implements UiComponent {
 	events: UiEventHandler;
 	text_box: HTMLElement;
-	constructor(element: HTMLElement, events: UiEventHandler) {
+	cpu_signals: UiCpuSignalHandler;
+	constructor(element: HTMLElement, events: UiEventHandler, cpu_signals: UiCpuSignalHandler) {
 		super(element, "Printout");
+		this.cpu_signals = cpu_signals;
 		this.events = events;
 		this.text_box = el("div", "printout_text");
 		this.element.appendChild(this.text_box);
