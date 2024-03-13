@@ -1,35 +1,41 @@
+import { DEFAULT_VRAM_BANK } from "../../constants";
 import { el } from "../../etc";
-import { UiEventHandler, CpuEventHandler, CpuEvent } from "../../events";
-import { u4, u8 } from "../../num";
-import { UiComponent } from "../uiComponent";
-import { WindowBox } from "../windowBox";
-export class Screen extends WindowBox implements UiComponent {
+import { UiEventHandler, CpuEventHandler, CpuEvent, UiCpuSignalHandler, UiCpuSignal } from "../../events";
+import { u2, u4, u8 } from "../../num";
+import UiComponent from "../uiComponent";
+import WindowBox from "../windowBox";
+
+const CANVAS_SIZE = 512;
+const WIDTH = 16;
+
+export default class Screen extends WindowBox implements UiComponent {
 	events: UiEventHandler;
 	screen: HTMLCanvasElement;
+	cpu_signals: UiCpuSignalHandler;
 	ctx: CanvasRenderingContext2D;
-	scale: [number, number];
-	constructor(element: HTMLElement, event: UiEventHandler) {
-		super(element, "TV", { collapsed: true });
-		this.screen = el("canvas", "screen");
+	scale: number;
+	current_vram_bank: u2 = DEFAULT_VRAM_BANK;
+	constructor(element: HTMLElement, event: UiEventHandler, cpu_signals: UiCpuSignalHandler) {
+		super(element, "TV", { collapsed: true, fit_content: true });
+		this.cpu_signals = cpu_signals;
 		this.events = event;
-		const canvas_size = [512, 512];
-		const data_size = [16, 16];
-		this.scale = [canvas_size[0] / data_size[0], canvas_size[1] / data_size[1]];
-		[this.screen.width, this.screen.height] = canvas_size;
+
+		this.scale = CANVAS_SIZE / WIDTH;
+		this.screen = el("canvas").id("screen").fin();
+		this.screen.width = CANVAS_SIZE;
+		this.screen.height = CANVAS_SIZE;
 		const ctx = this.screen.getContext("2d");
 		if (ctx === null) {
 			throw new Error("could not load screen");
 		}
 		this.ctx = ctx;
-		this.element.appendChild(this.screen);
+		this.container.appendChild(this.screen);
 		this.test_pattern();
 	}
 
 	private test_pattern(): void {
-		for (let x = 0; x < 16; x++) {
-			for (let y = 0; y < 16; y++) {
-				this.setPixel(x as u4, y as u4, (x + 16 * y) as u8);
-			}
+		for (let x = 0; x < 256; x++) {
+			this.setPixel(x as u8, x as u8);
 		}
 	}
 
@@ -43,14 +49,24 @@ export class Screen extends WindowBox implements UiComponent {
 	init_cpu_events(c: CpuEventHandler): void {
 		c.listen(CpuEvent.MemoryChanged, ({ address, bank, value }) => {
 			if (bank !== 1) return;
-			const x = (address % 16) as u4;
-			const y = Math.floor(address / 16) as u4;
-			this.setPixel(x, y, value);
+
+			this.setPixel(address, value);
+		});
+		c.listen(CpuEvent.SetVramBank, ({ bank }) => {
+			this.current_vram_bank = bank;
+			this.cpu_signals.dispatch(UiCpuSignal.RequestMemoryDump, (memory) => {
+				const vram = memory[this.current_vram_bank];
+				for (const [i, pixel] of vram.entries()) {
+					this.setPixel(i as u8, pixel as u8);
+				}
+			});
 		});
 	}
 
-	setPixel(x: u4, y: u4, value: u8): void {
-		const point: [number, number] = [x * this.scale[0], y * this.scale[1]];
+	setPixel(address: u8, value: u8): void {
+		const x = (address % 16) as u4;
+		const y = Math.floor(address / 16) as u4;
+		const point: [number, number] = [x * this.scale, y * this.scale];
 
 		const RED_SCALE = 255 / 2 ** 3;
 		const GREEN_SCALE = 255 / 2 ** 3;
@@ -61,6 +77,6 @@ export class Screen extends WindowBox implements UiComponent {
 
 		const color = `rgb(${red},${green},${blue})`;
 		this.ctx.fillStyle = color;
-		this.ctx.fillRect(...point, ...this.scale);
+		this.ctx.fillRect(...point, this.scale, this.scale);
 	}
 }

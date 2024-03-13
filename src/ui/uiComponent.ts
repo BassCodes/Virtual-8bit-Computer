@@ -12,8 +12,8 @@ import { CpuEventHandler, UiCpuSignalHandler, UiEventHandler } from "../events";
 //  - CpuEventHandler: listen to events created as a result of CPU actions
 //	- UiCpuEventSignaler: dispatch signals to request actions from the CPU
 
-export interface UiComponent {
-	element: HTMLElement;
+export default interface UiComponent {
+	container: HTMLElement;
 	/** Allows listening and emitting UiEvents*/
 	events: UiEventHandler;
 	/** Creating signals for the cpu to process */

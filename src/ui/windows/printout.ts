@@ -1,9 +1,9 @@
 import { el } from "../../etc";
 import { CpuEvent, CpuEventHandler, UiCpuSignalHandler, UiEventHandler } from "../../events";
-import { WindowBox } from "../windowBox";
-import { UiComponent } from "../uiComponent";
+import WindowBox from "../windowBox";
+import UiComponent from "../uiComponent";
 
-export class Printout extends WindowBox implements UiComponent {
+export default class Printout extends WindowBox implements UiComponent {
 	events: UiEventHandler;
 	text_box: HTMLElement;
 	cpu_signals: UiCpuSignalHandler;
@@ -11,8 +11,8 @@ export class Printout extends WindowBox implements UiComponent {
 		super(element, "Printout");
 		this.cpu_signals = cpu_signals;
 		this.events = events;
-		this.text_box = el("div", "printout_text");
-		this.element.appendChild(this.text_box);
+		this.text_box = el("div").id("printout_text").fin();
+		this.container.appendChild(this.text_box);
 	}
 
 	init_cpu_events(c: CpuEventHandler): void {

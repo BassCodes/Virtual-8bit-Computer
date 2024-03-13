@@ -5,28 +5,36 @@
  */
 import { NonEmptyArray, el, format_hex } from "../etc";
 import { u8 } from "../num";
+import EditorContext from "./editableHex";
 
 interface GenericCell {
 	el: HTMLElement;
 }
 
-export abstract class CelledViewer {
+export default class CelledViewer {
 	cells: Array<GenericCell> = [];
-	width: number;
-	height: number;
-	element: HTMLElement;
-	constructor(width: number, height: number, element: HTMLElement) {
-		this.element = element;
+	readonly width: number;
+	readonly height: number;
+	container: HTMLElement;
+	editor: EditorContext;
+	constructor(width: number, height: number, element: HTMLElement, edit_callback: (address: u8, value: u8) => void) {
+		this.container = element;
 		this.width = width;
 		this.height = height;
-		this.element.classList.add("celled_viewer");
+
+		this.container.classList.add("celled_viewer");
 		for (let i = 0; i < this.width * this.height; i++) {
-			const mem_cell_el = el("div");
+			const mem_cell_el = el("div").fin();
 			mem_cell_el.append("0", "0");
-			this.element.appendChild(mem_cell_el);
+			this.container.appendChild(mem_cell_el);
 			const mem_cell = { el: mem_cell_el };
 			this.cells.push(mem_cell);
 		}
+		const list = this.cells.map((c) => c.el);
+
+		this.editor = new EditorContext(list, this.width, this.height, (address, value) => {
+			edit_callback(address, value);
+		});
 	}
 
 	reset(): void {
@@ -50,6 +58,12 @@ export abstract class CelledViewer {
 	remove_all_cell_class(css_class: string): void {
 		for (const cell of this.cells) {
 			cell.el.classList.remove(css_class);
+		}
+	}
+
+	clear_all_classes(): void {
+		for (const cell of this.cells) {
+			cell.el.className = "";
 		}
 	}
 

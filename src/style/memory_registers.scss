@@ -1,6 +1,12 @@
 #memory {
-	grid-template-columns: repeat(16, min-content);
-
+	.celled_viewer.selected {
+		grid-template-columns: repeat(16, min-content);
+		// display: block;
+		display: grid;
+	}
+	.celled_viewer {
+		display: none;
+	}
 	.program_counter {
 		outline: 3px solid orange;
 	}

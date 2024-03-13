@@ -3,6 +3,9 @@
  * @copyright Alexander Bass 2024
  * @license GPL-3.0
  */
+import el from "./util/elementMaker";
+// Re-export el
+export { el };
 import { u8 } from "./num";
 
 /**
@@ -26,28 +29,6 @@ export const byte_array_to_js_source = (bytes: Array<u8>): string => {
 	return str;
 };
 
-/**
- * Create an html element
- * @param type
- * @param id id attribute to set
- */
-export function el<E extends keyof HTMLElementTagNameMap>(
-	type: E,
-	id?: string,
-	class_list?: string
-): HTMLElementTagNameMap[E];
-export function el(type: string, id?: string, class_list?: string): HTMLElement | undefined {
-	const element = document.createElement(type);
-	if (id !== undefined) {
-		element.id = id;
-	}
-	if (class_list !== undefined) {
-		element.className = class_list;
-	}
-
-	return element;
-}
-
 export type NonEmptyArray<T> = T[] & { 0: T };
 
 export const SVG_NS = "http://www.w3.org/2000/svg";
@@ -57,6 +38,10 @@ export function in_range(check: number, start: number, end: number): boolean {
 	return false;
 }
 
+/**
+ * Gets the `i`th element in a list. Negative indices return null.
+ * Out of range indices return null
+ */
 export function at<T>(l: Array<T>, i: number): T | null {
 	if (i < 0) {
 		return null;

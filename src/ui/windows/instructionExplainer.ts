@@ -2,10 +2,10 @@ import { el, format_hex } from "../../etc";
 import { CpuEvent, CpuEventHandler, UiCpuSignalHandler, UiEventHandler } from "../../events";
 import { Instruction, ParamType, ParameterType } from "../../instructionSet";
 import { u8 } from "../../num";
-import { WindowBox } from "../windowBox";
-import { UiComponent } from "../uiComponent";
+import WindowBox from "../windowBox";
+import UiComponent from "../uiComponent";
 
-export class InstructionExplainer extends WindowBox implements UiComponent {
+export default class InstructionExplainer extends WindowBox implements UiComponent {
 	events: UiEventHandler;
 	cpu_signals: UiCpuSignalHandler;
 	constructor(element: HTMLElement, events: UiEventHandler, cpu_signals: UiCpuSignalHandler) {
@@ -19,16 +19,17 @@ export class InstructionExplainer extends WindowBox implements UiComponent {
 	}
 
 	private add_box(box_icon_text: string, name: string, css_class: string): void {
-		const instr_box = el("div", "expl_box");
-		const instr_icon = el("span", "expl_icon");
-		instr_icon.classList.add(css_class);
-		instr_icon.setAttribute("title", css_class.toUpperCase());
-		instr_icon.textContent = box_icon_text;
-		const instr_box_text = el("span", "expl_text");
-		instr_box_text.textContent = name;
+		const instr_box = el("div").id("expl_box").fin();
+		const instr_icon = el("span")
+			.id("expl_icon")
+			.cl(css_class)
+			.at("title", css_class.toUpperCase())
+			.tx(box_icon_text)
+			.fin();
+		const instr_box_text = el("span").id("expl_text").tx(name).fin();
 		instr_box.appendChild(instr_icon);
 		instr_box.appendChild(instr_box_text);
-		this.element.appendChild(instr_box);
+		this.container.appendChild(instr_box);
 	}
 
 	add_parameter(param: ParameterType, pos: u8, byte: u8): void {
@@ -64,6 +65,6 @@ export class InstructionExplainer extends WindowBox implements UiComponent {
 	}
 
 	reset(): void {
-		this.element.querySelectorAll("#expl_box").forEach((e) => e.remove());
+		this.container.querySelectorAll("#expl_box").forEach((e) => e.remove());
 	}
 }

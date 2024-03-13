@@ -1,0 +1,3 @@
+const DEFAULT_VRAM_BANK = 3;
+
+export { DEFAULT_VRAM_BANK };

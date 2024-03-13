@@ -1,11 +1,11 @@
-import { el } from "../etc";
-import { UiEventHandler, UiEvent, CpuEventHandler, UiCpuSignalHandler, UiCpuSignal } from "../events";
-import { UiComponent } from "./uiComponent";
+import { el } from "../../etc";
+import { UiEventHandler, UiEvent, CpuEventHandler, UiCpuSignalHandler, UiCpuSignal } from "../../events";
+import UiComponent from "../uiComponent";
 
 const MAX_SLIDER = 1000;
 
-export class pausePlay implements UiComponent {
-	element: HTMLElement;
+export default class pausePlay implements UiComponent {
+	container: HTMLElement;
 	start_button: HTMLButtonElement;
 	step_button: HTMLButtonElement;
 	range: HTMLInputElement;
@@ -15,35 +15,32 @@ export class pausePlay implements UiComponent {
 	cpu_signals: UiCpuSignalHandler;
 
 	constructor(element: HTMLElement, events: UiEventHandler, cpu_signals: UiCpuSignalHandler) {
-		this.element = element;
+		this.container = element;
 		this.events = events;
 		this.cpu_signals = cpu_signals;
-		this.start_button = el("button", "pause_play_button");
-		this.step_button = el("button", "step_button");
-		this.range = el("input", "speed_range");
-		this.range.max = MAX_SLIDER.toString();
-		this.range.min = "0";
-		this.range.type = "range";
+		this.start_button = el("button").id("pause_play_button").tx("Start").fin();
+		this.step_button = el("button").id("step_button").tx("Step").fin();
+		this.range = el("input")
+			.id("speed_range")
+			.at("type", "range")
+			.at("min", "0")
+			.at("max", MAX_SLIDER.toString())
+			.at("value", "0")
+			.fin();
 		this.start_button.addEventListener("click", () => this.toggle());
 		this.step_button.addEventListener("click", () => this.step());
 		this.range.addEventListener("input", (e) => {
 			const delay = MAX_SLIDER - parseInt((e.target as HTMLInputElement).value, 10) + 10;
 			this.cycle_delay = delay;
 		});
-		this.start_button.textContent = "Start";
-		this.step_button.textContent = "Step";
-		this.element.appendChild(this.start_button);
-		this.element.appendChild(this.step_button);
-		this.element.appendChild(this.range);
-		this.cycle_delay = 1000;
-		this.range.value = "0";
 
-		this.events.listen(UiEvent.EditOn, () => {
-			this.disable();
-		});
-		this.events.listen(UiEvent.EditOff, () => {
-			this.enable();
-		});
+		this.container.appendChild(this.start_button);
+		this.container.appendChild(this.step_button);
+		this.container.appendChild(this.range);
+		this.cycle_delay = 1000;
+
+		this.events.listen(UiEvent.EditOn, () => this.disable());
+		this.events.listen(UiEvent.EditOff, () => this.enable());
 	}
 
 	disable(): void {
@@ -72,9 +69,8 @@ export class pausePlay implements UiComponent {
 
 	private cycle(): void {
 		const loop = (): void => {
-			if (this.on === false) {
-				return;
-			}
+			if (this.on === false) return;
+
 			this.cpu_signals.dispatch(UiCpuSignal.RequestCpuCycle, 1);
 			setTimeout(loop, this.cycle_delay);
 		};
@@ -89,15 +85,13 @@ export class pausePlay implements UiComponent {
 	}
 
 	start(): void {
-		if (!this.on) {
-			this.toggle();
-		}
+		if (this.on) return;
+		this.toggle();
 	}
 
 	stop(): void {
-		if (this.on) {
-			this.toggle();
-		}
+		if (!this.on) return;
+		this.toggle();
 	}
 
 	reset(): void {

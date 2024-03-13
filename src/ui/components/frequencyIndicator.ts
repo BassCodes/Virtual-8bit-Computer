@@ -1,15 +1,15 @@
-import { CpuEvent, CpuEventHandler, UiEventHandler } from "../events";
-import { UiComponent } from "./uiComponent";
+import { CpuEvent, CpuEventHandler, UiEventHandler } from "../../events";
+import UiComponent from "../uiComponent";
 
-export class frequencyIndicator implements UiComponent {
-	element: HTMLElement;
+export default class frequencyIndicator implements UiComponent {
+	container: HTMLElement;
 	private running: number | null = null;
 	private count: number = 0;
 	private last_value: number = 0;
 	private last_time: number = 0;
 	events: UiEventHandler;
 	constructor(element: HTMLElement, events: UiEventHandler) {
-		this.element = element;
+		this.container = element;
 		this.events = events;
 		this.start();
 	}
@@ -34,11 +34,11 @@ export class frequencyIndicator implements UiComponent {
 		const value = Math.round(this.count / dt);
 
 		if (this.last_value !== value) {
-			this.element.textContent = `${value}hz`;
+			this.container.textContent = `${value}hz`;
 			this.last_value = value;
 		}
 		if (value === 0) {
-			this.element.textContent = "";
+			this.container.textContent = "";
 		}
 		this.last_time = new_time;
 		this.count = 0;
@@ -51,6 +51,7 @@ export class frequencyIndicator implements UiComponent {
 		this.stop();
 		this.count = 0;
 		this.last_value = 0;
+		this.start();
 	}
 	init_cpu_events(c: CpuEventHandler): void {
 		c.listen(CpuEvent.Cycle, () => {

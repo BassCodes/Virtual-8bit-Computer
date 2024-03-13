@@ -1,3 +1,5 @@
+Verify mod256 behavior on negatives
+
 Edit Mode
 
 - Select where program counter is
@@ -8,18 +10,26 @@ Speed control slider behavior
 Speed control slider styling
 Overclock Box
 
+Error log:
 error in instruction when number out of range (fix new Error("todo"))
 
-UI for showing which Memory bank is selected
-VRAM select instruction
+- Allow ignoring errors
+- Highlight errored instruction parameters and give description
+
+Hard reset button (resets everything)
+
+Soft reset button. Resets program counter and registers.
+
+Fixed size windows
+
+- TV
+- Bank Status
+
+Limit size to printout text buffer
 
 Improve instruction explainer. Clearly show what is an instruction and what is a parameter
 
-Verify mod256 behavior on negatives
-
-UI showing CPU flag(s) (Carry)
-
-Error log
+Ui showing CPU flag(s) (Carry)
 
 Responsive layout
 
@@ -28,5 +38,3 @@ standardize names of all things
 Documentation with standard names
 
 Example Programs
-
-Ui for togging your mother.

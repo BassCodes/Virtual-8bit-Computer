@@ -50,6 +50,7 @@ interface GenericComputer {
 	setBank: (bank_no: u2) => void;
 	getCarry(): boolean;
 	setCarry(state: boolean): void;
+	setVramBank(bank: u2): void;
 }
 
 interface AfterExecutionComputerAction {
@@ -736,5 +737,17 @@ ISA.insertInstruction(0xf1, {
 		const byte = c.getRegister(register_no);
 
 		a.dispatch(CpuEvent.Print, byte.toString(10));
+	},
+});
+
+ISA.insertInstruction(0xff, {
+	name: "Set VRAM Bank",
+	desc: "Set memory bank which screen gets pixels from memory bank (P1)",
+	params: [new ConstParam("memory bank to select")],
+	execute(c, p, a) {
+		const bank_no = p[0];
+		if (!isU2(bank_no)) throw new Error("TO2O");
+		c.setVramBank(bank_no);
+		a.dispatch(CpuEvent.SetVramBank, { bank: bank_no });
 	},
 });

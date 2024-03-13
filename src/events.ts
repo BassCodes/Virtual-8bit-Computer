@@ -22,10 +22,10 @@ export enum CpuEvent {
 	Print,
 	Reset,
 	Halt,
-	MemoryDumped,
 	MemoryAccessed,
 	SwitchBank,
 	SetFlagCarry,
+	SetVramBank,
 }
 
 type VoidDataCpuEventList = CpuEvent.Halt | CpuEvent.Reset | CpuEvent.Cycle;
@@ -40,9 +40,9 @@ interface CpuEventMap {
 	[CpuEvent.InvalidParsed]: { pos: u8; code: u8 };
 	[CpuEvent.InstructionExecuted]: { instr: Instruction };
 	[CpuEvent.SwitchBank]: { bank: u2 };
+	[CpuEvent.SetVramBank]: { bank: u2 };
 	[CpuEvent.Print]: string;
 	[CpuEvent.SetFlagCarry]: boolean;
-	[CpuEvent.MemoryDumped]: { memory: [Uint8Array, Uint8Array, Uint8Array, Uint8Array] };
 }
 
 export interface CpuEventHandler extends EventHandler<CpuEvent> {
@@ -68,14 +68,17 @@ export enum UiCpuSignal {
 	RequestRegisterChange,
 	RequestCpuReset,
 	RequestMemoryDump,
+	RequestProgramCounterChange,
 }
 
-type VoidDataUiCpuSignalList = UiCpuSignal.RequestCpuReset | UiCpuSignal.RequestMemoryDump;
+type VoidDataUiCpuSignalList = UiCpuSignal.RequestCpuReset;
 
 interface UiCpuSignalMap {
 	[UiCpuSignal.RequestCpuCycle]: number;
 	[UiCpuSignal.RequestMemoryChange]: { address: u8; bank: u2; value: u8 };
 	[UiCpuSignal.RequestRegisterChange]: { register_no: u3; value: u8 };
+	[UiCpuSignal.RequestProgramCounterChange]: { address: u8 };
+	[UiCpuSignal.RequestMemoryDump]: (memory: [Uint8Array, Uint8Array, Uint8Array, Uint8Array]) => void;
 }
 
 export interface UiCpuSignalHandler extends EventHandler<UiCpuSignal> {

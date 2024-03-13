@@ -4,7 +4,7 @@
 	height: 18px;
 	position: absolute;
 	bottom: 0;
-	border-bottom: 5px solid yellow;
+	border-bottom: 5px solid var(--border);
 
 	cursor: s-resize;
 }
@@ -15,6 +15,12 @@
 	gap: 10px;
 	margin-left: 10px;
 	width: 500px;
+	.window:not(:has(#resize)) {
+		border-bottom: 5px solid var(--border);
+		&.collapsed {
+			border-bottom: unset;
+		}
+	}
 	.window {
 		overflow-y: hidden;
 		position: relative;
@@ -30,16 +36,18 @@
 			font-size: 0.6em;
 			color: lightgray;
 			border-bottom: 5px solid var(--border);
-			background: repeating-linear-gradient(
-					to top,
-					transparent,
-					transparent 2px,
-					transparent 2px,
-					yellow 2px,
-					yellow 4px
-				),
-				repeating-linear-gradient(to right, transparent, transparent 2px, transparent 2px, yellow 2px, yellow 4px);
+			background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAHUlEQVQI12P4/5/h////DP8ZoICJAQ0wIstiVQEA3CAI/c69TucAAAAASUVORK5CYII=");
+			image-rendering: pixelated;
 
+			// background: repeating-linear-gradient(
+			// 		to top,
+			// 		transparent,
+			// 		transparent 2px,
+			// 		transparent 2px,
+			// 		yellow 2px,
+			// 		yellow 4px
+			// 	),
+			// 	repeating-linear-gradient(to right, transparent, transparent 2px, transparent 2px, yellow 2px, yellow 4px);
 			#text {
 				word-break: keep-all;
 				white-space: nowrap;
@@ -56,9 +64,6 @@
 			}
 		}
 	}
-	.window.collapsed > :not(:first-child) {
-		display: none;
-	}
 }
 
 .window#tv {
@@ -66,6 +71,41 @@
 	#screen {
 		max-width: 100%;
 		aspect-ratio: 1;
+	}
+}
+
+#bank_viz {
+	#visualization {
+		user-select: none;
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+		align-items: center;
+		font-size: 80%;
+		// max-width: 500px;
+		#cpu,
+		#target {
+			border: 3px solid yellow;
+			padding: 5px;
+		}
+		svg polyline {
+			stroke-linecap: butt;
+			stroke-width: 3;
+			fill: none;
+		}
+
+		svg {
+			width: 50px;
+		}
+		#vram_bank {
+			transform: scale(-1, 1);
+		}
+		#targets {
+			white-space: nowrap;
+			display: flex;
+			flex-direction: column;
+			gap: 13px;
+		}
 	}
 }
 
@@ -86,6 +126,7 @@
 	}
 
 	#expl_icon {
+		user-select: none;
 		margin-inline-end: 0.5em;
 		font-size: 30px;
 		padding: 5px;

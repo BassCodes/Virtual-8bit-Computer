@@ -2,6 +2,7 @@ import { CpuEvent, CpuEventHandler, UiCpuSignal, UiCpuSignalHandler, UiEvent, Ui
 import { byte_array_to_js_source, format_hex } from "./etc";
 import { Instruction, ISA } from "./instructionSet";
 import { m256, u2, u3, u8 } from "./num";
+import { DEFAULT_VRAM_BANK } from "./constants";
 
 export type TempInstrState = {
 	pos: u8;
@@ -25,6 +26,7 @@ export class Computer {
 	private carry_flag: boolean = false;
 	private program_counter: u8 = 0;
 	private bank: u2 = 0;
+	private vram_bank: u2 = DEFAULT_VRAM_BANK;
 	private current_instr: TempInstrState | null = null;
 	events: CpuEventHandler = new CpuEventHandler();
 
@@ -142,9 +144,9 @@ export class Computer {
 		return this.call_stack.pop() ?? null;
 	}
 
-	setBank(bank_no: u2): void {
-		this.events.dispatch(CpuEvent.SwitchBank, { bank: bank_no });
-		this.bank = bank_no;
+	setBank(bank: u2): void {
+		this.events.dispatch(CpuEvent.SwitchBank, { bank: bank });
+		this.bank = bank;
 	}
 
 	setCarry(state: boolean): void {
@@ -156,6 +158,11 @@ export class Computer {
 		return this.carry_flag;
 	}
 
+	setVramBank(bank: u2): void {
+		this.vram_bank = bank;
+		this.events.dispatch(CpuEvent.SetVramBank, { bank });
+	}
+
 	reset(): void {
 		this.events.dispatch(CpuEvent.Reset);
 		this.banks = init_banks();
@@ -164,6 +171,7 @@ export class Computer {
 		this.current_instr = null;
 		this.program_counter = 0;
 		this.carry_flag = false;
+		this.vram_bank = 3;
 	}
 
 	init_events(ui: UiCpuSignalHandler): void {
@@ -172,10 +180,11 @@ export class Computer {
 		});
 		ui.listen(UiCpuSignal.RequestMemoryChange, ({ address, bank, value }) => this.setMemory(address, value, bank));
 		ui.listen(UiCpuSignal.RequestRegisterChange, ({ register_no, value }) => this.setRegister(register_no, value));
-		ui.listen(UiCpuSignal.RequestMemoryDump, () =>
-			this.events.dispatch(CpuEvent.MemoryDumped, { memory: this.dump_memory() })
-		);
+		ui.listen(UiCpuSignal.RequestMemoryDump, (callback) => callback(this.dump_memory()));
 		ui.listen(UiCpuSignal.RequestCpuReset, () => this.reset());
+		ui.listen(UiCpuSignal.RequestProgramCounterChange, ({ address }) => {
+			this.setProgramCounter(address);
+		});
 	}
 
 	load_memory(program: Array<u8>): void {

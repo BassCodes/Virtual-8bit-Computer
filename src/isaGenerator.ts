@@ -5,7 +5,7 @@
  */
 import { format_hex, in_range } from "./etc";
 import { InstrCategory, Instruction, InstructionSet, ParameterType, ParamType } from "./instructionSet";
-import { u8 } from "./num.js";
+import { u8 } from "./num";
 
 export function generate_isa(iset: InstructionSet): string {
 	const instructions: Array<[u8, Instruction]> = [];

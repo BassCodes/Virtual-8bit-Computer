@@ -1,18 +1,23 @@
 // This file was cobbled together and is the messiest part of this project
 
 import { at } from "../etc";
-import { u8 } from "../num";
+import { isU8, u8 } from "../num";
 
 const HEX_CHARACTERS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
 
-export class EditorContext {
+export default class EditorContext {
 	private list: Array<HTMLElement>;
 	private width: number;
+	private height: number;
 	private enabled: boolean = false;
 	private current_cell_info: { left?: string; right?: string; old?: string };
-	private edit_callback: (n: number, value: u8) => void;
-	constructor(list: Array<HTMLElement>, width: number, callback: (n: number, value: u8) => void) {
+	private edit_callback: (n: u8, value: u8) => void;
+	constructor(list: Array<HTMLElement>, width: number, height: number, callback: (n: u8, value: u8) => void) {
+		if (!isU8(width * height - 1)) {
+			throw new RangeError("Grid is too big for editor. Maximum area is 256");
+		}
 		this.list = list;
+		this.height = height;
 		this.width = width;
 		this.edit_callback = callback;
 		this.current_cell_info = {};
@@ -35,7 +40,7 @@ export class EditorContext {
 				this.current_cell_info.right = undefined;
 				cell.classList.add("caret_selected");
 
-				// Reset cursor position (I know there's an API for this, but this is a simpler, more robust solution)
+				// Reset cursor position (there's an API for this, but this is a simpler, more robust solution)
 				cell.textContent = cell.textContent ?? "00";
 			});
 
@@ -49,7 +54,7 @@ export class EditorContext {
 					const text = `${left}${right}`;
 					cell.textContent = text;
 					const val = Number.parseInt(text, 16) as u8;
-					this.edit_callback(i, val);
+					this.edit_callback(i as u8, val);
 					cell.classList.add("recent_edit");
 				}
 			});
