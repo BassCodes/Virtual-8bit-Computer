@@ -13,14 +13,14 @@ export default class ResetButtons implements UiComponent {
 		const reset_button = el("button").cl("nostyle").tx("R").fin();
 		const trash_button = el("button").cl("nostyle").tx("T").fin();
 
-		reset_button.addEventListener("click", () => this.reset_clicked());
-		trash_button.addEventListener("click", () => this.trash_clicked());
+		reset_button.addEventListener("click", () => this.resetClicked());
+		trash_button.addEventListener("click", () => this.trashClicked());
 		this.container.append(reset_button, trash_button);
 	}
 
-	reset_clicked(): void {}
+	resetClicked(): void {}
 
-	trash_clicked(): void {
+	trashClicked(): void {
 		this.cpu_signals.dispatch(UiCpuSignal.RequestCpuReset);
 	}
 }

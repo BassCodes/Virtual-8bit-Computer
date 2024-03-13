@@ -1,4 +1,4 @@
-import { el, format_hex } from "../../etc";
+import { el, formatHex } from "../../etc";
 import { CpuEvent, CpuEventHandler, UiCpuSignalHandler, UiEventHandler } from "../../events";
 import { Instruction, ParamType, ParameterType } from "../../instructionSet";
 import { u8 } from "../../num";
@@ -13,12 +13,12 @@ export default class InstructionExplainer extends WindowBox implements UiCompone
 		this.cpu_signals = cpu_signals;
 		this.events = events;
 	}
-	add_instruction(instr: Instruction, pos: u8, byte: u8): void {
+	addInstruction(instr: Instruction, pos: u8, byte: u8): void {
 		this.reset();
-		this.add_box(format_hex(byte), instr.name, "instruction");
+		this.addBox(formatHex(byte), instr.name, "instruction");
 	}
 
-	private add_box(box_icon_text: string, name: string, css_class: string): void {
+	private addBox(box_icon_text: string, name: string, css_class: string): void {
 		const instr_box = el("div").id("expl_box").fin();
 		const instr_icon = el("span")
 			.id("expl_icon")
@@ -32,7 +32,7 @@ export default class InstructionExplainer extends WindowBox implements UiCompone
 		this.container.appendChild(instr_box);
 	}
 
-	add_parameter(param: ParameterType, pos: u8, byte: u8): void {
+	addParameter(param: ParameterType, pos: u8, byte: u8): void {
 		const t = param.type;
 		let name;
 		if (t === ParamType.Const) {
@@ -44,23 +44,23 @@ export default class InstructionExplainer extends WindowBox implements UiCompone
 		} else {
 			throw new Error("unreachable");
 		}
-		this.add_box(format_hex(byte), param.desc, name);
+		this.addBox(formatHex(byte), param.desc, name);
 	}
 
-	add_invalid(pos: u8, byte: u8): void {
+	addInvalid(pos: u8, byte: u8): void {
 		this.reset();
-		this.add_box(format_hex(byte), "Invalid Instruction", "invalid");
+		this.addBox(formatHex(byte), "Invalid Instruction", "invalid");
 	}
 
-	init_cpu_events(c: CpuEventHandler): void {
+	initCpuEvents(c: CpuEventHandler): void {
 		c.listen(CpuEvent.ParameterParsed, ({ param, code, pos }) => {
-			this.add_parameter(param, pos, code);
+			this.addParameter(param, pos, code);
 		});
 		c.listen(CpuEvent.InstructionParsed, ({ instr, code, pos }) => {
-			this.add_instruction(instr, pos, code);
+			this.addInstruction(instr, pos, code);
 		});
 		c.listen(CpuEvent.InvalidParsed, ({ code, pos }) => {
-			this.add_invalid(pos, code);
+			this.addInvalid(pos, code);
 		});
 	}
 

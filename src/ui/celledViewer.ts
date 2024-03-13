@@ -3,7 +3,7 @@
  * @copyright Alexander Bass 2024
  * @license GPL-3.0
  */
-import { NonEmptyArray, el, format_hex } from "../etc";
+import { NonEmptyArray, el, formatHex } from "../etc";
 import { u8 } from "../num";
 import EditorContext from "./editableHex";
 
@@ -39,41 +39,41 @@ export default class CelledViewer {
 
 	reset(): void {
 		for (let i = 0; i < this.height * this.width; i++) {
-			this.set_cell_value(i as u8, 0);
+			this.setCellValue(i as u8, 0);
 			this.cells[i].el.className = "";
 		}
 	}
-	add_cell_class(address: u8, ...css_class: NonEmptyArray<string>): void {
+	addCellClass(address: u8, ...css_class: NonEmptyArray<string>): void {
 		for (const str of css_class) {
 			this.cells[address].el.classList.add(str);
 		}
 	}
 
-	remove_cell_class(address: u8, ...css_class: NonEmptyArray<string>): void {
+	removeCellClass(address: u8, ...css_class: NonEmptyArray<string>): void {
 		for (const str of css_class) {
 			this.cells[address].el.classList.remove(str);
 		}
 	}
 
-	remove_all_cell_class(css_class: string): void {
+	removeAllCellClass(css_class: string): void {
 		for (const cell of this.cells) {
 			cell.el.classList.remove(css_class);
 		}
 	}
 
-	clear_all_classes(): void {
+	clearAllClasses(): void {
 		for (const cell of this.cells) {
 			cell.el.className = "";
 		}
 	}
 
-	add_cell_class_exclusive(address: u8, css_class: string): void {
-		this.remove_all_cell_class(css_class);
-		this.add_cell_class(address, css_class);
+	addCellClassExclusive(address: u8, css_class: string): void {
+		this.removeAllCellClass(css_class);
+		this.addCellClass(address, css_class);
 	}
 
-	set_cell_value(address: u8, value: u8): void {
-		const str = format_hex(value);
+	setCellValue(address: u8, value: u8): void {
+		const str = formatHex(value);
 		const a = str[0];
 		const b = str[1];
 		this.cells[address].el.textContent = "";

@@ -14,7 +14,7 @@ export default class BankVisualizer extends WindowBox implements UiComponent {
 		this.vram_banks = [...element.querySelectorAll("#vram_bank>polyline")] as Array<SVGPolylineElement>;
 	}
 
-	init_cpu_events(c: CpuEventHandler): void {
+	initCpuEvents(c: CpuEventHandler): void {
 		c.listen(CpuEvent.SetVramBank, ({ bank }) => {
 			for (const bank_path of this.vram_banks) bank_path.setAttribute("stroke", "gray");
 			this.vram_banks[bank].setAttribute("stroke", "yellow");

@@ -20,9 +20,9 @@ export default interface UiComponent {
 	cpu_signals?: UiCpuSignalHandler;
 	/** Completely reset the state of the component */
 	reset?: () => void;
-	soft_reset?: () => void;
+	softReset?: () => void;
 	/**  Allows listening CPUEvents*/
-	init_cpu_events?: (c: CpuEventHandler) => void;
+	initCpuEvents?: (c: CpuEventHandler) => void;
 }
 
 export interface UiComponentConstructor {

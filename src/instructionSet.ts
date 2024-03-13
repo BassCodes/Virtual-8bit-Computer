@@ -4,7 +4,7 @@
  * @license GPL-3.0
  */
 import { CpuEvent, CpuEventHandler } from "./events";
-import { format_hex, in_range } from "./etc";
+import { formatHex, inRange } from "./etc";
 import { isU2, isU3, m256, u2, u3, u8 } from "./num";
 
 export enum ParamType {
@@ -86,7 +86,7 @@ export class InstructionSet {
 
 	insertInstruction(hexCode: u8, instruction: Instruction): void {
 		if (this.instructions.has(hexCode)) {
-			throw new Error(`Instruction "${format_hex(hexCode)}" already exists`);
+			throw new Error(`Instruction "${formatHex(hexCode)}" already exists`);
 		}
 		this.instructions.set(hexCode, instruction);
 	}
@@ -94,7 +94,7 @@ export class InstructionSet {
 	addCategory(c: InstrCategory): void {
 		// Check for overlap with existing ranges
 		for (const r of this.category_ranges) {
-			if (in_range(c.start, r.start, r.end) || in_range(c.end, r.start, r.end)) {
+			if (inRange(c.start, r.start, r.end) || inRange(c.end, r.start, r.end)) {
 				throw new Error(`Range of ${c.start}...${c.end} is already registered`);
 			}
 		}

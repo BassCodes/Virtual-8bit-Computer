@@ -53,7 +53,7 @@ export default class frequencyIndicator implements UiComponent {
 		this.last_value = 0;
 		this.start();
 	}
-	init_cpu_events(c: CpuEventHandler): void {
+	initCpuEvents(c: CpuEventHandler): void {
 		c.listen(CpuEvent.Cycle, () => {
 			this.count += 1;
 		});

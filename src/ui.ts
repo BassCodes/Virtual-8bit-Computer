@@ -46,12 +46,12 @@ export class UI {
 		this.components.push(component);
 	}
 
-	init_events(cpu_events: CpuEventHandler): void {
+	initEvents(cpu_events: CpuEventHandler): void {
 		cpu_events.listen(CpuEvent.Reset, () => {
 			this.reset();
 		});
 
-		for (const c of this.components) if (c.init_cpu_events) c.init_cpu_events(cpu_events);
+		for (const c of this.components) if (c.initCpuEvents) c.initCpuEvents(cpu_events);
 	}
 
 	reset(): void {

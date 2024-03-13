@@ -15,7 +15,7 @@ export default class Printout extends WindowBox implements UiComponent {
 		this.container.appendChild(this.text_box);
 	}
 
-	init_cpu_events(c: CpuEventHandler): void {
+	initCpuEvents(c: CpuEventHandler): void {
 		c.listen(CpuEvent.Print, (c) => {
 			this.text_box.textContent += c;
 		});

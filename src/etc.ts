@@ -14,16 +14,16 @@ import { u8 } from "./num";
  */
 export const $ = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
 
-export const format_hex = (n: u8): string => n.toString(16).toUpperCase().padStart(2, "0");
+export const formatHex = (n: u8): string => n.toString(16).toUpperCase().padStart(2, "0");
 
 /**
  * Converts array of bytes to a JavaScript syntax array of hexadecimal literals
  * @param bytes
  */
-export const byte_array_to_js_source = (bytes: Array<u8>): string => {
+export const byteArrayToJsSource = (bytes: Array<u8>): string => {
 	let str = "[";
 	for (const b of bytes) {
-		str += `0x${format_hex(b)},`;
+		str += `0x${formatHex(b)},`;
 	}
 	str += "]";
 	return str;
@@ -33,7 +33,7 @@ export type NonEmptyArray<T> = T[] & { 0: T };
 
 export const SVG_NS = "http://www.w3.org/2000/svg";
 
-export function in_range(check: number, start: number, end: number): boolean {
+export function inRange(check: number, start: number, end: number): boolean {
 	if (check >= start && check <= end) return true;
 	return false;
 }

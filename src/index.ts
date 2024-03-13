@@ -6,7 +6,7 @@
 import { Computer } from "./computer";
 import { $ } from "./etc";
 import { ISA } from "./instructionSet";
-import { generate_isa } from "./isaGenerator";
+import { generateIsa } from "./isaGenerator";
 import { UI } from "./ui";
 import { u8 } from "./num";
 
@@ -41,13 +41,13 @@ function main(): void {
 	const computer = new Computer();
 
 	const ui = new UI();
-	ui.init_events(computer.events);
-	computer.load_memory(program);
-	computer.init_events(ui.cpu_signaler);
+	ui.initEvents(computer.events);
+	computer.loadMemory(program);
+	computer.initEvents(ui.cpu_signaler);
 	window.comp = computer;
 	window.ui = ui;
 
-	$("ISA").textContent = generate_isa(ISA);
+	$("ISA").textContent = generateIsa(ISA);
 
 	let fire = false;
 	window.firehose = (): void => {

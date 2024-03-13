@@ -29,7 +29,7 @@ export default class SaveLoad implements UiComponent {
 			this.download();
 		});
 		this.binary_upload.addEventListener("change", (e) => {
-			this.upload_changed(e);
+			this.uploadChanged(e);
 		});
 	}
 
@@ -52,7 +52,7 @@ export default class SaveLoad implements UiComponent {
 		});
 	}
 
-	private upload_changed(e: Event): void {
+	private uploadChanged(e: Event): void {
 		const t = e.target;
 		if (t === null) return;
 

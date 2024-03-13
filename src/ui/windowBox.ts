@@ -32,7 +32,7 @@ export default abstract class WindowBox {
 		title_bar_text_box.textContent = title;
 
 		this.collapse_button = el("button").id("collapse_button").cl("nostyle").fin();
-		this.collapse_button.addEventListener("click", () => this.toggle_collapse());
+		this.collapse_button.addEventListener("click", () => this.toggleCollapse());
 
 		this.title_bar.appendChild(title_bar_text_box);
 		this.title_bar.appendChild(this.collapse_button);
@@ -48,20 +48,20 @@ export default abstract class WindowBox {
 			this.resize.addEventListener("mousedown", (e) => {
 				if (this.resize_func) window.addEventListener("mousemove", this.resize_func);
 			});
-			window.addEventListener("mouseup", () => this.remove_resize_listeners());
-			window.addEventListener("mouseleave", () => this.remove_resize_listeners());
+			window.addEventListener("mouseup", () => this.removeResizeListeners());
+			window.addEventListener("mouseleave", () => this.removeResizeListeners());
 		}
 	}
 
 	collapse(): void {
 		this.container.classList.add("collapsed");
-		this.remove_resize_listeners();
+		this.removeResizeListeners();
 		if (this.resize) this.resize.style.visibility = "hidden";
-		this.set_height(this.title_bar.offsetHeight - BORDER_STROKE);
+		this.setHeight(this.title_bar.offsetHeight - BORDER_STROKE);
 		this.collapsed = true;
 	}
 
-	correct_height_value(height: number): number {
+	correctHeightValue(height: number): number {
 		if (this.fit_content) {
 			let height_sum = 0;
 			for (const c of this.container.children) {
@@ -73,7 +73,7 @@ export default abstract class WindowBox {
 		return height;
 	}
 
-	toggle_collapse(): void {
+	toggleCollapse(): void {
 		if (this.collapsed) {
 			this.uncollapse();
 		} else {
@@ -81,27 +81,27 @@ export default abstract class WindowBox {
 		}
 	}
 
-	set_height(height: number): void {
+	setHeight(height: number): void {
 		this.container.style.height = `${height + 2 * BORDER_STROKE}px`;
 	}
 
 	uncollapse(): void {
 		this.container.classList.remove("collapsed");
 		if (this.resize) this.resize.style.visibility = "unset";
-		const new_height = this.correct_height_value(this.title_bar.offsetHeight + 200);
-		this.set_height(new_height);
+		const new_height = this.correctHeightValue(this.title_bar.offsetHeight + 200);
+		this.setHeight(new_height);
 
 		this.collapsed = false;
 	}
 
-	remove_resize_listeners(): void {
+	removeResizeListeners(): void {
 		if (this.resize_func) window.removeEventListener("mousemove", this.resize_func);
 	}
 
 	resize_move(e: MouseEvent): void {
 		if (this.collapsed) {
 			this.uncollapse();
-			this.remove_resize_listeners();
+			this.removeResizeListeners();
 			return;
 		}
 		const distance_to_title = e.clientY - this.container.offsetTop - this.title_bar.offsetHeight + window.scrollY + 5;
@@ -109,6 +109,6 @@ export default abstract class WindowBox {
 			this.collapse();
 			return;
 		}
-		this.set_height(e.clientY - this.container.offsetTop + window.scrollY);
+		this.setHeight(e.clientY - this.container.offsetTop + window.scrollY);
 	}
 }

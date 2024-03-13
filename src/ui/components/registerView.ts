@@ -24,8 +24,8 @@ export default class RegisterView extends CelledViewer implements UiComponent {
 		});
 	}
 
-	init_cpu_events(c: CpuEventHandler): void {
-		c.listen(CpuEvent.RegisterChanged, ({ register_no, value }) => this.set_cell_value(register_no, value));
+	initCpuEvents(c: CpuEventHandler): void {
+		c.listen(CpuEvent.RegisterChanged, ({ register_no, value }) => this.setCellValue(register_no, value));
 		c.listen(CpuEvent.Reset, () => this.reset());
 	}
 }

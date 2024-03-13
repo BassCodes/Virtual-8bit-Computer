@@ -1,5 +1,5 @@
 import { CpuEvent, CpuEventHandler, UiCpuSignal, UiCpuSignalHandler, UiEvent, UiEventHandler } from "./events";
-import { byte_array_to_js_source, format_hex } from "./etc";
+import { byteArrayToJsSource, formatHex } from "./etc";
 import { Instruction, ISA } from "./instructionSet";
 import { m256, u2, u3, u8 } from "./num";
 import { DEFAULT_VRAM_BANK } from "./constants";
@@ -40,7 +40,7 @@ export class Computer {
 					pos: this.program_counter,
 					code: current_byte,
 				});
-				console.log(`Invalid instruction: ${format_hex(current_byte)}`);
+				console.log(`Invalid instruction: ${formatHex(current_byte)}`);
 				this.step_forward();
 				this.events.dispatch(CpuEvent.Cycle);
 				return;
@@ -174,22 +174,22 @@ export class Computer {
 		this.vram_bank = 3;
 	}
 
-	init_events(ui: UiCpuSignalHandler): void {
+	initEvents(ui: UiCpuSignalHandler): void {
 		ui.listen(UiCpuSignal.RequestCpuCycle, (cycle_count) => {
 			for (let i = 0; i < cycle_count; i++) this.cycle();
 		});
 		ui.listen(UiCpuSignal.RequestMemoryChange, ({ address, bank, value }) => this.setMemory(address, value, bank));
 		ui.listen(UiCpuSignal.RequestRegisterChange, ({ register_no, value }) => this.setRegister(register_no, value));
-		ui.listen(UiCpuSignal.RequestMemoryDump, (callback) => callback(this.dump_memory()));
+		ui.listen(UiCpuSignal.RequestMemoryDump, (callback) => callback(this.dumpMemory()));
 		ui.listen(UiCpuSignal.RequestCpuReset, () => this.reset());
 		ui.listen(UiCpuSignal.RequestProgramCounterChange, ({ address }) => {
 			this.setProgramCounter(address);
 		});
 	}
 
-	load_memory(program: Array<u8>): void {
+	loadMemory(program: Array<u8>): void {
 		// TODO allow loading into other banks
-		console.log(byte_array_to_js_source(program));
+		console.log(byteArrayToJsSource(program));
 		const max_loop: u8 = Math.min(255, program.length) as u8;
 		for (let i: u8 = 0; i < 256; i++) {
 			// Don't fire event if no change is made
@@ -201,7 +201,7 @@ export class Computer {
 		this.program_counter = 0;
 	}
 
-	dump_memory(): [Uint8Array, Uint8Array, Uint8Array, Uint8Array] {
+	dumpMemory(): [Uint8Array, Uint8Array, Uint8Array, Uint8Array] {
 		return this.banks;
 	}
 

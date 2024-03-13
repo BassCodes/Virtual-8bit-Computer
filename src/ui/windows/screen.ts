@@ -46,7 +46,7 @@ export default class Screen extends WindowBox implements UiComponent {
 		}
 	}
 
-	init_cpu_events(c: CpuEventHandler): void {
+	initCpuEvents(c: CpuEventHandler): void {
 		c.listen(CpuEvent.MemoryChanged, ({ address, bank, value }) => {
 			if (bank !== 1) return;
 
