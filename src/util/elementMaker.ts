@@ -34,6 +34,7 @@ class ElementInProgress<E extends HTMLElement> {
 		return this;
 	}
 
+	/** Return created element */
 	fin(): E {
 		return this.element;
 	}

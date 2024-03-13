@@ -11,7 +11,7 @@ export type TempInstrState = {
 	params: Array<u8>;
 };
 
-function init_banks(): [Uint8Array, Uint8Array, Uint8Array, Uint8Array] {
+function initBanks(): [Uint8Array, Uint8Array, Uint8Array, Uint8Array] {
 	const banks = [];
 	for (let i = 0; i < 4; i++) {
 		banks.push(new Uint8Array(256));
@@ -19,8 +19,8 @@ function init_banks(): [Uint8Array, Uint8Array, Uint8Array, Uint8Array] {
 	return banks as [Uint8Array, Uint8Array, Uint8Array, Uint8Array];
 }
 
-export class Computer {
-	private banks: [Uint8Array, Uint8Array, Uint8Array, Uint8Array] = init_banks();
+export default class Computer {
+	private banks: [Uint8Array, Uint8Array, Uint8Array, Uint8Array] = initBanks();
 	private registers: Uint8Array = new Uint8Array(8);
 	private call_stack: Array<u8> = [];
 	private carry_flag: boolean = false;
@@ -41,7 +41,7 @@ export class Computer {
 					code: current_byte,
 				});
 				console.log(`Invalid instruction: ${formatHex(current_byte)}`);
-				this.step_forward();
+				this.stepForward();
 				this.events.dispatch(CpuEvent.Cycle);
 				return;
 			}
@@ -59,7 +59,7 @@ export class Computer {
 		}
 
 		if (this.current_instr.pos === this.program_counter && this.current_instr.params.length > 0) {
-			this.step_forward();
+			this.stepForward();
 			this.events.dispatch(CpuEvent.Cycle);
 			return;
 		}
@@ -75,7 +75,7 @@ export class Computer {
 			this.current_instr.params[this.current_instr.params_found] = current_byte;
 			this.current_instr.params_found += 1;
 			if (this.current_instr.params.length !== this.current_instr.params_found) {
-				this.step_forward();
+				this.stepForward();
 				this.events.dispatch(CpuEvent.Cycle);
 				return;
 			}
@@ -92,7 +92,7 @@ export class Computer {
 		this.current_instr = null;
 
 		if (execution_post_action_state.should_step) {
-			this.step_forward();
+			this.stepForward();
 		}
 		this.events.dispatch(CpuEvent.Cycle);
 	}
@@ -165,7 +165,7 @@ export class Computer {
 
 	reset(): void {
 		this.events.dispatch(CpuEvent.Reset);
-		this.banks = init_banks();
+		this.banks = initBanks();
 		this.registers = new Uint8Array(8);
 		this.call_stack = [];
 		this.current_instr = null;
@@ -205,7 +205,7 @@ export class Computer {
 		return this.banks;
 	}
 
-	private step_forward(): void {
+	private stepForward(): void {
 		this.program_counter = m256(this.program_counter + 1);
 		this.events.dispatch(CpuEvent.ProgramCounterChanged, { counter: this.program_counter });
 	}

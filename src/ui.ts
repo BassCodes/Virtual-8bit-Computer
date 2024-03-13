@@ -5,18 +5,18 @@ import UiComponent, { UiComponentConstructor } from "./ui/uiComponent";
 import MemoryView from "./ui/components/memoryView";
 import frequencyIndicator from "./ui/components/frequencyIndicator";
 import RegisterView from "./ui/components/registerView";
-import BankSelector from "./ui/components/bank_view_selector";
+import BankSelector from "./ui/components/bankViewSelector";
 import EditButton from "./ui/components/editButton";
 import pausePlay from "./ui/components/pausePlay";
 import SaveLoad from "./ui/components/saveLoad";
-import ResetButtons from "./ui/components/reset_buttons";
+import ResetButtons from "./ui/components/resetButtons";
 // Window Components
 import InstructionExplainer from "./ui/windows/instructionExplainer";
 import Screen from "./ui/windows/screen";
 import Printout from "./ui/windows/printout";
-import BankVisualizer from "./ui/windows/bank_visualizer";
+import BankVisualizer from "./ui/windows/bankVisualizer";
 
-export class UI {
+export default class UI {
 	ui_events: UiEventHandler = new UiEventHandler();
 	cpu_signaler: UiCpuSignalHandler = new UiCpuSignalHandler();
 	private components: Array<UiComponent> = [];

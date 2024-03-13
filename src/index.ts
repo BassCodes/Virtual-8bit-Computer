@@ -3,11 +3,11 @@
  * @copyright Alexander Bass 2024
  * @license GPL-3.0
  */
-import { Computer } from "./computer";
+import Computer from "./computer";
+import UI from "./ui";
 import { $ } from "./etc";
 import { ISA } from "./instructionSet";
 import { generateIsa } from "./isaGenerator";
-import { UI } from "./ui";
 import { u8 } from "./num";
 
 import "./style/style.scss";
@@ -47,6 +47,7 @@ function main(): void {
 	window.comp = computer;
 	window.ui = ui;
 
+	// Todo, move to ui component
 	$("ISA").textContent = generateIsa(ISA);
 
 	let fire = false;
