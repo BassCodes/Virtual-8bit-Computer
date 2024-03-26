@@ -1,6 +1,7 @@
 import { el } from "../../etc";
 import { UiEventHandler, UiEvent, CpuEventHandler, UiCpuSignalHandler, UiCpuSignal } from "../../events";
 import UiComponent from "../uiComponent";
+import HoverTextBox from "../hoverTextBox";
 
 const MAX_SLIDER = 1000;
 
@@ -41,18 +42,22 @@ export default class pausePlay implements UiComponent {
 
 		this.events.listen(UiEvent.EditOn, () => this.disable());
 		this.events.listen(UiEvent.EditOff, () => this.enable());
+		const tb = new HoverTextBox(this.start_button, el("span").tx("hover test").st("color", "yellow").fin(), "left", 10);
+		tb.show();
 	}
 
 	disable(): void {
 		this.stop();
 		this.start_button.setAttribute("disabled", "true");
 		this.step_button.setAttribute("disabled", "true");
+
 		this.range.setAttribute("disabled", "true");
 	}
 
 	enable(): void {
 		this.start_button.removeAttribute("disabled");
 		this.step_button.removeAttribute("disabled");
+
 		this.range.removeAttribute("disabled");
 	}
 
@@ -76,6 +81,7 @@ export default class pausePlay implements UiComponent {
 		};
 		loop();
 	}
+
 	private step(): void {
 		if (this.on) {
 			this.stop();
@@ -97,5 +103,9 @@ export default class pausePlay implements UiComponent {
 	reset(): void {
 		this.stop();
 		this.enable();
+	}
+
+	softReset(): void {
+		this.reset();
 	}
 }

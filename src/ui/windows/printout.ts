@@ -24,4 +24,8 @@ export default class Printout extends WindowBox implements UiComponent {
 	reset(): void {
 		this.text_box.textContent = "";
 	}
+
+	softReset(): void {
+		this.reset();
+	}
 }

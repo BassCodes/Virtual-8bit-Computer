@@ -53,6 +53,7 @@ export default class MemoryView implements UiComponent {
 			});
 		}
 		this.events.listen(UiEvent.ChangeViewBank, ({ bank }) => this.setBank(bank));
+		this.setProgramCounter(0);
 	}
 
 	get program(): CelledViewer {
@@ -72,6 +73,12 @@ export default class MemoryView implements UiComponent {
 
 	reset(): void {
 		for (const viewer of this.banks) viewer.reset();
+		this.last_accessed_cell = null;
+		this.setProgramCounter(0);
+	}
+
+	softReset(): void {
+		for (const viewer of this.banks) viewer.clearAllClasses();
 		this.last_accessed_cell = null;
 		this.setProgramCounter(0);
 	}

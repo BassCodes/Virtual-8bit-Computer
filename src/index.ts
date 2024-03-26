@@ -48,6 +48,7 @@ function main(): void {
 	window.ui = ui;
 
 	// Todo, move to ui component
+	// or move to documentation
 	$("ISA").textContent = generateIsa(ISA);
 
 	let fire = false;

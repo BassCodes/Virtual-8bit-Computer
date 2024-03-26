@@ -6,7 +6,7 @@ import UiComponent from "../uiComponent";
 export default class BankSelector implements UiComponent {
 	container: HTMLElement;
 	events: UiEventHandler;
-	private bank_buttons: Array<HTMLButtonElement>;
+	bank_buttons: Array<HTMLButtonElement>;
 	constructor(element: HTMLElement, events: UiEventHandler) {
 		this.container = element;
 		this.events = events;
@@ -28,8 +28,13 @@ export default class BankSelector implements UiComponent {
 
 		this.container.appendChild(bank_boxes);
 	}
+
 	reset(): void {
 		for (const b of this.bank_buttons) b.classList.remove("selected");
 		this.bank_buttons[0].classList.add("selected");
+	}
+
+	softReset(): void {
+		this.reset();
 	}
 }

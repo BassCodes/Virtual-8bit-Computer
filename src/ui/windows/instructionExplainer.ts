@@ -67,4 +67,8 @@ export default class InstructionExplainer extends WindowBox implements UiCompone
 	reset(): void {
 		this.container.querySelectorAll("#expl_box").forEach((e) => e.remove());
 	}
+
+	softReset(): void {
+		this.reset();
+	}
 }

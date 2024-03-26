@@ -3,10 +3,10 @@ import UiComponent from "../uiComponent";
 
 export default class frequencyIndicator implements UiComponent {
 	container: HTMLElement;
-	private running: number | null = null;
-	private count: number = 0;
-	private last_value: number = 0;
-	private last_time: number = 0;
+	running: number | null = null;
+	count: number = 0;
+	last_value: number = 0;
+	last_time: number = 0;
 	events: UiEventHandler;
 	constructor(element: HTMLElement, events: UiEventHandler) {
 		this.container = element;
@@ -19,16 +19,16 @@ export default class frequencyIndicator implements UiComponent {
 		if (this.running !== null) {
 			throw new Error("Tried starting frequencyIndicator twice!");
 		}
-		setInterval(this.update_indicator.bind(this), 1000);
+		window.setInterval(this.updateIndicator.bind(this), 1000);
 	}
 
 	stop(): void {
 		if (this.running === null) return;
-		clearInterval(this.running);
+		window.clearInterval(this.running);
 		this.running = null;
 	}
 
-	update_indicator(): void {
+	updateIndicator(): void {
 		const new_time = performance.now();
 		const dt = (new_time - this.last_time) / 1000 || 1;
 		const value = Math.round(this.count / dt);
@@ -44,15 +44,21 @@ export default class frequencyIndicator implements UiComponent {
 		this.count = 0;
 	}
 
-	clock_cycle(): void {
+	clockCycle(): void {
 		this.count += 1;
 	}
+
 	reset(): void {
 		this.stop();
 		this.count = 0;
 		this.last_value = 0;
 		this.start();
 	}
+
+	softReset(): void {
+		this.reset();
+	}
+
 	initCpuEvents(c: CpuEventHandler): void {
 		c.listen(CpuEvent.Cycle, () => {
 			this.count += 1;

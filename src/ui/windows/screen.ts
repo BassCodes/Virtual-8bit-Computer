@@ -15,6 +15,7 @@ export default class Screen extends WindowBox implements UiComponent {
 	ctx: CanvasRenderingContext2D;
 	scale: number;
 	current_vram_bank: u2 = DEFAULT_VRAM_BANK;
+
 	constructor(element: HTMLElement, event: UiEventHandler, cpu_signals: UiCpuSignalHandler) {
 		super(element, "TV", { collapsed: true, fit_content: true });
 		this.cpu_signals = cpu_signals;
@@ -25,25 +26,29 @@ export default class Screen extends WindowBox implements UiComponent {
 		this.screen.width = CANVAS_SIZE;
 		this.screen.height = CANVAS_SIZE;
 		const ctx = this.screen.getContext("2d");
-		if (ctx === null) {
-			throw new Error("could not load screen");
-		}
+
+		if (ctx === null) throw new Error("could not load screen");
+
 		this.ctx = ctx;
 		this.container.appendChild(this.screen);
-		this.test_pattern();
+
+		this.renderTestPattern();
 	}
 
-	private test_pattern(): void {
+	private renderTestPattern(): void {
 		for (let x = 0; x < 256; x++) {
 			this.setPixel(x as u8, x as u8);
 		}
 	}
 
 	reset(): void {
-		const ctx = this.screen.getContext("2d");
-		if (ctx === null) {
-			throw new Error("todo");
+		for (let i = 0; i < 256; i++) {
+			this.setPixel(i as u8, 0);
 		}
+	}
+
+	softReset(): void {
+		this.reset();
 	}
 
 	initCpuEvents(c: CpuEventHandler): void {
@@ -68,6 +73,8 @@ export default class Screen extends WindowBox implements UiComponent {
 		const y = Math.floor(address / 16) as u4;
 		const point: [number, number] = [x * this.scale, y * this.scale];
 
+		// TODO, come up with better color scheme.
+		// Probable a lookup table
 		const RED_SCALE = 255 / 2 ** 3;
 		const GREEN_SCALE = 255 / 2 ** 3;
 		const BLUE_SCALE = 255 / 2 ** 2;

@@ -32,4 +32,8 @@ export default class BankVisualizer extends WindowBox implements UiComponent {
 
 		this.cpu_banks[0].setAttribute("stroke", "yellow");
 	}
+
+	softReset(): void {
+		this.reset();
+	}
 }

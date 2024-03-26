@@ -1,6 +1,6 @@
 import { el } from "../../etc";
 import { UiEventHandler, UiCpuSignalHandler, UiCpuSignal } from "../../events";
-import { u2, u8, m256, isU2 } from "../../num";
+import { u8, m256, isU2 } from "../../num";
 import UiComponent from "../uiComponent";
 
 export default class SaveLoad implements UiComponent {
@@ -14,16 +14,16 @@ export default class SaveLoad implements UiComponent {
 		this.events = events;
 		this.cpu_signals = cpu_signals;
 
-		this.save_button = el("button").id("save_button").tx("Save").fin();
+		this.save_button = el("button").id("save_button").tx("⬇").fin();
 		this.binary_upload = el("input")
 			.id("binary_upload")
 			.at("type", "file")
 			.at("name", "binary_upload")
 			.st("display", "none")
 			.fin();
-		const label = el("label").cl("button").at("for", "binary_upload").tx("Load Binary").fin();
+		const label = el("label").cl("button").at("for", "binary_upload").tx("⬆").fin();
 
-		this.container.append(this.binary_upload, label, this.save_button);
+		this.container.append(this.save_button, this.binary_upload, label);
 
 		this.save_button.addEventListener("click", () => {
 			this.download();

@@ -7,10 +7,7 @@ export default class RegisterView extends CelledViewer implements UiComponent {
 	events: UiEventHandler;
 	cpu_signals: UiCpuSignalHandler;
 	constructor(element: HTMLElement, events: UiEventHandler, cpu_signals: UiCpuSignalHandler) {
-		super(8, 1, element, (address: u8, value: u8) => {
-			if (!isU3(address)) throw new Error("unreachable");
-			this.cpu_signals.dispatch(UiCpuSignal.RequestRegisterChange, { register_no: address as u3, value });
-		});
+		super(8, 1, element, (a, v) => this.onEdit(a, v));
 		this.events = events;
 		this.cpu_signals = cpu_signals;
 
@@ -24,8 +21,16 @@ export default class RegisterView extends CelledViewer implements UiComponent {
 		});
 	}
 
+	onEdit(address: u8, value: u8): void {
+		if (!isU3(address)) throw new Error("unreachable");
+		this.cpu_signals.dispatch(UiCpuSignal.RequestRegisterChange, { register_no: address as u3, value });
+	}
+
 	initCpuEvents(c: CpuEventHandler): void {
 		c.listen(CpuEvent.RegisterChanged, ({ register_no, value }) => this.setCellValue(register_no, value));
-		c.listen(CpuEvent.Reset, () => this.reset());
+	}
+
+	softReset(): void {
+		this.clearAllClasses();
 	}
 }

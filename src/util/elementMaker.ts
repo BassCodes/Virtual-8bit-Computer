@@ -34,6 +34,12 @@ class ElementInProgress<E extends HTMLElement> {
 		return this;
 	}
 
+	/** Set title */
+	ti(title: string): ElementInProgress<E> {
+		this.element.title = title;
+		return this;
+	}
+
 	/** Return created element */
 	fin(): E {
 		return this.element;

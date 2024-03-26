@@ -21,6 +21,7 @@ export enum CpuEvent {
 	Cycle,
 	Print,
 	Reset,
+	SoftReset,
 	Halt,
 	MemoryAccessed,
 	SwitchBank,
@@ -28,7 +29,7 @@ export enum CpuEvent {
 	SetVramBank,
 }
 
-type VoidDataCpuEventList = CpuEvent.Halt | CpuEvent.Reset | CpuEvent.Cycle;
+type VoidDataCpuEventList = CpuEvent.Halt | CpuEvent.Reset | CpuEvent.SoftReset | CpuEvent.Cycle;
 
 interface CpuEventMap {
 	[CpuEvent.MemoryChanged]: { address: u8; bank: u2; value: u8 };
@@ -67,11 +68,12 @@ export enum UiCpuSignal {
 	RequestMemoryChange,
 	RequestRegisterChange,
 	RequestCpuReset,
+	RequestCpuSoftReset,
 	RequestMemoryDump,
 	RequestProgramCounterChange,
 }
 
-type VoidDataUiCpuSignalList = UiCpuSignal.RequestCpuReset;
+type VoidDataUiCpuSignalList = UiCpuSignal.RequestCpuReset | UiCpuSignal.RequestCpuSoftReset;
 
 interface UiCpuSignalMap {
 	[UiCpuSignal.RequestCpuCycle]: number;

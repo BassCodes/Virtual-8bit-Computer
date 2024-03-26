@@ -163,17 +163,6 @@ export default class Computer {
 		this.events.dispatch(CpuEvent.SetVramBank, { bank });
 	}
 
-	reset(): void {
-		this.events.dispatch(CpuEvent.Reset);
-		this.banks = initBanks();
-		this.registers = new Uint8Array(8);
-		this.call_stack = [];
-		this.current_instr = null;
-		this.program_counter = 0;
-		this.carry_flag = false;
-		this.vram_bank = 3;
-	}
-
 	initEvents(ui: UiCpuSignalHandler): void {
 		ui.listen(UiCpuSignal.RequestCpuCycle, (cycle_count) => {
 			for (let i = 0; i < cycle_count; i++) this.cycle();
@@ -185,6 +174,31 @@ export default class Computer {
 		ui.listen(UiCpuSignal.RequestProgramCounterChange, ({ address }) => {
 			this.setProgramCounter(address);
 		});
+		ui.listen(UiCpuSignal.RequestCpuSoftReset, () => this.softReset());
+	}
+
+	softReset(): void {
+		this.events.dispatch(CpuEvent.SoftReset);
+		for (let i = 0; i < 8; i++) this.setRegister(i as u3, 0);
+		while (this.popCallStack() !== null) 0;
+		this.setVramBank(DEFAULT_VRAM_BANK);
+		this.setCarry(false);
+		this.current_instr = null;
+		this.setProgramCounter(0);
+		this.setBank(0);
+	}
+	reset(): void {
+		this.events.dispatch(CpuEvent.Reset);
+		// Hard reset
+		this.banks = initBanks();
+		// Soft reset
+		for (let i = 0; i < 8; i++) this.setRegister(i as u3, 0);
+		while (this.popCallStack() !== null) 0;
+		this.setVramBank(DEFAULT_VRAM_BANK);
+		this.setCarry(false);
+		this.current_instr = null;
+		this.setProgramCounter(0);
+		this.setBank(0);
 	}
 
 	loadMemory(program: Array<u8>): void {

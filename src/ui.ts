@@ -47,14 +47,17 @@ export default class UI {
 	}
 
 	initEvents(cpu_events: CpuEventHandler): void {
-		cpu_events.listen(CpuEvent.Reset, () => {
-			this.reset();
-		});
+		cpu_events.listen(CpuEvent.Reset, () => this.reset());
+		cpu_events.listen(CpuEvent.SoftReset, () => this.softReset());
 
 		for (const c of this.components) if (c.initCpuEvents) c.initCpuEvents(cpu_events);
 	}
 
 	reset(): void {
 		for (const c of this.components) if (c.reset) c.reset();
+	}
+
+	softReset(): void {
+		for (const c of this.components) if (c.softReset) c.softReset();
 	}
 }

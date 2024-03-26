@@ -12,18 +12,18 @@ export default class EditButton implements UiComponent {
 		this.cpu_signals = cpu_signals;
 		const image = el("img").at("src", "pencil.png").st("width", "20px").st("height", "20px").fin();
 		this.container.classList.add("editor_toggle");
-		this.container.addEventListener("click", () => this.edit_toggle());
+		this.container.addEventListener("click", () => this.editToggle());
 		this.container.appendChild(image);
 	}
 
-	reset(): void {
+	disable(): void {
 		const is_on = this.container.classList.contains("on");
 		if (is_on) {
-			this.edit_toggle();
+			this.editToggle();
 		}
 	}
 
-	edit_toggle(): void {
+	editToggle(): void {
 		const is_on = this.container.classList.contains("on");
 		if (is_on) {
 			this.container.classList.remove("on");
@@ -35,7 +35,14 @@ export default class EditButton implements UiComponent {
 			$("root").classList.add("editor");
 			this.container.classList.add("on");
 			this.container.classList.remove("off");
-			this.cpu_signals.dispatch(UiCpuSignal.RequestProgramCounterChange, { address: 0 });
 		}
+	}
+
+	reset(): void {
+		this.disable();
+	}
+
+	softReset(): void {
+		this.disable();
 	}
 }

@@ -12,7 +12,7 @@ export default abstract class WindowBox {
 	title_bar: HTMLElement;
 	readonly title: string;
 	private collapse_button: HTMLButtonElement;
-	private collapsed = false;
+	private is_collapsed = false;
 	private fit_content = false;
 	private resize?: HTMLElement;
 	private resize_func?: (e: MouseEvent) => void;
@@ -44,7 +44,7 @@ export default abstract class WindowBox {
 		} else {
 			this.resize = el("div").id("resize").fin();
 			this.container.appendChild(this.resize);
-			this.resize_func = this.resize_move.bind(this);
+			this.resize_func = this.resizeMove.bind(this);
 			this.resize.addEventListener("mousedown", (e) => {
 				if (this.resize_func) window.addEventListener("mousemove", this.resize_func);
 			});
@@ -58,7 +58,7 @@ export default abstract class WindowBox {
 		this.removeResizeListeners();
 		if (this.resize) this.resize.style.visibility = "hidden";
 		this.setHeight(this.title_bar.offsetHeight - BORDER_STROKE);
-		this.collapsed = true;
+		this.is_collapsed = true;
 	}
 
 	correctHeightValue(height: number): number {
@@ -74,7 +74,7 @@ export default abstract class WindowBox {
 	}
 
 	toggleCollapse(): void {
-		if (this.collapsed) {
+		if (this.is_collapsed) {
 			this.uncollapse();
 		} else {
 			this.collapse();
@@ -91,15 +91,15 @@ export default abstract class WindowBox {
 		const new_height = this.correctHeightValue(this.title_bar.offsetHeight + 200);
 		this.setHeight(new_height);
 
-		this.collapsed = false;
+		this.is_collapsed = false;
 	}
 
 	removeResizeListeners(): void {
 		if (this.resize_func) window.removeEventListener("mousemove", this.resize_func);
 	}
 
-	resize_move(e: MouseEvent): void {
-		if (this.collapsed) {
+	resizeMove(e: MouseEvent): void {
+		if (this.is_collapsed) {
 			this.uncollapse();
 			this.removeResizeListeners();
 			return;
@@ -110,5 +110,9 @@ export default abstract class WindowBox {
 			return;
 		}
 		this.setHeight(e.clientY - this.container.offsetTop + window.scrollY);
+	}
+
+	isCollapsed(): boolean {
+		return this.is_collapsed;
 	}
 }
