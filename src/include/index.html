@@ -11,24 +11,33 @@
 			This computer requires JavaScript. Your browser either doesn't support it, or you have it disabled.
 		</noscript>
 		<main>
-			<div id="grid">
-				<div id="title">VIRTUAL 8-BIT COMPUTER</div>
-				<div id="registers"></div>
-				<div id="labelcontainer">
-					<div id="registers_label">↯REGISTERS</div>
-					<div id="memory_label">MEMORY↯</div>
+			<div id="left_column">
+				<div id="program_meta">
+					<div id="title_div">
+						<input type="text" name="" id="" value="New Program" />
+					</div>
+					<div id="btn_div">
+						<span id="save_load_buttons"></span>
+						<button>🔗</button>
+						<button id="trash_button">🗑</button>
+					</div>
 				</div>
-				<div id="memory"></div>
+				<div id="grid">
+					<div id="title">VIRTUAL 8-BIT COMPUTER</div>
+					<div id="registers"></div>
+					<!-- <div id="reg_label">↯REGISTERS</div> -->
+					<!-- <div id="mem_label">MEMORY↯</div> -->
+					<div id="memory"></div>
 
-				<div id="controls_bar">
-					<span id="controls_buttons"></span>
-					<span id="save_load_buttons"></span>
-					<button type="button" id="edit_button"></button>
+					<div id="controls_bar">
+						<span id="controls_buttons"></span>
+
+						<button type="button" id="edit_button"></button>
+						<div id="reset_button"></div>
+					</div>
+					<span id="cycles"></span>
+					<div id="memory_bank_view"></div>
 				</div>
-				<span id="cycles"></span>
-				<div id="memory_bank_view"></div>
-
-				<div id="reset_buttons"></div>
 			</div>
 
 			<div id="window_box">
@@ -63,6 +72,20 @@
 			</div>
 		</main>
 
-		<pre id="ISA"></pre>
+		<article>
+			<details id="isa_container">
+				<summary>Instruction Set</summary>
+				<pre id="ISA"></pre>
+			</details>
+
+			<h1>Virtual 8-Bit Computer</h1>
+			<p>
+				Above is a virtual virtual virtual Lorem ipsum dolor sit amet consectetur adipisicing elit. Provident architecto
+				voluptas repudiandae eligendi mollitia necessitatibus tempore autem ea pariatur ex quae eum itaque ducimus,
+				velit nam voluptatem deserunt ad nesciunt.
+			</p>
+			<h2>How it works</h2>
+			<p></p>
+		</article>
 	</body>
 </html>

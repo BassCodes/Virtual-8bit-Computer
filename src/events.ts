@@ -14,9 +14,11 @@ export enum CpuEvent {
 	MemoryChanged,
 	RegisterChanged,
 	ProgramCounterChanged,
-	InstructionParsed,
+	InstructionParseBegin,
+	InstructionParseEnd,
 	ParameterParsed,
-	InvalidParsed,
+	InvalidParameterParsed,
+	InvalidInstructionParsed,
 	InstructionExecuted,
 	Cycle,
 	Print,
@@ -29,16 +31,22 @@ export enum CpuEvent {
 	SetVramBank,
 }
 
-type VoidDataCpuEventList = CpuEvent.Halt | CpuEvent.Reset | CpuEvent.SoftReset | CpuEvent.Cycle;
+type VoidDataCpuEventList =
+	| CpuEvent.Halt
+	| CpuEvent.Reset
+	| CpuEvent.SoftReset
+	| CpuEvent.Cycle
+	| CpuEvent.InstructionParseEnd;
 
 interface CpuEventMap {
 	[CpuEvent.MemoryChanged]: { address: u8; bank: u2; value: u8 };
 	[CpuEvent.MemoryAccessed]: { address: u8; bank: u2; value: u8 };
 	[CpuEvent.RegisterChanged]: { register_no: u3; value: u8 };
 	[CpuEvent.ProgramCounterChanged]: { counter: u8 };
-	[CpuEvent.InstructionParsed]: { pos: u8; code: u8; instr: Instruction };
+	[CpuEvent.InstructionParseBegin]: { pos: u8; code: u8; instr: Instruction };
 	[CpuEvent.ParameterParsed]: { pos: u8; code: u8; param: ParameterType };
-	[CpuEvent.InvalidParsed]: { pos: u8; code: u8 };
+	[CpuEvent.InvalidParameterParsed]: { pos: u8; code: u8; param: ParameterType };
+	[CpuEvent.InvalidInstructionParsed]: { pos: u8; code: u8 };
 	[CpuEvent.InstructionExecuted]: { instr: Instruction };
 	[CpuEvent.SwitchBank]: { bank: u2 };
 	[CpuEvent.SetVramBank]: { bank: u2 };

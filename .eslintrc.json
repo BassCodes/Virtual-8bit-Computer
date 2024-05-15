@@ -37,7 +37,7 @@
         "quote-props" : ["warn","as-needed"],
         "dot-notation":"warn",
         "one-var":["warn","never"],
-        "no-use-before-define":"warn",
+        "no-use-before-define":"off",
         "no-multi-assign":"warn",
         "no-else-return":"warn",
         "spaced-comment":"warn",

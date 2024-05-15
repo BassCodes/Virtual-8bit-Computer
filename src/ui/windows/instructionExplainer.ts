@@ -5,6 +5,14 @@ import { u8 } from "../../num";
 import WindowBox from "../windowBox";
 import UiComponent from "../uiComponent";
 
+const p_map = {
+	[ParamType.Const]: "constant",
+	[ParamType.ConstMemory]: "memory",
+	[ParamType.Register]: "register",
+	[ParamType.Bank]: "bank",
+	[ParamType.RegisterAddress]: "regaddr",
+};
+
 export default class InstructionExplainer extends WindowBox implements UiComponent {
 	events: UiEventHandler;
 	cpu_signals: UiCpuSignalHandler;
@@ -34,33 +42,33 @@ export default class InstructionExplainer extends WindowBox implements UiCompone
 
 	addParameter(param: ParameterType, pos: u8, byte: u8): void {
 		const t = param.type;
-		let name;
-		if (t === ParamType.Const) {
-			name = "constant";
-		} else if (t === ParamType.Memory) {
-			name = "memory";
-		} else if (t === ParamType.Register) {
-			name = "register";
-		} else {
-			throw new Error("unreachable");
-		}
-		this.addBox(formatHex(byte), param.desc, name);
+
+		this.addBox(formatHex(byte), param.desc, p_map[t]);
 	}
 
-	addInvalid(pos: u8, byte: u8): void {
+	addInvalidParam(param: ParameterType, pos: u8, byte: u8): void {
+		const t = param.type;
+
+		this.addBox(formatHex(byte), param.desc, `${p_map[t]} invalid`);
+	}
+
+	addInvalidInstr(pos: u8, byte: u8): void {
 		this.reset();
 		this.addBox(formatHex(byte), "Invalid Instruction", "invalid");
 	}
 
 	initCpuEvents(c: CpuEventHandler): void {
+		c.listen(CpuEvent.InstructionParseBegin, ({ instr, code, pos }) => {
+			this.addInstruction(instr, pos, code);
+		});
 		c.listen(CpuEvent.ParameterParsed, ({ param, code, pos }) => {
 			this.addParameter(param, pos, code);
 		});
-		c.listen(CpuEvent.InstructionParsed, ({ instr, code, pos }) => {
-			this.addInstruction(instr, pos, code);
+		c.listen(CpuEvent.InvalidParameterParsed, ({ param, code, pos }) => {
+			this.addInvalidParam(param, code, pos);
 		});
-		c.listen(CpuEvent.InvalidParsed, ({ code, pos }) => {
-			this.addInvalid(pos, code);
+		c.listen(CpuEvent.InvalidInstructionParsed, ({ code, pos }) => {
+			this.addInvalidInstr(pos, code);
 		});
 	}
 

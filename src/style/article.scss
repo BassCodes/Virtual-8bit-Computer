@@ -1,0 +1,25 @@
+h1,
+h2,
+h3 {
+	color: white;
+	font-family: charter;
+	margin-block: unset;
+	// margin-bottom: unset;
+}
+
+h2 {
+	font-size: 2rem;
+}
+
+p {
+	margin-top: unset;
+	font-size: 1.4rem;
+	color: lightgray;
+}
+
+article {
+	margin-top: 0.5rem;
+	width: 1000px;
+	font-family: Helvetica, sans-serif;
+	margin-inline: auto;
+}

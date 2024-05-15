@@ -7,7 +7,7 @@ import Computer from "./computer";
 import UI from "./ui";
 import { $ } from "./etc";
 import { ISA } from "./instructionSet";
-import { generateIsa } from "./isaGenerator";
+import { generateIsaTable } from "./isaGenerator";
 import { u8 } from "./num";
 
 import "./style/style.scss";
@@ -49,7 +49,7 @@ function main(): void {
 
 	// Todo, move to ui component
 	// or move to documentation
-	$("ISA").textContent = generateIsa(ISA);
+	$("ISA").replaceWith(generateIsaTable(ISA));
 
 	let fire = false;
 	window.firehose = (): void => {

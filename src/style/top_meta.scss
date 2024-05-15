@@ -1,0 +1,55 @@
+input[type="text"] {
+	background-color: transparent;
+	outline: none;
+	border: none;
+	color: white;
+	font-family: monospace;
+	font-size: 20px;
+}
+
+div#program_meta {
+	align-items: center;
+	#title_div {
+		flex: 2;
+	}
+
+	#btn_div {
+		align-items: center;
+
+		display: flex;
+		gap: 10px;
+		#save_load_buttons {
+			display: flex;
+			gap: inherit;
+		}
+	}
+	justify-content: space-between;
+
+	border-bottom: 2px solid yellow;
+	margin-bottom: 7px;
+	button,
+	label.button {
+		font-size: 28px;
+
+		margin: unset;
+		padding: unset;
+		border: unset;
+	}
+
+	#trash_button:hover {
+		color: orange;
+	}
+
+	input[type="text"] {
+		text-decoration: underline;
+		margin-block: auto;
+		padding: 10px;
+		&:hover {
+			background-color: darkslategray;
+		}
+		&:focus {
+			background-color: darkslategray;
+		}
+	}
+	display: flex;
+}

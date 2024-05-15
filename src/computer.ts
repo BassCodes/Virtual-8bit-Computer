@@ -4,11 +4,18 @@ import { Instruction, ISA } from "./instructionSet";
 import { m256, u2, u3, u8 } from "./num";
 import { DEFAULT_VRAM_BANK } from "./constants";
 
+interface ParsedParameter {
+	pos: u8;
+	code: u8;
+	valid: boolean;
+}
+
 export type TempInstrState = {
 	pos: u8;
 	params_found: number;
 	instr: Instruction;
-	params: Array<u8>;
+	valid: boolean;
+	params: Array<ParsedParameter>;
 };
 
 function initBanks(): [Uint8Array, Uint8Array, Uint8Array, Uint8Array] {
@@ -22,7 +29,7 @@ function initBanks(): [Uint8Array, Uint8Array, Uint8Array, Uint8Array] {
 export default class Computer {
 	private banks: [Uint8Array, Uint8Array, Uint8Array, Uint8Array] = initBanks();
 	private registers: Uint8Array = new Uint8Array(8);
-	private call_stack: Array<u8> = [];
+	// private call_stack: Array<u8> = [];
 	private carry_flag: boolean = false;
 	private program_counter: u8 = 0;
 	private bank: u2 = 0;
@@ -36,7 +43,7 @@ export default class Computer {
 		if (this.current_instr === null) {
 			const parsed_instruction = ISA.getInstruction(current_byte);
 			if (parsed_instruction === null) {
-				this.events.dispatch(CpuEvent.InvalidParsed, {
+				this.events.dispatch(CpuEvent.InvalidInstructionParsed, {
 					pos: this.program_counter,
 					code: current_byte,
 				});
@@ -45,35 +52,55 @@ export default class Computer {
 				this.events.dispatch(CpuEvent.Cycle);
 				return;
 			}
+
 			this.current_instr = {
 				pos: this.program_counter,
 				instr: parsed_instruction,
 				params_found: 0,
-				params: new Array<u8>(parsed_instruction.params.length),
+				valid: true,
+				params: new Array<ParsedParameter>(parsed_instruction.params.length),
 			};
-			this.events.dispatch(CpuEvent.InstructionParsed, {
+
+			this.events.dispatch(CpuEvent.InstructionParseBegin, {
 				pos: this.program_counter,
 				instr: parsed_instruction,
 				code: current_byte,
 			});
-		}
-
-		if (this.current_instr.pos === this.program_counter && this.current_instr.params.length > 0) {
 			this.stepForward();
 			this.events.dispatch(CpuEvent.Cycle);
 			return;
 		}
 
+		// if (this.current_instr.pos === this.program_counter && this.current_instr.params.length > 0) {
+		// 	this.stepForward();
+		// 	this.events.dispatch(CpuEvent.Cycle);
+		// 	return;
+		// }
+
 		if (this.current_instr.params.length !== this.current_instr.params_found) {
 			const b = this.current_instr.instr.params[this.current_instr.params_found];
 
-			this.events.dispatch(CpuEvent.ParameterParsed, {
-				param: b,
-				pos: this.program_counter,
-				code: current_byte,
-			});
-			this.current_instr.params[this.current_instr.params_found] = current_byte;
+			const valid = b.validate(current_byte);
+			if (valid) {
+				this.events.dispatch(CpuEvent.ParameterParsed, {
+					param: b,
+					pos: this.program_counter,
+					code: current_byte,
+				});
+			} else {
+				this.events.dispatch(CpuEvent.InvalidParameterParsed, {
+					param: b,
+					pos: this.program_counter,
+					code: current_byte,
+				});
+				this.current_instr.valid = false;
+			}
+
+			const param = { pos: this.program_counter, code: current_byte, valid };
+
+			this.current_instr.params[this.current_instr.params_found] = param;
 			this.current_instr.params_found += 1;
+
 			if (this.current_instr.params.length !== this.current_instr.params_found) {
 				this.stepForward();
 				this.events.dispatch(CpuEvent.Cycle);
@@ -87,8 +114,12 @@ export default class Computer {
 			},
 			dispatch: this.events.dispatch.bind(this.events),
 		};
-		this.current_instr.instr.execute(this, this.current_instr.params, execution_post_action_state);
-		this.events.dispatch(CpuEvent.InstructionExecuted, { instr: this.current_instr.instr });
+		if (this.current_instr.valid) {
+			const params: Array<u8> = this.current_instr.params.map((p) => p.code);
+			this.current_instr.instr.execute(this, params, execution_post_action_state);
+			this.events.dispatch(CpuEvent.InstructionExecuted, { instr: this.current_instr.instr });
+		}
+		this.events.dispatch(CpuEvent.InstructionParseEnd);
 		this.current_instr = null;
 
 		if (execution_post_action_state.should_step) {
@@ -134,15 +165,15 @@ export default class Computer {
 		this.program_counter = new_value;
 	}
 
-	pushCallStack(address: u8): boolean {
-		if (this.call_stack.length >= 8) return false;
-		this.call_stack.push(address);
-		return true;
-	}
+	// pushCallStack(address: u8): boolean {
+	// 	if (this.call_stack.length >= 8) return false;
+	// 	this.call_stack.push(address);
+	// 	return true;
+	// }
 
-	popCallStack(): u8 | null {
-		return this.call_stack.pop() ?? null;
-	}
+	// popCallStack(): u8 | null {
+	// 	return this.call_stack.pop() ?? null;
+	// }
 
 	setBank(bank: u2): void {
 		this.events.dispatch(CpuEvent.SwitchBank, { bank: bank });
@@ -170,17 +201,17 @@ export default class Computer {
 		ui.listen(UiCpuSignal.RequestMemoryChange, ({ address, bank, value }) => this.setMemory(address, value, bank));
 		ui.listen(UiCpuSignal.RequestRegisterChange, ({ register_no, value }) => this.setRegister(register_no, value));
 		ui.listen(UiCpuSignal.RequestMemoryDump, (callback) => callback(this.dumpMemory()));
-		ui.listen(UiCpuSignal.RequestCpuReset, () => this.reset());
 		ui.listen(UiCpuSignal.RequestProgramCounterChange, ({ address }) => {
 			this.setProgramCounter(address);
 		});
+		ui.listen(UiCpuSignal.RequestCpuReset, () => this.reset());
 		ui.listen(UiCpuSignal.RequestCpuSoftReset, () => this.softReset());
 	}
 
 	softReset(): void {
 		this.events.dispatch(CpuEvent.SoftReset);
 		for (let i = 0; i < 8; i++) this.setRegister(i as u3, 0);
-		while (this.popCallStack() !== null) 0;
+		// while (this.popCallStack() !== null) 0;
 		this.setVramBank(DEFAULT_VRAM_BANK);
 		this.setCarry(false);
 		this.current_instr = null;
@@ -193,7 +224,7 @@ export default class Computer {
 		this.banks = initBanks();
 		// Soft reset
 		for (let i = 0; i < 8; i++) this.setRegister(i as u3, 0);
-		while (this.popCallStack() !== null) 0;
+		// while (this.popCallStack() !== null) 0;
 		this.setVramBank(DEFAULT_VRAM_BANK);
 		this.setCarry(false);
 		this.current_instr = null;

@@ -37,7 +37,7 @@ export default class SaveLoad implements UiComponent {
 		this.cpu_signals.dispatch(UiCpuSignal.RequestMemoryDump, (memory) => {
 			const flattened = new Uint8Array(256 * memory.length);
 			for (let x = 0; x < 4; x++) {
-				for (let y = 0; y < 256; x++) {
+				for (let y = 0; y < 256; y++) {
 					flattened[256 * x + y] = memory[x][y];
 				}
 			}

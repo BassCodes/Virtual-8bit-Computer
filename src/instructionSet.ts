@@ -10,7 +10,10 @@ import { isU2, isU3, m256, u2, u3, u8 } from "./num";
 export enum ParamType {
 	Const,
 	Register,
-	Memory,
+	ConstMemory,
+	Bank,
+	// A register which holds a memory address
+	RegisterAddress,
 }
 
 export abstract class ParameterType {
@@ -19,6 +22,9 @@ export abstract class ParameterType {
 	constructor(description: string, p_type: ParamType) {
 		this.desc = description;
 		this.type = p_type;
+	}
+	validate(n: number): boolean {
+		return true;
 	}
 }
 
@@ -31,10 +37,28 @@ class RegisParam extends ParameterType {
 	constructor(d: string) {
 		super(d, ParamType.Register);
 	}
+	validate(n: number): boolean {
+		return isU3(n);
+	}
 }
-class MemorParam extends ParameterType {
+
+class BankParam extends ParameterType {
 	constructor(d: string) {
-		super(d, ParamType.Memory);
+		super(d, ParamType.Bank);
+	}
+	validate(n: number): boolean {
+		return isU2(n);
+	}
+}
+
+class ConstMemorParam extends ParameterType {
+	constructor(d: string) {
+		super(d, ParamType.ConstMemory);
+	}
+}
+class RegisAddrParam extends ParameterType {
+	constructor(d: string) {
+		super(d, ParamType.RegisterAddress);
 	}
 }
 
@@ -45,12 +69,13 @@ interface GenericComputer {
 	getProgramCounter: () => u8;
 	getRegister: (number: u3) => u8;
 	setRegister: (number: u3, value: u8) => void;
-	pushCallStack: (address: u8) => boolean;
-	popCallStack: () => u8 | null;
+	// pushCallStack: (address: u8) => boolean;
+	// popCallStack: () => u8 | null;
 	setBank: (bank_no: u2) => void;
 	getCarry(): boolean;
 	setCarry(state: boolean): void;
 	setVramBank(bank: u2): void;
+	softReset(): void;
 }
 
 interface AfterExecutionComputerAction {
@@ -129,9 +154,9 @@ ISA.addCategory(category(0xf0, 0xff, "IO"));
 
 // COPY
 ISA.insertInstruction(0x10, {
-	name: "Copy R -> M",
+	name: "Copy CR -> CA",
 	desc: "Copy the byte in register (P1) to the memory address (P2)",
-	params: [new RegisParam("Write the byte in this register"), new MemorParam("To this memory address")],
+	params: [new RegisParam("Write the byte in this register"), new ConstMemorParam("To this memory address")],
 	execute(c, p) {
 		const [register_no, mem_address] = p;
 		if (!isU3(register_no)) throw new Error("TODO");
@@ -140,9 +165,9 @@ ISA.insertInstruction(0x10, {
 });
 
 ISA.insertInstruction(0x11, {
-	name: "Copy M -> R",
+	name: "Copy CA -> R",
 	desc: "Copy the byte in memory address (P1) to the register (P2)",
-	params: [new MemorParam(""), new RegisParam("")],
+	params: [new ConstMemorParam(""), new RegisParam("")],
 	execute(c, p) {
 		const [register_no, mem_address] = p;
 		if (!isU3(register_no)) throw new Error("TODO");
@@ -151,9 +176,9 @@ ISA.insertInstruction(0x11, {
 });
 
 ISA.insertInstruction(0x12, {
-	name: "Copy M -> M",
+	name: "Copy CM -> CA",
 	desc: "Copy the byte in memory address (P1) to memory address (P2)",
-	params: [new MemorParam("Copy the byte in this memory address"), new MemorParam("To this memory address")],
+	params: [new ConstMemorParam("Copy the byte in this memory address"), new ConstMemorParam("To this memory address")],
 	execute(c, p) {
 		const [mem_address_1, mem_address_2] = p;
 		c.setMemory(mem_address_2, c.getMemory(mem_address_1));
@@ -172,10 +197,10 @@ ISA.insertInstruction(0x13, {
 	},
 });
 ISA.insertInstruction(0x14, {
-	name: "Load RM -> R",
+	name: "Load RA -> R",
 	desc: "Copy the byte in memory addressed by register (P1) to register (P2)",
 	params: [
-		new RegisParam("Copy the byte in the memory cell addressed in this register"),
+		new RegisAddrParam("Copy the byte in the memory cell addressed in this register"),
 		new RegisParam("To this register"),
 	],
 	execute(c, p) {
@@ -186,11 +211,11 @@ ISA.insertInstruction(0x14, {
 	},
 });
 ISA.insertInstruction(0x15, {
-	name: "Save R -> RM",
+	name: "Save R -> RA",
 	desc: "Copy the byte in register (P1) to the memory cell addressed in register (P2)",
 	params: [
 		new RegisParam("Copy the value in this register"),
-		new RegisParam("To the memory cell addressed in this register"),
+		new RegisAddrParam("To the memory cell addressed in this register"),
 	],
 	execute(c, p) {
 		const [register_no_1, register_no_2] = p;
@@ -213,7 +238,7 @@ ISA.insertInstruction(0x17, {
 ISA.insertInstruction(0x18, {
 	name: "Zero Memory",
 	desc: "Set the byte in memory address (P1) to 0",
-	params: [new RegisParam("Set the value in this memory address to 0")],
+	params: [new RegisAddrParam("Set the value in this memory address to 0")],
 	execute(c, p) {
 		const mem_address = p[0];
 		c.setMemory(mem_address, 0);
@@ -234,7 +259,7 @@ ISA.insertInstruction(0x19, {
 ISA.insertInstruction(0x1f, {
 	name: "Set bank",
 	desc: "Selects which bank of memory to write and read to",
-	params: [new ConstParam("Bank number")],
+	params: [new BankParam("Bank number")],
 	execute(c, p) {
 		const bank_no = p[0];
 		if (!isU2(bank_no)) {
@@ -255,9 +280,8 @@ ISA.insertInstruction(0x20, {
 	params: [new RegisParam("new instruction counter location")],
 	execute: (c, p, a) => {
 		const register_no = p[0];
-		if (!isU3(register_no)) {
-			throw new Error("todo");
-		}
+		if (!isU3(register_no)) throw new Error("todo");
+
 		const new_address = c.getRegister(register_no);
 		c.setProgramCounter(new_address);
 		a.noStep();
@@ -333,33 +357,33 @@ ISA.insertInstruction(0x29, {
 	},
 });
 
-ISA.insertInstruction(0x2d, {
-	name: "Call",
-	desc: "",
-	params: [new ConstParam("the subroutine at this memory address")],
-	execute(c, p, a) {
-		const current_address = c.getProgramCounter();
-		const success = c.pushCallStack(current_address);
-		// TODO Handle success/failure
+// ISA.insertInstruction(0x2d, {
+// 	name: "Call",
+// 	desc: "",
+// 	params: [new ConstParam("the subroutine at this memory address")],
+// 	execute(c, p, a) {
+// 		const current_address = c.getProgramCounter();
+// 		const success = c.pushCallStack(current_address);
+// 		// TODO Handle success/failure
 
-		const new_address = p[0];
-		c.setProgramCounter(new_address);
+// 		const new_address = p[0];
+// 		c.setProgramCounter(new_address);
 
-		a.noStep();
-	},
-});
+// 		a.noStep();
+// 	},
+// });
 
-ISA.insertInstruction(0x2e, {
-	name: "Return",
-	desc: "",
-	params: [],
-	execute(c, p, a) {
-		const new_address = c.popCallStack();
-		if (new_address === null) throw new Error("TODO handle this");
-		c.setProgramCounter(m256(new_address + 1));
-		a.noStep();
-	},
-});
+// ISA.insertInstruction(0x2e, {
+// 	name: "Return",
+// 	desc: "",
+// 	params: [],
+// 	execute(c, p, a) {
+// 		const new_address = c.popCallStack();
+// 		if (new_address === null) throw new Error("TODO handle this");
+// 		c.setProgramCounter(m256(new_address + 1));
+// 		a.noStep();
+// 	},
+// });
 
 ISA.insertInstruction(0x2c, {
 	name: "NoOp",
@@ -369,11 +393,12 @@ ISA.insertInstruction(0x2c, {
 });
 
 ISA.insertInstruction(0x2f, {
-	name: "Halt and Catch Fire",
-	desc: "Stops program execu..... Fire! FIRE EVERYWHERE!",
+	name: "Halt",
+	desc: "Stops CPU execution and soft resets",
 	params: [],
 	execute(c, p, a) {
 		a.dispatch(CpuEvent.Halt);
+		c.softReset();
 	},
 });
 
@@ -743,7 +768,7 @@ ISA.insertInstruction(0xf1, {
 ISA.insertInstruction(0xff, {
 	name: "Set VRAM Bank",
 	desc: "Set memory bank which screen gets pixels from memory bank (P1)",
-	params: [new ConstParam("memory bank to select")],
+	params: [new BankParam("memory bank to select")],
 	execute(c, p, a) {
 		const bank_no = p[0];
 		if (!isU2(bank_no)) throw new Error("TO2O");

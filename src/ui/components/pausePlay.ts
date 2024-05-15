@@ -42,8 +42,12 @@ export default class pausePlay implements UiComponent {
 
 		this.events.listen(UiEvent.EditOn, () => this.disable());
 		this.events.listen(UiEvent.EditOff, () => this.enable());
-		const tb = new HoverTextBox(this.start_button, el("span").tx("hover test").st("color", "yellow").fin(), "left", 10);
-		tb.show();
+
+		const s_width = this.start_button.offsetWidth;
+		this.start_button.style.width = `${s_width.toString()}px`;
+
+		// const tb = new HoverTextBox(this.start_button, el("span").tx("hover test").st("color", "yellow").fin(), "left", 10);
+		// tb.show();
 	}
 
 	disable(): void {
@@ -68,7 +72,7 @@ export default class pausePlay implements UiComponent {
 		} else {
 			this.on = true;
 			this.cycle();
-			this.start_button.textContent = "Storp";
+			this.start_button.textContent = "Stop";
 		}
 	}
 

@@ -5,6 +5,14 @@ import UiComponent from "../uiComponent";
 import { el } from "../../etc";
 import CelledViewer from "../celledViewer";
 
+const p_map = {
+	[ParamType.Const]: "constant",
+	[ParamType.ConstMemory]: "memory",
+	[ParamType.Register]: "register",
+	[ParamType.Bank]: "bank",
+	[ParamType.RegisterAddress]: "regaddr",
+};
+
 /** Only to be run once */
 function createBanks(
 	element: HTMLElement,
@@ -106,26 +114,17 @@ export default class MemoryView implements UiComponent {
 			this.program.addCellClass(pos, "instruction_argument");
 			const t = param.type;
 			this.program.removeCellClass(pos, "constant", "register", "memory", "instruction", "invalid");
-			let name: string = "";
-			if (t === ParamType.Const) {
-				name = "constant";
-			} else if (t === ParamType.Memory) {
-				name = "memory";
-			} else if (t === ParamType.Register) {
-				name = "register";
-			} else {
-				throw new Error("unreachable");
-			}
+			const name = p_map[t];
 			this.program.addCellClass(pos, name);
 		});
-		c.listen(CpuEvent.InstructionParsed, ({ instr, code, pos }) => {
+		c.listen(CpuEvent.InstructionParseBegin, ({ instr, code, pos }) => {
 			this.program.removeAllCellClass("instruction_argument");
 			this.program.removeAllCellClass("current_instruction");
 			this.program.removeCellClass(pos, "constant", "register", "memory", "invalid");
 			this.program.addCellClass(pos, "current_instruction");
 			this.program.addCellClass(pos, "instruction");
 		});
-		c.listen(CpuEvent.InvalidParsed, ({ code, pos }) => {
+		c.listen(CpuEvent.InvalidInstructionParsed, ({ code, pos }) => {
 			this.program.removeCellClass(pos, "constant", "register", "memory", "instruction");
 			this.program.addCellClass(pos, "invalid");
 		});

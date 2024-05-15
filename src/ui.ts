@@ -9,7 +9,8 @@ import BankSelector from "./ui/components/bankViewSelector";
 import EditButton from "./ui/components/editButton";
 import pausePlay from "./ui/components/pausePlay";
 import SaveLoad from "./ui/components/saveLoad";
-import ResetButtons from "./ui/components/resetButtons";
+import ResetButton from "./ui/components/resetButton";
+import TrashButton from "./ui/components/trashButton";
 // Window Components
 import InstructionExplainer from "./ui/windows/instructionExplainer";
 import Screen from "./ui/windows/screen";
@@ -23,7 +24,7 @@ export default class UI {
 
 	constructor() {
 		this.register_component(MemoryView, $("memory"));
-		this.register_component(frequencyIndicator, $("cycles"));
+		// this.register_component(frequencyIndicator, $("cycles"));
 		this.register_component(InstructionExplainer, $("instruction_explainer"));
 		this.register_component(RegisterView, $("registers"));
 		this.register_component(Screen, $("tv"));
@@ -33,7 +34,8 @@ export default class UI {
 		this.register_component(SaveLoad, $("save_load_buttons"));
 		this.register_component(BankSelector, $("memory_bank_view"));
 		this.register_component(BankVisualizer, $("bank_viz"));
-		this.register_component(ResetButtons, $("reset_buttons"));
+		this.register_component(ResetButton, $("reset_button"));
+		this.register_component(TrashButton, $("trash_button"));
 	}
 
 	private register_component(ctor: UiComponentConstructor, e: HTMLElement): void {

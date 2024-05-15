@@ -1,8 +1,15 @@
 @use "memory_registers";
 @use "hover_text_box";
+@use "article";
 @use "windows";
+@use "top_meta";
 @use "buttons";
+@use "table";
 @use "vars";
+
+#isa_container summary {
+	font-size: 1.5rem;
+}
 
 * {
 	box-sizing: border-box;
@@ -35,11 +42,11 @@ main {
 	grid-template-columns: min-content min-content min-content;
 	grid-template-rows: min-content min-content min-content;
 	grid-template-areas:
-		".      regmemlabel .       cycles"
-		".      registers   .       bank "
-		"reset  memory		memory	memory"
-		"title  memory	    memory  memory"
-		".      buttons     buttons buttons";
+		".        reglabel  .       ."
+		".        registers .       bank "
+		"memlabel memory	memory	memory"
+		"title    memory	memory  memory"
+		".        buttons   buttons buttons";
 
 	#window_box {
 		grid-area: windowbox;
@@ -50,8 +57,11 @@ main {
 	#memory_bank_view {
 		grid-area: bank;
 	}
-	#labelcontainer {
-		grid-area: regmemlabel;
+	#reg_label {
+		grid-area: reglabel;
+	}
+	#mem_label {
+		grid-area: memlabel;
 	}
 	#cycles {
 		grid-area: cycles;
@@ -70,9 +80,6 @@ main {
 	#memory {
 		grid-area: memory;
 	}
-	#reset_buttons {
-		grid-area: reset;
-	}
 }
 
 #reset_buttons {
@@ -88,13 +95,18 @@ main {
 	}
 }
 
-#labelcontainer {
-	column-gap: 18px;
+#reg_label,
+#mem_label {
 	font-size: 0.75em;
-	display: flex;
-	flex-direction: row;
-	align-items: center;
 	user-select: none;
+}
+
+#mem_label {
+	writing-mode: vertical-lr;
+	text-align: right;
+	margin-top: 5px;
+	user-select: none;
+	transform: scale(-1, -1);
 }
 
 #memory_bank_view {
