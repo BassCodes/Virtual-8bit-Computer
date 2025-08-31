@@ -15,7 +15,7 @@ export default class Screen extends WindowBox implements UiComponent {
 	scale: number;
 
 	constructor(element: HTMLElement, event: UiEventHandler, cpu_signals: UiCpuSignalHandler) {
-		super(element, "TV", { collapsed: true, fit_content: true });
+		super(element, "TV", { collapsed: false, fit_content: true });
 		this.cpu_signals = cpu_signals;
 		this.events = event;
 
@@ -50,7 +50,7 @@ export default class Screen extends WindowBox implements UiComponent {
 	}
 
 	initCpuEvents(c: CpuEventHandler): void {
-		c.listen(CpuEvent.MemoryChanged, ({ address, value }) => {
+		c.listen(CpuEvent.VramChanged, ({ address, value }) => {
 			this.setPixel(address, value);
 		});
 	}

@@ -19,9 +19,9 @@ export enum CpuEvent {
 	ParameterParsed,
 	InvalidParameterParsed,
 	InvalidInstructionParsed,
+	VramChanged,
 	InstructionExecuted,
 	Cycle,
-	Print,
 	Reset,
 	SoftReset,
 	Halt,
@@ -39,6 +39,7 @@ type VoidDataCpuEventList =
 interface CpuEventMap {
 	[CpuEvent.MemoryChanged]: { address: u8; value: u8 };
 	[CpuEvent.MemoryAccessed]: { address: u8; value: u8 };
+	[CpuEvent.VramChanged]: { address: u8; value: u8 };
 	[CpuEvent.RegisterChanged]: { register_no: u3; value: u8 };
 	[CpuEvent.ProgramCounterChanged]: { counter: u8 };
 	[CpuEvent.InstructionParseBegin]: { pos: u8; code: u8; instr: Instruction };
@@ -46,7 +47,6 @@ interface CpuEventMap {
 	[CpuEvent.InvalidParameterParsed]: { pos: u8; code: u8; param: ParameterType };
 	[CpuEvent.InvalidInstructionParsed]: { pos: u8; code: u8 };
 	[CpuEvent.InstructionExecuted]: { instr: Instruction };
-	[CpuEvent.Print]: string;
 	[CpuEvent.SetFlagCarry]: boolean;
 }
 

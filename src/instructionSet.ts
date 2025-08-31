@@ -5,13 +5,12 @@
  */
 import { CpuEvent, CpuEventHandler } from "./events";
 import { formatHex, inRange } from "./etc";
-import { isU2, isU3, m256, u3, u8 } from "./num";
+import { isU3, m256, u3, u8 } from "./num";
 
 export enum ParamType {
 	Const,
 	Register,
 	ConstMemory,
-	// A register which holds a memory address
 	RegisterAddress,
 }
 
@@ -27,11 +26,18 @@ export abstract class ParameterType {
 	}
 }
 
+/**
+ * Instruction Parameter with immediate value
+ */
 class ConstParam extends ParameterType {
 	constructor(d: string) {
 		super(d, ParamType.Const);
 	}
 }
+
+/**
+ * Instruction parameter with value in numbered register
+ */
 class RegisParam extends ParameterType {
 	constructor(d: string) {
 		super(d, ParamType.Register);
@@ -41,20 +47,30 @@ class RegisParam extends ParameterType {
 	}
 }
 
+/**
+ *  Instruction parameter with value in numbered memory cell
+ */
 class ConstMemorParam extends ParameterType {
 	constructor(d: string) {
 		super(d, ParamType.ConstMemory);
 	}
 }
+/**
+ * Instruction parameter with value in memory cell referenced in numbered register
+ */
 class RegisAddrParam extends ParameterType {
 	constructor(d: string) {
 		super(d, ParamType.RegisterAddress);
 	}
 }
 
+// An interface of required computer methods.
+// Declared so that computer.ts needn't be imported to avoid circular dependency.
 interface GenericComputer {
 	getMemory: (address: u8) => u8;
 	setMemory: (address: u8, value: u8) => void;
+	getVram: (address: u8) => u8;
+	setVram: (address: u8, value: u8) => void;
 	setProgramCounter: (address: u8) => void;
 	getProgramCounter: () => u8;
 	getRegister: (number: u3) => u8;
@@ -703,5 +719,33 @@ ISA.insertInstruction(0x5f, {
 		const decremented = current_value - 1;
 		if (decremented < 0) c.setCarry(true);
 		c.setRegister(register_no, m256(decremented) as u8);
+	},
+});
+
+// Screen
+
+ISA.insertInstruction(0xff, {
+	name: "Set Pixel",
+	desc: "Sets the color constant (P2) for pixel at position in register (P1)",
+	params: [new RegisParam("Pixel Id"), new ConstParam("Pixel Value")],
+	execute(c, p, e) {
+		const [register_no, pixel_val] = p;
+		if (!isU3(register_no)) throw new Error("TODO");
+		const pixel_no = c.getRegister(register_no);
+		c.setVram(pixel_no, pixel_val);
+	},
+});
+
+ISA.insertInstruction(0xfe, {
+	name: "Set Pixel",
+	desc: "Sets the color value in register (P2) for pixel at position in register (P1)",
+	params: [new RegisParam("Pixel Id"), new RegisParam("Pixel Value")],
+	execute(c, p, e) {
+		const [register_no_1, register_no_2] = p;
+		if (!isU3(register_no_1)) throw new Error("TODO");
+		if (!isU3(register_no_2)) throw new Error("TODO");
+		const pixel_no = c.getRegister(register_no_1);
+		const pixel_val = c.getRegister(register_no_2);
+		c.setVram(pixel_no, pixel_val);
 	},
 });

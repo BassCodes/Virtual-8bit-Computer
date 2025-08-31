@@ -23,6 +23,7 @@ function initMemory(): Uint8Array {
 
 export default class Computer {
 	private memory: Uint8Array = initMemory();
+	private vram: Uint8Array = initMemory();
 	private registers: Uint8Array = new Uint8Array(8);
 	private carry_flag: boolean = false;
 	private program_counter: u8 = 0;
@@ -136,6 +137,15 @@ export default class Computer {
 	setMemory(address: u8, value: u8): void {
 		this.memory[address] = value;
 		this.events.dispatch(CpuEvent.MemoryChanged, { address, value });
+	}
+	getVram(address: u8): u8 {
+		const value = this.vram[address] as u8;
+		return value;
+	}
+
+	setVram(address: u8, value: u8): void {
+		this.vram[address] = value;
+		this.events.dispatch(CpuEvent.VramChanged, { address, value });
 	}
 
 	getRegister(register_no: u3): u8 {
