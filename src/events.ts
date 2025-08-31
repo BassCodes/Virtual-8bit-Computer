@@ -26,9 +26,7 @@ export enum CpuEvent {
 	SoftReset,
 	Halt,
 	MemoryAccessed,
-	SwitchBank,
 	SetFlagCarry,
-	SetVramBank,
 }
 
 type VoidDataCpuEventList =
@@ -39,8 +37,8 @@ type VoidDataCpuEventList =
 	| CpuEvent.InstructionParseEnd;
 
 interface CpuEventMap {
-	[CpuEvent.MemoryChanged]: { address: u8; bank: u2; value: u8 };
-	[CpuEvent.MemoryAccessed]: { address: u8; bank: u2; value: u8 };
+	[CpuEvent.MemoryChanged]: { address: u8; value: u8 };
+	[CpuEvent.MemoryAccessed]: { address: u8; value: u8 };
 	[CpuEvent.RegisterChanged]: { register_no: u3; value: u8 };
 	[CpuEvent.ProgramCounterChanged]: { counter: u8 };
 	[CpuEvent.InstructionParseBegin]: { pos: u8; code: u8; instr: Instruction };
@@ -48,8 +46,6 @@ interface CpuEventMap {
 	[CpuEvent.InvalidParameterParsed]: { pos: u8; code: u8; param: ParameterType };
 	[CpuEvent.InvalidInstructionParsed]: { pos: u8; code: u8 };
 	[CpuEvent.InstructionExecuted]: { instr: Instruction };
-	[CpuEvent.SwitchBank]: { bank: u2 };
-	[CpuEvent.SetVramBank]: { bank: u2 };
 	[CpuEvent.Print]: string;
 	[CpuEvent.SetFlagCarry]: boolean;
 }
@@ -85,10 +81,10 @@ type VoidDataUiCpuSignalList = UiCpuSignal.RequestCpuReset | UiCpuSignal.Request
 
 interface UiCpuSignalMap {
 	[UiCpuSignal.RequestCpuCycle]: number;
-	[UiCpuSignal.RequestMemoryChange]: { address: u8; bank: u2; value: u8 };
+	[UiCpuSignal.RequestMemoryChange]: { address: u8; value: u8 };
 	[UiCpuSignal.RequestRegisterChange]: { register_no: u3; value: u8 };
 	[UiCpuSignal.RequestProgramCounterChange]: { address: u8 };
-	[UiCpuSignal.RequestMemoryDump]: (memory: [Uint8Array, Uint8Array, Uint8Array, Uint8Array]) => void;
+	[UiCpuSignal.RequestMemoryDump]: (memory: Uint8Array) => void;
 }
 
 export interface UiCpuSignalHandler extends EventHandler<UiCpuSignal> {
@@ -111,12 +107,9 @@ export const UiCpuSignalHandler = EventHandler<UiCpuSignal> as UICpuSignalHandle
 export enum UiEvent {
 	EditOn,
 	EditOff,
-	ChangeViewBank,
 }
 
-interface UiEventMap {
-	[UiEvent.ChangeViewBank]: { bank: u2 };
-}
+interface UiEventMap {}
 
 type VoidDataUiEventList = UiEvent.EditOn | UiEvent.EditOff;
 

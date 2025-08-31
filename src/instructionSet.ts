@@ -5,13 +5,12 @@
  */
 import { CpuEvent, CpuEventHandler } from "./events";
 import { formatHex, inRange } from "./etc";
-import { isU2, isU3, m256, u2, u3, u8 } from "./num";
+import { isU2, isU3, m256, u3, u8 } from "./num";
 
 export enum ParamType {
 	Const,
 	Register,
 	ConstMemory,
-	Bank,
 	// A register which holds a memory address
 	RegisterAddress,
 }
@@ -42,15 +41,6 @@ class RegisParam extends ParameterType {
 	}
 }
 
-class BankParam extends ParameterType {
-	constructor(d: string) {
-		super(d, ParamType.Bank);
-	}
-	validate(n: number): boolean {
-		return isU2(n);
-	}
-}
-
 class ConstMemorParam extends ParameterType {
 	constructor(d: string) {
 		super(d, ParamType.ConstMemory);
@@ -69,12 +59,8 @@ interface GenericComputer {
 	getProgramCounter: () => u8;
 	getRegister: (number: u3) => u8;
 	setRegister: (number: u3, value: u8) => void;
-	// pushCallStack: (address: u8) => boolean;
-	// popCallStack: () => u8 | null;
-	setBank: (bank_no: u2) => void;
 	getCarry(): boolean;
 	setCarry(state: boolean): void;
-	setVramBank(bank: u2): void;
 	softReset(): void;
 }
 
@@ -253,19 +239,6 @@ ISA.insertInstruction(0x19, {
 		const [register_no, value] = p;
 		if (!isU3(register_no)) throw new Error("TODO");
 		c.setRegister(register_no, value);
-	},
-});
-
-ISA.insertInstruction(0x1f, {
-	name: "Set bank",
-	desc: "Selects which bank of memory to write and read to",
-	params: [new BankParam("Bank number")],
-	execute(c, p) {
-		const bank_no = p[0];
-		if (!isU2(bank_no)) {
-			throw new Error("TODO");
-		}
-		c.setBank(bank_no);
 	},
 });
 
@@ -730,49 +703,5 @@ ISA.insertInstruction(0x5f, {
 		const decremented = current_value - 1;
 		if (decremented < 0) c.setCarry(true);
 		c.setRegister(register_no, m256(decremented) as u8);
-	},
-});
-
-//
-// IO
-// 0xF0 -> 0xFF
-//
-
-ISA.insertInstruction(0xf0, {
-	name: "PrintASCII",
-	desc: "Prints the ASCII byte in register (P1) to console",
-	params: [new RegisParam("Register to print from")],
-	execute(c, p, a) {
-		const register_no = p[0];
-		if (!isU3(register_no)) throw new Error("TODO");
-		const asciiByte = c.getRegister(register_no);
-
-		const char = String.fromCharCode(asciiByte);
-		a.dispatch(CpuEvent.Print, char);
-	},
-});
-
-ISA.insertInstruction(0xf1, {
-	name: "Print",
-	desc: "Prints the byte in register (P1) to console as base 10",
-	params: [new RegisParam("Register to print from")],
-	execute(c, p, a) {
-		const register_no = p[0];
-		if (!isU3(register_no)) throw new Error("TODO");
-		const byte = c.getRegister(register_no);
-
-		a.dispatch(CpuEvent.Print, byte.toString(10));
-	},
-});
-
-ISA.insertInstruction(0xff, {
-	name: "Set VRAM Bank",
-	desc: "Set memory bank which screen gets pixels from memory bank (P1)",
-	params: [new BankParam("memory bank to select")],
-	execute(c, p, a) {
-		const bank_no = p[0];
-		if (!isU2(bank_no)) throw new Error("TO2O");
-		c.setVramBank(bank_no);
-		a.dispatch(CpuEvent.SetVramBank, { bank: bank_no });
 	},
 });

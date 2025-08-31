@@ -2,7 +2,6 @@ import { CpuEvent, CpuEventHandler, UiCpuSignal, UiCpuSignalHandler, UiEvent, Ui
 import { byteArrayToJsSource, formatHex } from "./etc";
 import { Instruction, ISA } from "./instructionSet";
 import { m256, u2, u3, u8 } from "./num";
-import { DEFAULT_VRAM_BANK } from "./constants";
 
 interface ParsedParameter {
 	pos: u8;
@@ -18,27 +17,20 @@ export type TempInstrState = {
 	params: Array<ParsedParameter>;
 };
 
-function initBanks(): [Uint8Array, Uint8Array, Uint8Array, Uint8Array] {
-	const banks = [];
-	for (let i = 0; i < 4; i++) {
-		banks.push(new Uint8Array(256));
-	}
-	return banks as [Uint8Array, Uint8Array, Uint8Array, Uint8Array];
+function initMemory(): Uint8Array {
+	return new Uint8Array(256);
 }
 
 export default class Computer {
-	private banks: [Uint8Array, Uint8Array, Uint8Array, Uint8Array] = initBanks();
+	private memory: Uint8Array = initMemory();
 	private registers: Uint8Array = new Uint8Array(8);
-	// private call_stack: Array<u8> = [];
 	private carry_flag: boolean = false;
 	private program_counter: u8 = 0;
-	private bank: u2 = 0;
-	private vram_bank: u2 = DEFAULT_VRAM_BANK;
 	private current_instr: TempInstrState | null = null;
 	events: CpuEventHandler = new CpuEventHandler();
 
 	cycle(): void {
-		const current_byte = this.getMemorySilent(this.program_counter, 0);
+		const current_byte = this.getMemorySilent(this.program_counter);
 
 		if (this.current_instr === null) {
 			const parsed_instruction = ISA.getInstruction(current_byte);
@@ -128,23 +120,22 @@ export default class Computer {
 		this.events.dispatch(CpuEvent.Cycle);
 	}
 
-	private getMemorySilent(address: u8, bank_override?: u2): u8 {
-		const bank = this.banks[bank_override ?? this.bank];
-		const value = bank[address] as u8;
+	private getMemorySilent(address: u8): u8 {
+		const value = this.memory[address] as u8;
 
 		return value;
 	}
 
-	getMemory(address: u8, bank_override?: u2): u8 {
-		const value = this.getMemorySilent(address, bank_override);
-		this.events.dispatch(CpuEvent.MemoryAccessed, { address, bank: this.bank, value });
+	getMemory(address: u8): u8 {
+		const value = this.getMemorySilent(address);
+		this.events.dispatch(CpuEvent.MemoryAccessed, { address, value });
 
 		return value;
 	}
 
-	setMemory(address: u8, value: u8, bank?: u2): void {
-		this.banks[bank ?? this.bank][address] = value;
-		this.events.dispatch(CpuEvent.MemoryChanged, { address, bank: this.bank, value });
+	setMemory(address: u8, value: u8): void {
+		this.memory[address] = value;
+		this.events.dispatch(CpuEvent.MemoryChanged, { address, value });
 	}
 
 	getRegister(register_no: u3): u8 {
@@ -165,21 +156,6 @@ export default class Computer {
 		this.program_counter = new_value;
 	}
 
-	// pushCallStack(address: u8): boolean {
-	// 	if (this.call_stack.length >= 8) return false;
-	// 	this.call_stack.push(address);
-	// 	return true;
-	// }
-
-	// popCallStack(): u8 | null {
-	// 	return this.call_stack.pop() ?? null;
-	// }
-
-	setBank(bank: u2): void {
-		this.events.dispatch(CpuEvent.SwitchBank, { bank: bank });
-		this.bank = bank;
-	}
-
 	setCarry(state: boolean): void {
 		this.carry_flag = state;
 		this.events.dispatch(CpuEvent.SetFlagCarry, true);
@@ -189,16 +165,11 @@ export default class Computer {
 		return this.carry_flag;
 	}
 
-	setVramBank(bank: u2): void {
-		this.vram_bank = bank;
-		this.events.dispatch(CpuEvent.SetVramBank, { bank });
-	}
-
 	initEvents(ui: UiCpuSignalHandler): void {
 		ui.listen(UiCpuSignal.RequestCpuCycle, (cycle_count) => {
 			for (let i = 0; i < cycle_count; i++) this.cycle();
 		});
-		ui.listen(UiCpuSignal.RequestMemoryChange, ({ address, bank, value }) => this.setMemory(address, value, bank));
+		ui.listen(UiCpuSignal.RequestMemoryChange, ({ address, value }) => this.setMemory(address, value));
 		ui.listen(UiCpuSignal.RequestRegisterChange, ({ register_no, value }) => this.setRegister(register_no, value));
 		ui.listen(UiCpuSignal.RequestMemoryDump, (callback) => callback(this.dumpMemory()));
 		ui.listen(UiCpuSignal.RequestProgramCounterChange, ({ address }) => {
@@ -212,42 +183,37 @@ export default class Computer {
 		this.events.dispatch(CpuEvent.SoftReset);
 		for (let i = 0; i < 8; i++) this.setRegister(i as u3, 0);
 		// while (this.popCallStack() !== null) 0;
-		this.setVramBank(DEFAULT_VRAM_BANK);
 		this.setCarry(false);
 		this.current_instr = null;
 		this.setProgramCounter(0);
-		this.setBank(0);
 	}
 	reset(): void {
 		this.events.dispatch(CpuEvent.Reset);
 		// Hard reset
-		this.banks = initBanks();
+		this.memory = initMemory();
 		// Soft reset
 		for (let i = 0; i < 8; i++) this.setRegister(i as u3, 0);
 		// while (this.popCallStack() !== null) 0;
-		this.setVramBank(DEFAULT_VRAM_BANK);
 		this.setCarry(false);
 		this.current_instr = null;
 		this.setProgramCounter(0);
-		this.setBank(0);
 	}
 
 	loadMemory(program: Array<u8>): void {
-		// TODO allow loading into other banks
 		console.log(byteArrayToJsSource(program));
 		const max_loop: u8 = Math.min(255, program.length) as u8;
 		for (let i: u8 = 0; i < 256; i++) {
 			// Don't fire event if no change is made
-			if (this.banks[0][i] === program[i]) continue;
+			if (this.memory[i] === program[i]) continue;
 
-			this.banks[0][i] = program[i];
-			this.events.dispatch(CpuEvent.MemoryChanged, { address: i as u8, bank: 0, value: program[i] });
+			this.memory[i] = program[i];
+			this.events.dispatch(CpuEvent.MemoryChanged, { address: i as u8, value: program[i] });
 		}
 		this.program_counter = 0;
 	}
 
-	dumpMemory(): [Uint8Array, Uint8Array, Uint8Array, Uint8Array] {
-		return this.banks;
+	dumpMemory(): Uint8Array {
+		return this.memory;
 	}
 
 	private stepForward(): void {

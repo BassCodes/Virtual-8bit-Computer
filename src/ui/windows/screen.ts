@@ -1,4 +1,3 @@
-import { DEFAULT_VRAM_BANK } from "../../constants";
 import { el } from "../../etc";
 import { UiEventHandler, CpuEventHandler, CpuEvent, UiCpuSignalHandler, UiCpuSignal } from "../../events";
 import { u2, u4, u8 } from "../../num";
@@ -14,7 +13,6 @@ export default class Screen extends WindowBox implements UiComponent {
 	cpu_signals: UiCpuSignalHandler;
 	ctx: CanvasRenderingContext2D;
 	scale: number;
-	current_vram_bank: u2 = DEFAULT_VRAM_BANK;
 
 	constructor(element: HTMLElement, event: UiEventHandler, cpu_signals: UiCpuSignalHandler) {
 		super(element, "TV", { collapsed: true, fit_content: true });
@@ -52,19 +50,8 @@ export default class Screen extends WindowBox implements UiComponent {
 	}
 
 	initCpuEvents(c: CpuEventHandler): void {
-		c.listen(CpuEvent.MemoryChanged, ({ address, bank, value }) => {
-			if (bank !== 1) return;
-
+		c.listen(CpuEvent.MemoryChanged, ({ address, value }) => {
 			this.setPixel(address, value);
-		});
-		c.listen(CpuEvent.SetVramBank, ({ bank }) => {
-			this.current_vram_bank = bank;
-			this.cpu_signals.dispatch(UiCpuSignal.RequestMemoryDump, (memory) => {
-				const vram = memory[this.current_vram_bank];
-				for (const [i, pixel] of vram.entries()) {
-					this.setPixel(i as u8, pixel as u8);
-				}
-			});
 		});
 	}
 

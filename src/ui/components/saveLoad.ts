@@ -35,11 +35,9 @@ export default class SaveLoad implements UiComponent {
 
 	private download(): void {
 		this.cpu_signals.dispatch(UiCpuSignal.RequestMemoryDump, (memory) => {
-			const flattened = new Uint8Array(256 * memory.length);
-			for (let x = 0; x < 4; x++) {
-				for (let y = 0; y < 256; y++) {
-					flattened[256 * x + y] = memory[x][y];
-				}
+			const flattened = new Uint8Array(memory.length);
+			for (let y = 0; y < 256; y++) {
+				flattened[y] = memory[y];
 			}
 			const blob = new Blob([flattened], { type: "application/octet-stream" });
 			const url = URL.createObjectURL(blob);
@@ -77,12 +75,8 @@ export default class SaveLoad implements UiComponent {
 			this.cpu_signals.dispatch(UiCpuSignal.RequestCpuReset);
 			for (const [i, v] of array.entries()) {
 				const address = m256(i);
-				const bank = Math.floor(i / 256);
-				if (!isU2(bank)) {
-					// throw new Error("Too many banks in data file");
-					return;
-				}
-				this.cpu_signals.dispatch(UiCpuSignal.RequestMemoryChange, { address, bank, value: v });
+
+				this.cpu_signals.dispatch(UiCpuSignal.RequestMemoryChange, { address, value: v });
 			}
 		});
 		reader.readAsArrayBuffer(file);

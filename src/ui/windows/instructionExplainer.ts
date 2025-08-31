@@ -9,7 +9,6 @@ const p_map = {
 	[ParamType.Const]: "constant",
 	[ParamType.ConstMemory]: "memory",
 	[ParamType.Register]: "register",
-	[ParamType.Bank]: "bank",
 	[ParamType.RegisterAddress]: "regaddr",
 };
 

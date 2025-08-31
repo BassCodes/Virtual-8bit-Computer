@@ -17,7 +17,6 @@ function parameterDescription(params: Array<ParameterType>): string {
 			[ParamType.Const]: "C",
 			[ParamType.ConstMemory]: "CM",
 			[ParamType.Register]: "R",
-			[ParamType.Bank]: "B",
 			[ParamType.RegisterAddress]: "RA",
 		};
 		const char = p_map[p.type];
