@@ -1,12 +1,12 @@
 /**
  * @file Assorted small functions to be used throughout this program.
- * @copyright Alexander Bass 2024
+ * @copyright Alexander Bass 2025
  * @license GPL-3.0
  */
 import el from "./util/elementMaker";
 // Re-export el
 export { el };
-import { u8 } from "./num";
+import { u4, u8 } from "./num";
 
 /**
  * Alias to `document.getElementById(id)`. Jquery lite.
@@ -50,4 +50,8 @@ export function at<T>(l: Array<T>, i: number): T | null {
 		return null;
 	}
 	return l[i];
+}
+
+export function splitNibbles(n: u8): [u4, u4] {
+	return [(n >> 4) as u4, (n & 0b1111) as u4];
 }

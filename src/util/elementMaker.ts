@@ -28,6 +28,12 @@ class ElementInProgress<E extends HTMLElement> {
 		return this;
 	}
 
+	/** Set innerHTML */
+	ht(html: string): ElementInProgress<E> {
+		this.element.innerHTML = html;
+		return this;
+	}
+
 	/** Set style */
 	st(name: string, value: string): ElementInProgress<E> {
 		this.element.style.setProperty(name, value);

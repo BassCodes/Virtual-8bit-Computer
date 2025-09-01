@@ -1,6 +1,6 @@
 /**
  * @file Specific definitions of the event handlers (CPU & UI) used within this program
- * @copyright Alexander Bass 2024
+ * @copyright Alexander Bass 2025
  * @license GPL-3.0
  */
 import { EventHandler } from "./eventHandler";

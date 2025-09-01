@@ -1,10 +1,17 @@
 /**
  * @file Automatic generation of instruction set description
- * @copyright Alexander Bass 2024
+ * @copyright Alexander Bass 2025
  * @license GPL-3.0
  */
 import { el, formatHex, inRange } from "./etc";
-import { InstrCategory, Instruction, InstructionSet, ParameterType, ParamType } from "./instructionSet";
+import {
+	InstrCategory,
+	Instruction,
+	InstructionSet,
+	NibbleRegisPairParam,
+	ParameterType,
+	ParamType,
+} from "./instructionSet";
 import { u8 } from "./num";
 
 function parameterDescription(params: Array<ParameterType>): string {
@@ -18,9 +25,15 @@ function parameterDescription(params: Array<ParameterType>): string {
 			[ParamType.ConstMemory]: "CM",
 			[ParamType.Register]: "R",
 			[ParamType.RegisterAddress]: "RA",
+			[ParamType.NibbleRegisterPair]: "NR2",
 		};
-		const char = p_map[p.type];
-		str += char;
+		let paramStr = "";
+		if (p.type === ParamType.NibbleRegisterPair) {
+			paramStr = `NR(${(p as NibbleRegisPairParam).roleA},&nbsp;${(p as NibbleRegisPairParam).roleB})`;
+		} else {
+			paramStr = p_map[p.type];
+		}
+		str += paramStr;
 		str += " ";
 	}
 	return str;
@@ -61,7 +74,7 @@ export function generateIsaTable(iset: InstructionSet): HTMLTableElement {
 				.tx(`0x${formatHex(code)}`)
 				.fin()
 		);
-		row.appendChild(el("td").tx(parameterDescription(instr.params)).fin());
+		row.appendChild(el("td").ht(parameterDescription(instr.params)).fin());
 		row.appendChild(el("td").tx(instr_text).fin());
 		row.appendChild(el("td").tx(instr.desc).fin());
 		table.appendChild(row);

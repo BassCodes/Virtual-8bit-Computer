@@ -35,3 +35,8 @@ TV As large as Memory
 Remove "windows" concept
 
 Instruction table, print parameter purpose
+
+Memory color legend
+
+Nibble Memory colors.
+Nibble intruction explainer colors.

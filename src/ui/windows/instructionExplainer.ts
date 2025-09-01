@@ -10,6 +10,7 @@ const p_map = {
 	[ParamType.ConstMemory]: "memory",
 	[ParamType.Register]: "register",
 	[ParamType.RegisterAddress]: "regaddr",
+	[ParamType.NibbleRegisterPair]: "nrpair",
 };
 
 export default class InstructionExplainer extends WindowBox implements UiComponent {

@@ -1,6 +1,6 @@
 /**
  * @file Abstract implementation of a grid of (up to) 256 items or less
- * @copyright Alexander Bass 2024
+ * @copyright Alexander Bass 2025
  * @license GPL-3.0
  */
 import { NonEmptyArray, el, formatHex } from "../etc";

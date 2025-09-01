@@ -1,6 +1,6 @@
 /**
  * @file Definition of what a UI component is in the context of this program
- * @copyright Alexander Bass 2024
+ * @copyright Alexander Bass 2025
  * @license GPL-3.0
  */
 import { CpuEventHandler, UiCpuSignalHandler, UiEventHandler } from "../events";

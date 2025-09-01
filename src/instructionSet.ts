@@ -1,10 +1,10 @@
 /**
  * @file CPU instruction definitions & type definitions for parameters and instructions
- * @copyright Alexander Bass 2024
+ * @copyright Alexander Bass 2025
  * @license GPL-3.0
  */
 import { CpuEvent, CpuEventHandler } from "./events";
-import { formatHex, inRange } from "./etc";
+import { formatHex, inRange, splitNibbles } from "./etc";
 import { isU3, m256, u3, u8 } from "./num";
 
 export enum ParamType {
@@ -12,6 +12,7 @@ export enum ParamType {
 	Register,
 	ConstMemory,
 	RegisterAddress,
+	NibbleRegisterPair,
 }
 
 export abstract class ParameterType {
@@ -29,7 +30,7 @@ export abstract class ParameterType {
 /**
  * Instruction Parameter with immediate value
  */
-class ConstParam extends ParameterType {
+export class ConstParam extends ParameterType {
 	constructor(d: string) {
 		super(d, ParamType.Const);
 	}
@@ -38,7 +39,7 @@ class ConstParam extends ParameterType {
 /**
  * Instruction parameter with value in numbered register
  */
-class RegisParam extends ParameterType {
+export class RegisParam extends ParameterType {
 	constructor(d: string) {
 		super(d, ParamType.Register);
 	}
@@ -50,7 +51,7 @@ class RegisParam extends ParameterType {
 /**
  *  Instruction parameter with value in numbered memory cell
  */
-class ConstMemorParam extends ParameterType {
+export class ConstMemorParam extends ParameterType {
 	constructor(d: string) {
 		super(d, ParamType.ConstMemory);
 	}
@@ -58,9 +59,19 @@ class ConstMemorParam extends ParameterType {
 /**
  * Instruction parameter with value in memory cell referenced in numbered register
  */
-class RegisAddrParam extends ParameterType {
+export class RegisAddrParam extends ParameterType {
 	constructor(d: string) {
 		super(d, ParamType.RegisterAddress);
+	}
+}
+type NibbleRegisterRole = "R" | "RM";
+export class NibbleRegisPairParam extends ParameterType {
+	roleA: NibbleRegisterRole;
+	roleB: NibbleRegisterRole;
+	constructor(d: string, roleA: NibbleRegisterRole, roleB: NibbleRegisterRole) {
+		super(d, ParamType.NibbleRegisterPair);
+		this.roleA = roleA;
+		this.roleB = roleB;
 	}
 }
 
@@ -190,9 +201,10 @@ ISA.insertInstruction(0x12, {
 ISA.insertInstruction(0x13, {
 	name: "Copy R -> R",
 	desc: "Copy the byte in register (P1) to register (P2)",
-	params: [new RegisParam("Copy the byte in this register"), new RegisParam("To this register")],
+	params: [new NibbleRegisPairParam("", "R", "R")],
 	execute(c, p) {
-		const [register_no_1, register_no_2] = p;
+		const [nibbles] = p;
+		const [register_no_1, register_no_2] = splitNibbles(nibbles);
 		if (!isU3(register_no_1)) throw new Error("todo");
 		if (!isU3(register_no_2)) throw new Error("todo");
 		c.setRegister(register_no_2, c.getRegister(register_no_1));
@@ -202,11 +214,13 @@ ISA.insertInstruction(0x14, {
 	name: "Load RA -> R",
 	desc: "Copy the byte in memory addressed by register (P1) to register (P2)",
 	params: [
-		new RegisAddrParam("Copy the byte in the memory cell addressed in this register"),
-		new RegisParam("To this register"),
+		// new RegisAddrParam("Copy the byte in the memory cell addressed in this register"),
+		// new RegisParam("To this register"),
+		new NibbleRegisPairParam("", "RM", "R"),
 	],
 	execute(c, p) {
-		const [register_no_1, register_no_2] = p;
+		const [nibbles] = p;
+		const [register_no_1, register_no_2] = splitNibbles(nibbles);
 		if (!isU3(register_no_1)) throw new Error("todo");
 		if (!isU3(register_no_2)) throw new Error("todo");
 		c.setRegister(register_no_2, c.getMemory(c.getRegister(register_no_1)));
@@ -216,11 +230,13 @@ ISA.insertInstruction(0x15, {
 	name: "Save R -> RA",
 	desc: "Copy the byte in register (P1) to the memory cell addressed in register (P2)",
 	params: [
-		new RegisParam("Copy the value in this register"),
-		new RegisAddrParam("To the memory cell addressed in this register"),
+		// new RegisParam("Copy the value in this register"),
+		// new RegisAddrParam("To the memory cell addressed in this register"),
+		new NibbleRegisPairParam("", "R", "RM"),
 	],
 	execute(c, p) {
-		const [register_no_1, register_no_2] = p;
+		const [nibbles] = p;
+		const [register_no_1, register_no_2] = splitNibbles(nibbles);
 		if (!isU3(register_no_1)) throw new Error("todo");
 		if (!isU3(register_no_2)) throw new Error("todo");
 		c.setMemory(c.getRegister(register_no_2), c.getRegister(register_no_1));
@@ -346,34 +362,6 @@ ISA.insertInstruction(0x29, {
 	},
 });
 
-// ISA.insertInstruction(0x2d, {
-// 	name: "Call",
-// 	desc: "",
-// 	params: [new ConstParam("the subroutine at this memory address")],
-// 	execute(c, p, a) {
-// 		const current_address = c.getProgramCounter();
-// 		const success = c.pushCallStack(current_address);
-// 		// TODO Handle success/failure
-
-// 		const new_address = p[0];
-// 		c.setProgramCounter(new_address);
-
-// 		a.noStep();
-// 	},
-// });
-
-// ISA.insertInstruction(0x2e, {
-// 	name: "Return",
-// 	desc: "",
-// 	params: [],
-// 	execute(c, p, a) {
-// 		const new_address = c.popCallStack();
-// 		if (new_address === null) throw new Error("TODO handle this");
-// 		c.setProgramCounter(m256(new_address + 1));
-// 		a.noStep();
-// 	},
-// });
-
 ISA.insertInstruction(0x2c, {
 	name: "NoOp",
 	desc: "No operation; do nothing",
@@ -401,11 +389,11 @@ ISA.insertInstruction(0x30, {
 	desc: "If byte in register (P2) equals byte in register (P3), set byte in register (P1) to true",
 	params: [
 		new RegisParam("Set this register to true"),
-		new RegisParam("if this register and"),
-		new RegisParam("this register are equal (else false)"),
+		new NibbleRegisPairParam("compare these two registers", "R", "R"),
 	],
 	execute(c, p) {
-		const [register_no_1, register_no_2, register_no_3] = p;
+		const [register_no_1, nibbles] = p;
+		const [register_no_2, register_no_3] = splitNibbles(nibbles);
 		if (!isU3(register_no_1)) throw new Error("TODO");
 		if (!isU3(register_no_2)) throw new Error("TODO");
 		if (!isU3(register_no_3)) throw new Error("TODO");
@@ -434,11 +422,11 @@ ISA.insertInstruction(0x32, {
 	desc: "Sets register (P1) to true if value in register (P2) is less than the value in register (P3)",
 	params: [
 		new RegisParam("Set this register to true"),
-		new RegisParam("if this register is less than"),
-		new RegisParam("this register"),
+		new NibbleRegisPairParam("Compare these two registers", "R", "R"),
 	],
 	execute(c, p) {
-		const [register_no_1, register_no_2, register_no_3] = p;
+		const [register_no_1, nibbles] = p;
+		const [register_no_2, register_no_3] = splitNibbles(nibbles);
 		if (!isU3(register_no_1)) throw new Error("TODO");
 		if (!isU3(register_no_2)) throw new Error("TODO");
 		if (!isU3(register_no_3)) throw new Error("TODO");
@@ -467,11 +455,12 @@ ISA.insertInstruction(0x34, {
 	desc: "Sets register (P1) to true if value in register (P2) is greater than the value in register (P3)",
 	params: [
 		new RegisParam("Set this register to true"),
-		new RegisParam("if this register is greater than"),
-		new RegisParam("this register"),
+		new NibbleRegisPairParam("Compare these two registers", "R", "R"),
 	],
 	execute(c, p) {
-		const [register_no_1, register_no_2, register_no_3] = p;
+		const [register_no_1, nibbles] = p;
+		const [register_no_2, register_no_3] = splitNibbles(nibbles);
+
 		if (!isU3(register_no_1)) throw new Error("TODO");
 		if (!isU3(register_no_2)) throw new Error("TODO");
 		if (!isU3(register_no_3)) throw new Error("TODO");
@@ -504,9 +493,10 @@ ISA.insertInstruction(0x35, {
 ISA.insertInstruction(0x40, {
 	name: "Bitwise OR",
 	desc: "Sets each bit in register (P1) to its OR with the respective bit in register (P2)",
-	params: [new RegisParam(""), new RegisParam("")],
+	params: [new NibbleRegisPairParam("", "R", "R")],
 	execute(c, p) {
-		const [register_no_1, register_no_2] = p;
+		const [nibbles] = p;
+		const [register_no_1, register_no_2] = splitNibbles(nibbles);
 		if (!isU3(register_no_1)) throw new Error("TODO");
 		if (!isU3(register_no_2)) throw new Error("TODO");
 		const new_value = c.getRegister(register_no_1) | c.getRegister(register_no_2);
@@ -528,9 +518,11 @@ ISA.insertInstruction(0x41, {
 ISA.insertInstruction(0x42, {
 	name: "Bitwise AND",
 	desc: "Sets each bit in register (P1) to its AND with the respective bit in register (P2)",
-	params: [new RegisParam(""), new RegisParam("")],
+	params: [new NibbleRegisPairParam("", "R", "R")],
 	execute(c, p) {
-		const [register_no_1, register_no_2] = p;
+		const [nibbles] = p;
+
+		const [register_no_1, register_no_2] = splitNibbles(nibbles);
 		if (!isU3(register_no_1)) throw new Error("TODO");
 		if (!isU3(register_no_2)) throw new Error("TODO");
 		const new_value = c.getRegister(register_no_1) & c.getRegister(register_no_2);
@@ -551,9 +543,11 @@ ISA.insertInstruction(0x43, {
 ISA.insertInstruction(0x44, {
 	name: "Bitwise XOR",
 	desc: "Sets each bit in register (P1) to its XOR with the respective bit in register (P2)",
-	params: [new RegisParam(""), new RegisParam("")],
+	params: [new NibbleRegisPairParam("", "R", "R")],
 	execute(c, p) {
-		const [register_no_1, register_no_2] = p;
+		const [nibbles] = p;
+
+		const [register_no_1, register_no_2] = splitNibbles(nibbles);
 		if (!isU3(register_no_1)) throw new Error("TODO");
 		if (!isU3(register_no_2)) throw new Error("TODO");
 		const new_value = c.getRegister(register_no_1) ^ c.getRegister(register_no_2);
@@ -575,9 +569,10 @@ ISA.insertInstruction(0x45, {
 ISA.insertInstruction(0x46, {
 	name: "Left Bit Shift",
 	desc: "Shifts each bit in register (P1) to the left by the amount in register (P2). Fills new bits with 0",
-	params: [new RegisParam(""), new RegisParam("")],
+	params: [new NibbleRegisPairParam("", "R", "R")],
 	execute(c, p) {
-		const [register_no_1, register_no_2] = p;
+		const [nibbles] = p;
+		const [register_no_1, register_no_2] = splitNibbles(nibbles);
 		if (!isU3(register_no_1)) throw new Error("TODO");
 		if (!isU3(register_no_2)) throw new Error("TODO");
 		const new_value = c.getRegister(register_no_1) << c.getRegister(register_no_2);
@@ -598,9 +593,10 @@ ISA.insertInstruction(0x47, {
 ISA.insertInstruction(0x48, {
 	name: "Right Bit Shift",
 	desc: "Shifts each bit in register (P1) to the right by the amount in register (P2). Fills new bits with 0",
-	params: [new RegisParam(""), new RegisParam("")],
+	params: [new NibbleRegisPairParam("", "R", "R")],
 	execute(c, p) {
-		const [register_no_1, register_no_2] = p;
+		const [nibbles] = p;
+		const [register_no_1, register_no_2] = splitNibbles(nibbles);
 		if (!isU3(register_no_1)) throw new Error("TODO");
 		if (!isU3(register_no_2)) throw new Error("TODO");
 		const new_value = c.getRegister(register_no_1) >> c.getRegister(register_no_2);
@@ -639,9 +635,10 @@ ISA.insertInstruction(0x4a, {
 ISA.insertInstruction(0x50, {
 	name: "Add",
 	desc: "Adds to the byte in register (P1) with the value in register (P2)",
-	params: [new RegisParam("set this register to"), new RegisParam("it's sum with the value in this register")],
+	params: [new NibbleRegisPairParam("", "R", "R")],
 	execute(c, p) {
-		const [register_no_1, register_no_2] = p;
+		const [nibbles] = p;
+		const [register_no_1, register_no_2] = splitNibbles(nibbles);
 		if (!isU3(register_no_1)) throw new Error("TODO");
 		if (!isU3(register_no_2)) throw new Error("TODO");
 		const sum = c.getRegister(register_no_1) + c.getRegister(register_no_2);
@@ -668,9 +665,11 @@ ISA.insertInstruction(0x51, {
 ISA.insertInstruction(0x52, {
 	name: "Subtract",
 	desc: "Subtracts from the value in register (P1) by the value in register (P2)",
-	params: [new RegisParam("set this register to"), new RegisParam("it's difference with the value in this register")],
+	params: [new NibbleRegisPairParam("", "R", "R")],
 	execute(c, p) {
-		const [register_no_1, register_no_2] = p;
+		const [nibbles] = p;
+		const [register_no_1, register_no_2] = splitNibbles(nibbles);
+
 		if (!isU3(register_no_1)) throw new Error("TODO");
 		if (!isU3(register_no_2)) throw new Error("TODO");
 		const difference = c.getRegister(register_no_1) - c.getRegister(register_no_2);
@@ -739,13 +738,33 @@ ISA.insertInstruction(0xff, {
 ISA.insertInstruction(0xfe, {
 	name: "Set Pixel",
 	desc: "Sets the color value in register (P2) for pixel at position in register (P1)",
-	params: [new RegisParam("Pixel Id"), new RegisParam("Pixel Value")],
+	params: [new NibbleRegisPairParam("", "RM", "R")],
 	execute(c, p, e) {
-		const [register_no_1, register_no_2] = p;
+		const [nibbles] = p;
+		const [register_no_1, register_no_2] = splitNibbles(nibbles);
+
 		if (!isU3(register_no_1)) throw new Error("TODO");
 		if (!isU3(register_no_2)) throw new Error("TODO");
 		const pixel_no = c.getRegister(register_no_1);
 		const pixel_val = c.getRegister(register_no_2);
 		c.setVram(pixel_no, pixel_val);
+	},
+});
+
+ISA.insertInstruction(0xfd, {
+	name: "Get Pixel",
+	desc: "Stores the color value for pixel addressed in (R1) to register (R2)",
+	params: [new NibbleRegisPairParam("", "RM", "R")],
+	execute(c, p, e) {
+		const [nibbles] = p;
+		const [register_no_1, register_no_2] = splitNibbles(nibbles);
+
+		if (!isU3(register_no_1)) throw new Error("TODO");
+		if (!isU3(register_no_2)) throw new Error("TODO");
+		const pixel_no = c.getRegister(register_no_1);
+		const out_register = c.getRegister(register_no_2);
+		if (!isU3(out_register)) throw new Error("TODO");
+		const value = c.getVram(pixel_no);
+		c.setRegister(out_register, value);
 	},
 });

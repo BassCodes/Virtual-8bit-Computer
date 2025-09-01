@@ -1,6 +1,6 @@
 /**
  * @file Generic Event handler similar to the DOM event handlers
- * @copyright Alexander Bass 2024
+ * @copyright Alexander Bass 2025
  * @license GPL-3.0
  */
 

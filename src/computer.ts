@@ -64,12 +64,6 @@ export default class Computer {
 			return;
 		}
 
-		// if (this.current_instr.pos === this.program_counter && this.current_instr.params.length > 0) {
-		// 	this.stepForward();
-		// 	this.events.dispatch(CpuEvent.Cycle);
-		// 	return;
-		// }
-
 		if (this.current_instr.params.length !== this.current_instr.params_found) {
 			const b = this.current_instr.instr.params[this.current_instr.params_found];
 
@@ -100,6 +94,7 @@ export default class Computer {
 				return;
 			}
 		}
+
 		const execution_post_action_state = {
 			should_step: true,
 			noStep: function (): void {

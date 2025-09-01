@@ -1,6 +1,6 @@
 /**
  * @file Constrained integer types and validation functions
- * @copyright Alexander Bass 2024
+ * @copyright Alexander Bass 2025
  * @license GPL-3.0
  */
 

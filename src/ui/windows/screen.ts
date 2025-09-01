@@ -25,12 +25,10 @@ export default class Screen extends WindowBox implements UiComponent {
 		this.screen.height = CANVAS_SIZE;
 		const ctx = this.screen.getContext("2d");
 
-		if (ctx === null) throw new Error("could not load screen");
+		if (ctx === null) throw new Error("could not load TV");
 
 		this.ctx = ctx;
 		this.container.appendChild(this.screen);
-
-		this.renderTestPattern();
 	}
 
 	private renderTestPattern(): void {
