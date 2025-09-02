@@ -6,7 +6,7 @@ import MemoryView from "./ui/components/memoryView";
 import frequencyIndicator from "./ui/components/frequencyIndicator";
 import RegisterView from "./ui/components/registerView";
 import EditButton from "./ui/components/editButton";
-import PausePlay from "./ui/components/PausePlay";
+import PausePlay from "./ui/components/pausePlay";
 import SaveLoad from "./ui/components/saveLoad";
 import ResetButton from "./ui/components/resetButton";
 import TrashButton from "./ui/components/trashButton";

@@ -4,9 +4,8 @@
  * @license GPL-3.0
  */
 import { el } from "../../etc";
-import { UiEventHandler, UiEvent, CpuEventHandler, UiCpuSignalHandler, UiCpuSignal } from "../../events";
+import { UiEventHandler, UiEvent, UiCpuSignalHandler, UiCpuSignal } from "../../events";
 import UiComponent from "../uiComponent";
-import HoverTextBox from "../hoverTextBox";
 
 const MAX_SLIDER = 1000;
 
@@ -24,26 +23,29 @@ export default class PausePlay implements UiComponent {
 		this.container = element;
 		this.events = events;
 		this.cpu_signals = cpu_signals;
-		this.start_button = el("button").id("pause_play_button").tx("Start").fin();
-		this.step_button = el("button").id("step_button").tx("Step").fin();
+		this.start_button = el("button")
+			.id("pause_play_button")
+			.tx("Start")
+			.ev("click", () => this.toggle())
+			.appendTo(this.container);
+		this.step_button = el("button")
+			.id("step_button")
+			.tx("Step")
+			.ev("click", () => this.step())
+			.appendTo(this.container);
 		this.range = el("input")
 			.id("speed_range")
 			.at("type", "range")
 			.at("min", "0")
 			.at("max", MAX_SLIDER.toString())
 			.at("value", "0")
-			.fin();
-		this.start_button.addEventListener("click", () => this.toggle());
-		this.step_button.addEventListener("click", () => this.step());
-		this.range.addEventListener("input", (e) => {
-			const delay = MAX_SLIDER - parseInt((e.target as HTMLInputElement).value, 10) + 0.0;
-			this.cycle_delay = delay;
-			console.log(this.cycle_delay);
-		});
+			.ev("input", (e) => {
+				const delay = MAX_SLIDER - parseInt((e.target as HTMLInputElement).value, 10) + 0.0;
+				this.cycle_delay = delay;
+				console.log(this.cycle_delay);
+			})
+			.appendTo(this.container);
 
-		this.container.appendChild(this.start_button);
-		this.container.appendChild(this.step_button);
-		this.container.appendChild(this.range);
 		this.cycle_delay = 1000;
 
 		this.events.listen(UiEvent.EditOn, () => this.disable());

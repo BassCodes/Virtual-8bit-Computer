@@ -17,6 +17,7 @@ export default class EditButton implements UiComponent {
 		this.cpu_signals = cpu_signals;
 		this.container.classList.add("editor_toggle");
 		this.container.addEventListener("click", () => this.editToggle());
+		// TODO. don't modify container. Append button to it.
 		el("img").at("src", "pencil.png").st("width", "20px").st("height", "20px").appendTo(this.container);
 	}
 
