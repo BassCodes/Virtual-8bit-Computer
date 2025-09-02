@@ -33,26 +33,26 @@ export default abstract class WindowBox {
 		} else {
 			this.container.appendChild(this.title_bar);
 		}
-		const title_bar_text_box = el("div").id("text").fin();
-		title_bar_text_box.textContent = title;
 
-		this.collapse_button = el("button").id("collapse_button").cl("nostyle").fin();
-		this.collapse_button.addEventListener("click", () => this.toggleCollapse());
-
-		this.title_bar.appendChild(title_bar_text_box);
-		this.title_bar.appendChild(this.collapse_button);
+		el("div").id("text").tx(title).appendTo(this.title_bar);
+		this.collapse_button = el("button")
+			.id("collapse_button")
+			.ev("click", () => this.toggleCollapse())
+			.cl("nostyle")
+			.appendTo(this.title_bar);
 
 		if (options?.collapsed) this.collapse();
 
 		if (options?.fit_content) {
 			this.fit_content = true;
 		} else {
-			this.resize = el("div").id("resize").fin();
-			this.container.appendChild(this.resize);
+			this.resize = el("div")
+				.id("resize")
+				.ev("mousedown", () => {
+					if (this.resize_func) window.addEventListener("mousemove", this.resize_func);
+				})
+				.appendTo(this.container);
 			this.resize_func = this.resizeMove.bind(this);
-			this.resize.addEventListener("mousedown", (e) => {
-				if (this.resize_func) window.addEventListener("mousemove", this.resize_func);
-			});
 			window.addEventListener("mouseup", () => this.removeResizeListeners());
 			window.addEventListener("mouseleave", () => this.removeResizeListeners());
 		}

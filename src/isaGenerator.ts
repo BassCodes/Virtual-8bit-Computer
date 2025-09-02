@@ -40,18 +40,17 @@ function parameterDescription(params: Array<ParameterType>): string {
 }
 
 export function generateIsaTable(iset: InstructionSet): HTMLTableElement {
-	const table = el("table").fin();
+	const table = el("table");
 
-	const headings = el("tr").fin();
-
-	headings.appendChild(el("td").tx("Code").fin());
-	headings.appendChild(el("td").tx("Parameters").fin());
-	headings.appendChild(el("td").tx("Name").fin());
-	headings.appendChild(el("td").tx("Description").fin());
-	table.appendChild(headings);
+	// Headers
+	el("tr")
+		.ch(el("td").tx("Code"))
+		.ch(el("td").tx("Name"))
+		.ch(el("td").tx("Action"))
+		.ch(el("td").tx("Description"))
+		.appendTo(table);
 
 	const instructions: Array<[u8, Instruction]> = [];
-
 	for (const kv of iset.instructions.entries()) instructions.push(kv);
 
 	let current_category: InstrCategory | null = null;
@@ -61,24 +60,22 @@ export function generateIsaTable(iset: InstructionSet): HTMLTableElement {
 			throw new Error("Instruction found which is not part of category");
 		}
 		if (current_category !== cat) {
-			const category_row = el("tr").fin();
-			category_row.appendChild(el("td").tx(cat.name.toUpperCase()).at("colspan", "4").cl("category").fin());
-			table.appendChild(category_row);
+			// prettier-ignore
+			el("tr")
+				.ch(el("td")
+					.tx(cat.name.toUpperCase())
+					.at("colspan", "4").cl("category"))
+				.appendTo(table);
 			current_category = cat;
 		}
-		const row = el("tr").fin();
-		const instr_text = instr.name;
 
-		row.appendChild(
-			el("td")
-				.tx(`0x${formatHex(code)}`)
-				.fin()
-		);
-		row.appendChild(el("td").ht(parameterDescription(instr.params)).fin());
-		row.appendChild(el("td").tx(instr_text).fin());
-		row.appendChild(el("td").tx(instr.desc).fin());
-		table.appendChild(row);
+		el("tr")
+			.ch(el("td").tx(`0x${formatHex(code)}`))
+			.ch(el("td").ht(parameterDescription(instr.params)))
+			.ch(el("td").tx(instr.name))
+			.ch(el("td").tx(instr.desc))
+			.appendTo(table);
 	}
 
-	return table;
+	return table.fin();
 }

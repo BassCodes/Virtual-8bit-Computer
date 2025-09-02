@@ -22,9 +22,19 @@ class ElementInProgress<E extends HTMLElement> {
 		return this;
 	}
 
+	/** Add event listener */
+	ev(type: string, listener: EventListener, options?: boolean | AddEventListenerOptions): ElementInProgress<E> {
+		this.element.addEventListener(type, listener, options);
+		return this;
+	}
+
 	/** Append child */
-	ch(child: HTMLElement): ElementInProgress<E> {
-		this.element.appendChild(child);
+	ch<F extends HTMLElement>(child: HTMLElement | ElementInProgress<F>): ElementInProgress<E> {
+		if (child instanceof ElementInProgress) {
+			this.element.appendChild(child.fin());
+		} else {
+			this.element.appendChild(child);
+		}
 		return this;
 	}
 
@@ -54,6 +64,20 @@ class ElementInProgress<E extends HTMLElement> {
 
 	/** Return created element */
 	fin(): E {
+		return this.element;
+	}
+	/** custom logic */
+	map(f: (e: E) => void): ElementInProgress<E> {
+		f(this.element);
+		return this;
+	}
+
+	appendTo<F extends HTMLElement>(parent: HTMLElement | ElementInProgress<F>): E {
+		if (parent instanceof ElementInProgress) {
+			parent.ch(this);
+		} else {
+			parent.appendChild(this.fin());
+		}
 		return this.element;
 	}
 }

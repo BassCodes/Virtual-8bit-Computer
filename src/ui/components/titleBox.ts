@@ -16,7 +16,7 @@ export default class TitleBox implements UiComponent {
 	constructor(element: HTMLElement, event: UiEventHandler) {
 		this.container = element;
 		this.events = event;
-		this.input = el("input").at("type", "text").at("value", DEFAULT_FILENAME).fin();
+		this.input = el("input").at("type", "text").at("value", DEFAULT_FILENAME).appendTo(this.container);
 
 		this.events.listen(UiEvent.FileNameChange, (n) => {
 			this.setName(n);
@@ -24,8 +24,6 @@ export default class TitleBox implements UiComponent {
 		this.events.listen(UiEvent.RequestFilename, (callback) => {
 			callback(this.getName());
 		});
-
-		this.container.appendChild(this.input);
 	}
 
 	setName(name: string): void {

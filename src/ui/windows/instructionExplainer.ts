@@ -40,17 +40,11 @@ export default class InstructionExplainer extends WindowBox implements UiCompone
 	}
 
 	private addBox(box_icon_text: string, name: string, css_class: string): void {
-		const instr_box = el("div").id("expl_box").fin();
-		const instr_icon = el("span")
-			.id("expl_icon")
-			.cl(css_class)
-			.at("title", css_class.toUpperCase())
-			.tx(box_icon_text)
-			.fin();
-		const instr_box_text = el("span").id("expl_text").tx(name).fin();
-		instr_box.appendChild(instr_icon);
-		instr_box.appendChild(instr_box_text);
-		this.container.appendChild(instr_box);
+		el("div")
+			.id("expl_box")
+			.ch(el("span").id("expl_icon").cl(css_class).at("title", css_class.toUpperCase()).tx(box_icon_text))
+			.ch(el("span").id("expl_text").tx(name))
+			.appendTo(this.container);
 	}
 
 	addParameter(param: ParameterType, pos: u8, byte: u8): void {

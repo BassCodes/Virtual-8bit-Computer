@@ -15,9 +15,10 @@ export default class ResetButton implements UiComponent {
 		this.container = element;
 		this.events = events;
 		this.cpu_signals = cpu_signals;
-		const reset_button = el("button").ti("Reset State").tx("⟳").fin();
-
-		reset_button.addEventListener("click", () => this.cpu_signals.dispatch(UiCpuSignal.RequestCpuSoftReset));
-		this.container.appendChild(reset_button);
+		el("button")
+			.ti("Reset State")
+			.tx("⟳")
+			.ev("click", () => this.cpu_signals.dispatch(UiCpuSignal.RequestCpuSoftReset))
+			.appendTo(this.container);
 	}
 }
