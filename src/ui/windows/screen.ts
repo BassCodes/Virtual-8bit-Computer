@@ -58,15 +58,19 @@ export default class Screen extends WindowBox implements UiComponent {
 		const y = Math.floor(address / 16) as u4;
 		const point: [number, number] = [x * this.scale, y * this.scale];
 
+		value = (value & 1) === 1 ? 255 : 0;
 		// TODO, come up with better color scheme.
 		// Probable a lookup table
 		const RED_SCALE = 255 / 2 ** 3;
 		const GREEN_SCALE = 255 / 2 ** 3;
 		const BLUE_SCALE = 255 / 2 ** 2;
-		const red = ((value >> 5) & 0b111) * RED_SCALE;
-		const green = ((value >> 2) & 0b111) * GREEN_SCALE;
-		const blue = (value & 0b11) * BLUE_SCALE;
+		// const red = ((value >> 5) & 0b111) * RED_SCALE;
+		// const green = ((value >> 2) & 0b111) * GREEN_SCALE;
+		// const blue = (value & 0b11) * BLUE_SCALE;
 
+		const red = value;
+		const green = value;
+		const blue = value;
 		const color = `rgb(${red},${green},${blue})`;
 		this.ctx.fillStyle = color;
 		this.ctx.fillRect(...point, this.scale, this.scale);

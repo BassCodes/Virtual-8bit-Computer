@@ -18,19 +18,15 @@ Improve instruction explainer. Clearly show what is an instruction and what is a
 
 Ui showing CPU flag(s) (Carry)
 
-Share programs from encoded url
-
 Responsive layout
 
 Documentation with standard names
 
+Share programs from encoded url
+
 Example Programs (loaded as one of those encoded string url things)
 
 Switch to unified icons (no emojis)
-
-Default open TV
-
-TV As large as Memory
 
 Remove "windows" concept
 
@@ -40,3 +36,22 @@ Memory color legend
 
 Nibble Memory colors.
 Nibble intruction explainer colors.
+
+Export and load as ascii
+
+Make comparison operators have NR(...) as first param
+
+Purpose built registers. E.g.:
+
+- R7 is for vram manip
+- R0 is for results of comparison
+
+When paused, yellowish colors fade to dark yellow
+
+Button state colored properly based on active and available
+
+Dedicated fonts
+
+Actual Turbo button
+
+Multiply and Divide

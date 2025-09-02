@@ -44,7 +44,7 @@ main {
 	grid-template-areas:
 		".        reglabel  .       ."
 		".        registers .       bank "
-		"memlabel memory	memory	memory"
+		"title    memory	memory	memory"
 		"title    memory	memory  memory"
 		".        buttons   buttons buttons";
 

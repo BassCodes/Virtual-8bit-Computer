@@ -1,5 +1,5 @@
 import { el, formatHex } from "../../etc";
-import { CpuEvent, CpuEventHandler, UiCpuSignalHandler, UiEventHandler } from "../../events";
+import { CpuEvent, CpuEventHandler, UiCpuSignalHandler, UiEvent, UiEventHandler } from "../../events";
 import { Instruction, ParamType, ParameterType } from "../../instructionSet";
 import { u8 } from "../../num";
 import WindowBox from "../windowBox";
@@ -16,10 +16,18 @@ const p_map = {
 export default class InstructionExplainer extends WindowBox implements UiComponent {
 	events: UiEventHandler;
 	cpu_signals: UiCpuSignalHandler;
+	activated: boolean = true;
 	constructor(element: HTMLElement, events: UiEventHandler, cpu_signals: UiCpuSignalHandler) {
 		super(element, "Instruction Explainer");
 		this.cpu_signals = cpu_signals;
 		this.events = events;
+
+		this.events.listen(UiEvent.TurboOff, () => {
+			this.enable();
+		});
+		this.events.listen(UiEvent.TurboOn, () => {
+			this.disable();
+		});
 	}
 	addInstruction(instr: Instruction, pos: u8, byte: u8): void {
 		this.reset();
@@ -59,20 +67,29 @@ export default class InstructionExplainer extends WindowBox implements UiCompone
 
 	initCpuEvents(c: CpuEventHandler): void {
 		c.listen(CpuEvent.InstructionParseBegin, ({ instr, code, pos }) => {
-			this.addInstruction(instr, pos, code);
+			if (this.activated) this.addInstruction(instr, pos, code);
 		});
 		c.listen(CpuEvent.ParameterParsed, ({ param, code, pos }) => {
-			this.addParameter(param, pos, code);
+			if (this.activated) this.addParameter(param, pos, code);
 		});
 		c.listen(CpuEvent.InvalidParameterParsed, ({ param, code, pos }) => {
-			this.addInvalidParam(param, code, pos);
+			if (this.activated) this.addInvalidParam(param, code, pos);
 		});
 		c.listen(CpuEvent.InvalidInstructionParsed, ({ code, pos }) => {
-			this.addInvalidInstr(pos, code);
+			if (this.activated) this.addInvalidInstr(pos, code);
 		});
 	}
 
+	disable(): void {
+		this.reset();
+		this.activated = false;
+	}
+	enable(): void {
+		this.activated = true;
+	}
+
 	reset(): void {
+		this.enable();
 		this.container.querySelectorAll("#expl_box").forEach((e) => e.remove());
 	}
 

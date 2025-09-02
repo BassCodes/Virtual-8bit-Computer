@@ -1,0 +1,157 @@
+# MOV
+# GOTO
+# GOTOIF
+# GOTOSAVE
+# NOP
+# EQ
+# LT
+# GT
+# OR
+# AND
+# XOR
+# SHL
+# SHR
+# NOT
+# ADD
+# SUB
+# INC
+# DEC
+# RNG
+# SET_VRAM
+# GET_VRAM
+
+L glider
+MOV 56 R6
+SET_VRAM RM6 1
+MOV 73 R6
+SET_VRAM RM6 1
+MOV 87 R6
+SET_VRAM RM6 1
+MOV 88 R6
+SET_VRAM RM6 1
+MOV 89 R6
+SET_VRAM RM6 1
+goto :main
+
+L randgen
+# Generate random boolean
+RNG R0
+AND R0 1
+# Set pixel in RM6 to R0
+SET_VRAM RM6 R0
+# If the pixel idx less than 255...
+LT R7 R6 0xFF
+# increment pixel idx
+INC R6
+# ... Then, loop
+gotoif R7 :randgen
+goto :main
+
+L count_neighbors
+# in => R6
+# out => R7
+# modifies => R2 R7 R0
+# Save pixel pos
+MOV R6 R2
+# Clear neighbor count
+MOV 0 R7
+# Top left
+SUB R6 17
+GET_VRAM RM6 R0
+AND R0 1
+ADD R7 R0
+# TOP
+INC R6
+GET_VRAM RM6 R0
+AND R0 1
+ADD R7 R0
+# TOP RIGHT
+INC R6
+GET_VRAM RM6 R0
+AND R0 1
+ADD R7 R0
+# LEFT
+ADD R6 14
+GET_VRAM RM6 R0
+AND R0 1
+ADD R7 R0
+# RIGHT
+ADD R6 2
+GET_VRAM RM6 R0
+AND R0 1
+ADD R7 R0
+# BOTTOM LEFT
+ADD R6 14
+GET_VRAM RM6 R0
+AND R0 1
+ADD R7 R0
+# BOTTOM
+INC R6
+GET_VRAM RM6 R0
+AND R0 1
+ADD R7 R0
+# BOTTOM RIGHT
+INC R6
+GET_VRAM RM6 R0
+AND R0 1
+ADD R7 R0
+# Restore pixel pos
+MOV R2 R6
+GOTO :count_neighbors_return
+
+
+
+
+
+L main
+# Variables:
+#   R1 => neighbor count
+#   R6 => pixel idx
+#   R7 => current alive state
+#   R4 => new alive state
+MOV 0 R6
+L cell_update_loop
+# Store neighbor count in R1
+GOTO :count_neighbors
+L count_neighbors_return
+MOV R7 R1
+# Store current alive state in R7
+MOV 0 R7
+GET_VRAM RM6 R0
+AND R0 1
+ADD R7 R0
+# R4 holds new alive state
+MOV 0 R4
+GOTOIF R7 :alive_conditions
+L dead_conditions
+EQ R4 R1 3
+# end dead conditions
+GOTO :pixel_update
+L alive_conditions
+# Note: 0x0C == 0b1100 and is bitset
+MOV 0x0C R4
+SHR R4 R1
+AND R4 1 
+# end alive conditions
+L pixel_update
+GET_VRAM RM6 R0
+SHL R4 1
+OR R0 R4
+SET_VRAM RM6 R0
+# loop condition
+LT R7 R6 0xFF
+INC R6
+GOTOIF R7 :cell_update_loop
+# end update loop
+# update alive
+MOV 0 R6
+L update_alive_loop
+GET_VRAM RM6 R7
+SHR R7 1
+SET_VRAM RM6 R7
+# If the pixel idx less than 255...
+LT R7 R6 0xFF
+# increment pixel idx
+INC R6
+gotoif R7 :update_alive_loop
+GOTO :main

@@ -28,13 +28,15 @@ export type u2 = 0 | 1 | 2 | 3;
 export type u3 = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 export type u4 = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
 
+export const modulus = (n: number, d: number): number => ((n % d) + d) % d;
+
 /**
  * Takes the input number and returns it modulus 256. Converts to `u8`
  *
  * @param number
  * @returns number mod 256 (u8)
  */
-export const m256 = (number: number): u8 => (number % 256) as u8;
+export const m256 = (number: number): u8 => modulus(number, 256) as u8;
 
 /**
  * Determines whether a number is a u2 type (unsigned 2-bit integer).

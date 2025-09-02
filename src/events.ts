@@ -107,11 +107,13 @@ export const UiCpuSignalHandler = EventHandler<UiCpuSignal> as UICpuSignalHandle
 export enum UiEvent {
 	EditOn,
 	EditOff,
+	TurboOn,
+	TurboOff,
 }
 
 interface UiEventMap {}
 
-type VoidDataUiEventList = UiEvent.EditOn | UiEvent.EditOff;
+type VoidDataUiEventList = UiEvent.EditOn | UiEvent.EditOff | UiEvent.TurboOff | UiEvent.TurboOn;
 
 export interface UiEventHandler extends EventHandler<UiEvent> {
 	listen<E extends keyof UiEventMap>(type: E, listener: (ev: UiEventMap[E]) => void): void;

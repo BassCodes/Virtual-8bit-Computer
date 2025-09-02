@@ -13,13 +13,13 @@ export class Event<T> {
 }
 
 export class EventHandler<T> {
-	events: Array<Event<T>> = [];
+	eventTypes: Map<T, Event<T>> = new Map();
 
 	dispatch(identifier: T, event_data?: unknown): void {
-		const event = this.events.find((e) => e.identifier === identifier);
+		const event = this.eventTypes.get(identifier);
 		if (event === undefined) {
 			// throw new Error("Event not found");
-			console.log(`Event for ${identifier} was dispatched without any listeners. Data:`, event_data);
+			// console.log(`Event for ${identifier} was dispatched without any listeners. Data:`, event_data);
 			return;
 		}
 		for (const callback of event.callbacks) {
@@ -32,19 +32,19 @@ export class EventHandler<T> {
 	 * @param callback called for event called on this event handler
 	 */
 	firehose(callback: (identifier: T, data: unknown) => void): void {
-		this.events.forEach((e) => {
+		this.eventTypes.forEach((e) => {
 			const identifier = e.identifier;
 			e.callbacks.push(callback.bind(undefined, identifier));
 		});
 	}
 	listen(identifier: T, callback: (event_data: unknown) => void): void {
-		let event = this.events.find((e) => e.identifier === identifier);
+		let event = this.eventTypes.get(identifier);
 		if (event === undefined) {
 			// If no event found, create it.
 			// Type system is used to verify that events are valid.
 			// If this were plain JS, a registerEvent method would likely be better to avoid listening to events that will never exist.
 			event = new Event(identifier);
-			this.events.push(event);
+			this.eventTypes.set(identifier, event);
 		}
 		event.callbacks.push(callback);
 	}

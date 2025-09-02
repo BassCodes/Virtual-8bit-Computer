@@ -31,8 +31,9 @@ export default class pausePlay implements UiComponent {
 		this.start_button.addEventListener("click", () => this.toggle());
 		this.step_button.addEventListener("click", () => this.step());
 		this.range.addEventListener("input", (e) => {
-			const delay = MAX_SLIDER - parseInt((e.target as HTMLInputElement).value, 10) + 10;
+			const delay = MAX_SLIDER - parseInt((e.target as HTMLInputElement).value, 10) + 0.0;
 			this.cycle_delay = delay;
+			console.log(this.cycle_delay);
 		});
 
 		this.container.appendChild(this.start_button);
@@ -80,7 +81,9 @@ export default class pausePlay implements UiComponent {
 		const loop = (): void => {
 			if (this.on === false) return;
 
-			this.cpu_signals.dispatch(UiCpuSignal.RequestCpuCycle, 1);
+			for (let i = 0; i < 32; i++) {
+				this.cpu_signals.dispatch(UiCpuSignal.RequestCpuCycle, 1);
+			}
 			setTimeout(loop, this.cycle_delay);
 		};
 		loop();

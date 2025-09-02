@@ -134,13 +134,3 @@
 		outline: 3px dashed var(--color);
 	}
 }
-
-#printout {
-	height: 500px;
-	word-wrap: break-word;
-	word-break: break-all;
-	overflow-x: hidden;
-	#printout_text {
-		padding-inline: 10px;
-	}
-}

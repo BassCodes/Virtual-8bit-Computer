@@ -17,13 +17,9 @@ export type TempInstrState = {
 	params: Array<ParsedParameter>;
 };
 
-function initMemory(): Uint8Array {
-	return new Uint8Array(256);
-}
-
 export default class Computer {
-	private memory: Uint8Array = initMemory();
-	private vram: Uint8Array = initMemory();
+	private memory: Uint8Array = new Uint8Array(256);
+	private vram: Uint8Array = new Uint8Array(256);
 	private registers: Uint8Array = new Uint8Array(8);
 	private carry_flag: boolean = false;
 	private program_counter: u8 = 0;
@@ -187,7 +183,7 @@ export default class Computer {
 	softReset(): void {
 		this.events.dispatch(CpuEvent.SoftReset);
 		for (let i = 0; i < 8; i++) this.setRegister(i as u3, 0);
-		// while (this.popCallStack() !== null) 0;
+		this.vram = new Uint8Array(256);
 		this.setCarry(false);
 		this.current_instr = null;
 		this.setProgramCounter(0);
@@ -195,10 +191,10 @@ export default class Computer {
 	reset(): void {
 		this.events.dispatch(CpuEvent.Reset);
 		// Hard reset
-		this.memory = initMemory();
+		this.memory = new Uint8Array(256);
+		this.vram = new Uint8Array(256);
 		// Soft reset
 		for (let i = 0; i < 8; i++) this.setRegister(i as u3, 0);
-		// while (this.popCallStack() !== null) 0;
 		this.setCarry(false);
 		this.current_instr = null;
 		this.setProgramCounter(0);

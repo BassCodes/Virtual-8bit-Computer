@@ -177,12 +177,23 @@ ISA.insertInstruction(0x10, {
 	},
 });
 
+ISA.insertInstruction(0x16, {
+	name: "Copy CA -> CR",
+	desc: "Copy the byte in memory address (P2) to the register (P1)",
+	params: [new ConstMemorParam("Store to this register"), new ConstMemorParam("The byte at this memory address")],
+	execute(c, p) {
+		const [register_no, mem_address] = p;
+		if (!isU3(register_no)) throw new Error("TODO");
+		c.setRegister(register_no, c.getMemory(mem_address));
+	},
+});
+
 ISA.insertInstruction(0x11, {
 	name: "Copy CA -> R",
 	desc: "Copy the byte in memory address (P1) to the register (P2)",
 	params: [new ConstMemorParam(""), new RegisParam("")],
 	execute(c, p) {
-		const [register_no, mem_address] = p;
+		const [mem_address, register_no] = p;
 		if (!isU3(register_no)) throw new Error("TODO");
 		c.setRegister(register_no, c.getMemory(mem_address));
 	},
@@ -304,6 +315,18 @@ ISA.insertInstruction(0x21, {
 	},
 });
 
+ISA.insertInstruction(0x26, {
+	name: "Goto Relative",
+	desc: "Increments the instruction counter by (P1)",
+	params: [new ConstParam("counter location offset")],
+	execute: (c, p, a) => {
+		const new_address = m256(c.getProgramCounter() + p[0]);
+
+		c.setProgramCounter(new_address);
+		a.noStep();
+	},
+});
+
 ISA.insertInstruction(0x22, {
 	name: "Goto if True",
 	desc: "Moves the instruction counter to the value in register (P2) if the value in register (P1) is true",
@@ -330,6 +353,22 @@ ISA.insertInstruction(0x23, {
 		if (!isU3(register_no)) throw new Error("todo");
 		const bool = c.getRegister(register_no);
 		if (!bool) return;
+		c.setProgramCounter(constant_value);
+		a.noStep();
+	},
+});
+
+ISA.insertInstruction(0x25, {
+	name: "Goto and save position",
+	desc: "Moves the instruction counter to the value in (P2) and stores the address of the following instruction to R!",
+	params: [new RegisAddrParam(""), new ConstParam("")],
+	execute: (c, p, a) => {
+		const [register_no, constant_value] = p;
+		if (!isU3(register_no)) throw new Error("todo");
+		const bool = c.getRegister(register_no);
+		const next_instruction = m256(c.getProgramCounter() + 1);
+		c.setRegister(register_no, next_instruction);
+
 		c.setProgramCounter(constant_value);
 		a.noStep();
 	},
@@ -575,7 +614,7 @@ ISA.insertInstruction(0x46, {
 		const [register_no_1, register_no_2] = splitNibbles(nibbles);
 		if (!isU3(register_no_1)) throw new Error("TODO");
 		if (!isU3(register_no_2)) throw new Error("TODO");
-		const new_value = c.getRegister(register_no_1) << c.getRegister(register_no_2);
+		const new_value = (c.getRegister(register_no_1) << c.getRegister(register_no_2)) & 0xff;
 		c.setRegister(register_no_1, new_value as u8);
 	},
 });
@@ -586,7 +625,7 @@ ISA.insertInstruction(0x47, {
 	execute(c, p) {
 		const [register_no_1, constant_value] = p;
 		if (!isU3(register_no_1)) throw new Error("TODO");
-		const new_value = c.getRegister(register_no_1) << constant_value;
+		const new_value = (c.getRegister(register_no_1) << constant_value) & 0xff;
 		c.setRegister(register_no_1, new_value as u8);
 	},
 });
@@ -622,7 +661,7 @@ ISA.insertInstruction(0x4a, {
 	execute(c, p) {
 		const register_no = p[0];
 		if (!isU3(register_no)) throw new Error("TODO");
-		const new_value = ~c.getRegister(register_no);
+		const new_value = ~c.getRegister(register_no) & 0xff;
 		c.setRegister(register_no, new_value as u8);
 	},
 });
@@ -687,7 +726,7 @@ ISA.insertInstruction(0x53, {
 	execute(c, p) {
 		const [register_no_1, constant_value] = p;
 		if (!isU3(register_no_1)) throw new Error("TODO");
-		const difference = c.getRegister(register_no_1) + constant_value;
+		const difference = c.getRegister(register_no_1) - constant_value;
 		if (difference < 0) c.setCarry(true);
 		c.setRegister(register_no_1, m256(difference));
 	},
@@ -718,6 +757,23 @@ ISA.insertInstruction(0x5f, {
 		const decremented = current_value - 1;
 		if (decremented < 0) c.setCarry(true);
 		c.setRegister(register_no, m256(decremented) as u8);
+	},
+});
+
+// IO
+
+ISA.insertInstruction(0xf0, {
+	name: "Random Number",
+	desc: "Sets register (R1) to a random value",
+	params: [new RegisParam("register")],
+	execute(c, p, e) {
+		const [register_no] = p;
+		if (!isU3(register_no)) throw new Error("TODO");
+		// Math.random returns a value  n: 0 =< n < 1, thus
+		// floor(n * 256): 0 =< floor(n * 256) < 256
+		// Mod256 it just for safety
+		const value = m256(Math.floor(Math.random() * 256));
+		c.setRegister(register_no, value);
 	},
 });
 
@@ -757,12 +813,10 @@ ISA.insertInstruction(0xfd, {
 	params: [new NibbleRegisPairParam("", "RM", "R")],
 	execute(c, p, e) {
 		const [nibbles] = p;
-		const [register_no_1, register_no_2] = splitNibbles(nibbles);
+		const [register_no_1, out_register] = splitNibbles(nibbles);
 
 		if (!isU3(register_no_1)) throw new Error("TODO");
-		if (!isU3(register_no_2)) throw new Error("TODO");
 		const pixel_no = c.getRegister(register_no_1);
-		const out_register = c.getRegister(register_no_2);
 		if (!isU3(out_register)) throw new Error("TODO");
 		const value = c.getVram(pixel_no);
 		c.setRegister(out_register, value);

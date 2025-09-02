@@ -6,13 +6,14 @@ import MemoryView from "./ui/components/memoryView";
 import frequencyIndicator from "./ui/components/frequencyIndicator";
 import RegisterView from "./ui/components/registerView";
 import EditButton from "./ui/components/editButton";
-import pausePlay from "./ui/components/pausePlay";
+import PausePlay from "./ui/components/pausePlay";
 import SaveLoad from "./ui/components/saveLoad";
 import ResetButton from "./ui/components/resetButton";
 import TrashButton from "./ui/components/trashButton";
 // Window Components
 import InstructionExplainer from "./ui/windows/instructionExplainer";
 import Screen from "./ui/windows/screen";
+import TurboButton from "./ui/components/turboButton";
 
 export default class UI {
 	ui_events: UiEventHandler = new UiEventHandler();
@@ -26,15 +27,15 @@ export default class UI {
 		this.register_component(RegisterView, $("registers"));
 		this.register_component(Screen, $("tv"));
 		this.register_component(EditButton, $("edit_button"));
-		this.register_component(pausePlay, $("controls_buttons"));
+		this.register_component(PausePlay, $("controls_buttons"));
+		this.register_component(TurboButton, $("turbo_button"));
 		this.register_component(SaveLoad, $("save_load_buttons"));
 		this.register_component(ResetButton, $("reset_button"));
 		this.register_component(TrashButton, $("trash_button"));
 	}
 
 	private register_component(ctor: UiComponentConstructor, e: HTMLElement): void {
-		if (e === undefined) {
-			// shouldn't be able to happen, but I sometimes let the type system slide when getting elements from the DOM.
+		if (!e) {
 			console.log(ctor);
 			throw new Error("Could not find HTML element while registering UI component");
 		}
