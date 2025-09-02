@@ -1,3 +1,8 @@
+/**
+ * @file Virtual 8-Bit Computer
+ * @copyright Alexander Bass 2025
+ * @license GPL-3.0
+ */
 // This file was cobbled together and is the messiest part of this project
 
 import { at } from "../etc";

@@ -1,3 +1,8 @@
+/**
+ * @file Virtual 8-Bit Computer
+ * @copyright Alexander Bass 2025
+ * @license GPL-3.0
+ */
 import { el, formatHex } from "../../etc";
 import { CpuEvent, CpuEventHandler, UiCpuSignalHandler, UiEvent, UiEventHandler } from "../../events";
 import { Instruction, ParamType, ParameterType } from "../../instructionSet";

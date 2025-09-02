@@ -1,3 +1,8 @@
+/**
+ * @file Virtual 8-Bit Computer
+ * @copyright Alexander Bass 2025
+ * @license GPL-3.0
+ */
 import { CpuEvent, CpuEventHandler, UiCpuSignal, UiCpuSignalHandler, UiEvent, UiEventHandler } from "../../events";
 import { ParamType } from "../../instructionSet";
 import { u2, u8 } from "../../num";

@@ -29,10 +29,7 @@
             "warn",
             "double"
         ],
-        "semi": [
-            "warn",
-            "always"
-        ],
+     
         "space-before-blocks":["warn","always"],
         "quote-props" : ["warn","as-needed"],
         "dot-notation":"warn",
@@ -50,7 +47,6 @@
         "no-duplicate-imports":"warn",
         "no-useless-constructor":"warn",
         "no-loop-func":"warn",
-        "no-param-reassign":"warn",
         "prefer-arrow-callback":"warn",
         "no-array-constructor": "warn",
         "no-empty": "off",

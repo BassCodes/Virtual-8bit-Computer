@@ -1,3 +1,8 @@
+/**
+ * @file Virtual 8-Bit Computer
+ * @copyright Alexander Bass 2025
+ * @license GPL-3.0
+ */
 import { CpuEvent, CpuEventHandler, UiCpuSignal, UiCpuSignalHandler, UiEvent, UiEventHandler } from "./events";
 import { byteArrayToJsSource, formatHex } from "./etc";
 import { Instruction, ISA } from "./instructionSet";
@@ -171,8 +176,10 @@ export default class Computer {
 			for (let i = 0; i < cycle_count; i++) this.cycle();
 		});
 		ui.listen(UiCpuSignal.RequestMemoryChange, ({ address, value }) => this.setMemory(address, value));
+		ui.listen(UiCpuSignal.RequestVramChange, ({ address, value }) => this.setVram(address, value));
 		ui.listen(UiCpuSignal.RequestRegisterChange, ({ register_no, value }) => this.setRegister(register_no, value));
 		ui.listen(UiCpuSignal.RequestMemoryDump, (callback) => callback(this.dumpMemory()));
+		ui.listen(UiCpuSignal.RequestVramDump, (callback) => callback(this.dumpVram()));
 		ui.listen(UiCpuSignal.RequestProgramCounterChange, ({ address }) => {
 			this.setProgramCounter(address);
 		});
@@ -215,6 +222,9 @@ export default class Computer {
 
 	dumpMemory(): Uint8Array {
 		return this.memory;
+	}
+	dumpVram(): Uint8Array {
+		return this.vram;
 	}
 
 	private stepForward(): void {

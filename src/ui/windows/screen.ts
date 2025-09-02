@@ -1,6 +1,6 @@
 import { el } from "../../etc";
 import { UiEventHandler, CpuEventHandler, CpuEvent, UiCpuSignalHandler, UiCpuSignal } from "../../events";
-import { u2, u4, u8 } from "../../num";
+import { u4, u8 } from "../../num";
 import UiComponent from "../uiComponent";
 import WindowBox from "../windowBox";
 
@@ -60,7 +60,7 @@ export default class Screen extends WindowBox implements UiComponent {
 
 		value = (value & 1) === 1 ? 255 : 0;
 		// TODO, come up with better color scheme.
-		// Probable a lookup table
+		// Probably a lookup table
 		const RED_SCALE = 255 / 2 ** 3;
 		const GREEN_SCALE = 255 / 2 ** 3;
 		const BLUE_SCALE = 255 / 2 ** 2;

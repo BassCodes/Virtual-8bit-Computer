@@ -70,10 +70,12 @@ export const CpuEventHandler = EventHandler<CpuEvent> as CpuEventHandlerConstruc
 export enum UiCpuSignal {
 	RequestCpuCycle,
 	RequestMemoryChange,
+	RequestVramChange,
 	RequestRegisterChange,
 	RequestCpuReset,
 	RequestCpuSoftReset,
 	RequestMemoryDump,
+	RequestVramDump,
 	RequestProgramCounterChange,
 }
 
@@ -82,9 +84,11 @@ type VoidDataUiCpuSignalList = UiCpuSignal.RequestCpuReset | UiCpuSignal.Request
 interface UiCpuSignalMap {
 	[UiCpuSignal.RequestCpuCycle]: number;
 	[UiCpuSignal.RequestMemoryChange]: { address: u8; value: u8 };
+	[UiCpuSignal.RequestVramChange]: { address: u8; value: u8 };
 	[UiCpuSignal.RequestRegisterChange]: { register_no: u3; value: u8 };
 	[UiCpuSignal.RequestProgramCounterChange]: { address: u8 };
 	[UiCpuSignal.RequestMemoryDump]: (memory: Uint8Array) => void;
+	[UiCpuSignal.RequestVramDump]: (vram: Uint8Array) => void;
 }
 
 export interface UiCpuSignalHandler extends EventHandler<UiCpuSignal> {
@@ -109,9 +113,14 @@ export enum UiEvent {
 	EditOff,
 	TurboOn,
 	TurboOff,
+	FileNameChange,
+	RequestFilename,
 }
 
-interface UiEventMap {}
+interface UiEventMap {
+	[UiEvent.FileNameChange]: string;
+	[UiEvent.RequestFilename]: (s: string) => void;
+}
 
 type VoidDataUiEventList = UiEvent.EditOn | UiEvent.EditOff | UiEvent.TurboOff | UiEvent.TurboOn;
 

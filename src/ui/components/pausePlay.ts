@@ -1,3 +1,8 @@
+/**
+ * @file Virtual 8-Bit Computer
+ * @copyright Alexander Bass 2025
+ * @license GPL-3.0
+ */
 import { el } from "../../etc";
 import { UiEventHandler, UiEvent, CpuEventHandler, UiCpuSignalHandler, UiCpuSignal } from "../../events";
 import UiComponent from "../uiComponent";
@@ -81,9 +86,7 @@ export default class pausePlay implements UiComponent {
 		const loop = (): void => {
 			if (this.on === false) return;
 
-			for (let i = 0; i < 32; i++) {
-				this.cpu_signals.dispatch(UiCpuSignal.RequestCpuCycle, 1);
-			}
+			this.cpu_signals.dispatch(UiCpuSignal.RequestCpuCycle, 64);
 			setTimeout(loop, this.cycle_delay);
 		};
 		loop();

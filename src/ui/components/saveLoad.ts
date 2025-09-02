@@ -1,6 +1,12 @@
-import { el } from "../../etc";
-import { UiEventHandler, UiCpuSignalHandler, UiCpuSignal } from "../../events";
-import { u8, m256, isU2 } from "../../num";
+/**
+ * @file Virtual 8-Bit Computer
+ * @copyright Alexander Bass 2025
+ * @license GPL-3.0
+ */
+import { el, formatHex } from "../../etc";
+import { UiEventHandler, UiCpuSignalHandler, UiCpuSignal, UiEvent } from "../../events";
+import { u8, m256, isU2, isU8 } from "../../num";
+import { deserialize, serialize } from "../../serde";
 import UiComponent from "../uiComponent";
 
 export default class SaveLoad implements UiComponent {
@@ -34,19 +40,36 @@ export default class SaveLoad implements UiComponent {
 	}
 
 	private download(): void {
-		this.cpu_signals.dispatch(UiCpuSignal.RequestMemoryDump, (memory) => {
-			const flattened = new Uint8Array(memory.length);
-			for (let y = 0; y < 256; y++) {
-				flattened[y] = memory[y];
-			}
-			const blob = new Blob([flattened], { type: "application/octet-stream" });
-			const url = URL.createObjectURL(blob);
+		let memory: Uint8Array | undefined;
+		let vram: Uint8Array | undefined;
+		let filename: string | undefined;
 
-			const link = document.createElement("a");
-			link.href = url;
-			link.download = "bin.bin";
-			link.click();
-			link.remove();
+		const check_finished = (): void => {
+			if (memory && vram && filename) {
+				const state = { memory, vram, filename };
+				const [filename_ext, out_str] = serialize(state);
+
+				const blob = new Blob([out_str], { type: "application/octet-stream" });
+				const url = URL.createObjectURL(blob);
+				const link = document.createElement("a");
+				link.href = url;
+				link.download = filename_ext;
+				link.click();
+				link.remove();
+			}
+		};
+
+		this.cpu_signals.dispatch(UiCpuSignal.RequestMemoryDump, (m) => {
+			memory = m;
+			check_finished();
+		});
+		this.cpu_signals.dispatch(UiCpuSignal.RequestVramDump, (v) => {
+			vram = v;
+			check_finished();
+		});
+		this.events.dispatch(UiEvent.RequestFilename, (f) => {
+			filename = f;
+			check_finished();
 		});
 	}
 
@@ -63,22 +86,41 @@ export default class SaveLoad implements UiComponent {
 		const reader = new FileReader();
 		reader.addEventListener("load", (e) => {
 			const target = e.target;
-			if (target === null) return;
-			const data = target.result;
-			if (!(data instanceof ArrayBuffer)) {
-				console.error("Data is not arraybuffer");
+			if (target === null || target.result === null) {
+				console.error("Could not load data file");
 				return;
 			}
+			const data = target.result;
 
-			const view = new Uint8Array(data);
-			const array = [...view] as Array<u8>;
+			if (!(typeof data === "string")) {
+				console.error("Could not load data file");
+				return;
+			}
+			const { filename, memory, vram } = deserialize(data);
+
 			this.cpu_signals.dispatch(UiCpuSignal.RequestCpuReset);
-			for (const [i, v] of array.entries()) {
-				const address = m256(i);
 
-				this.cpu_signals.dispatch(UiCpuSignal.RequestMemoryChange, { address, value: v });
+			for (let i = 0; i < 256; i = i + 1) {
+				const value = memory[i];
+				if (!isU8(value) || !isU8(i)) {
+					throw new Error("unreachable");
+				}
+				this.cpu_signals.dispatch(UiCpuSignal.RequestMemoryChange, { address: i, value });
+			}
+			if (vram) {
+				for (let i = 0; i < 256; i = i + 1) {
+					const value = vram[i];
+					if (!isU8(value) || !isU8(i)) {
+						throw new Error("unreachable");
+					}
+					this.cpu_signals.dispatch(UiCpuSignal.RequestVramChange, { address: i, value });
+				}
+			}
+
+			if (filename) {
+				this.events.dispatch(UiEvent.FileNameChange, filename);
 			}
 		});
-		reader.readAsArrayBuffer(file);
+		reader.readAsText(file);
 	}
 }
