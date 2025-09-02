@@ -3,7 +3,6 @@
  * @copyright Alexander Bass 2025
  * @license GPL-3.0
  */
-import { CpuEvent, CpuEventHandler } from "./events";
 import { formatHex, inRange, splitNibbles } from "./etc";
 import { isU3, m256, u3, u8 } from "./num";
 
@@ -22,6 +21,7 @@ export abstract class ParameterType {
 		this.desc = description;
 		this.type = p_type;
 	}
+	// eslint-disable-next-line class-methods-use-this
 	validate(n: number): boolean {
 		return true;
 	}
@@ -43,6 +43,7 @@ export class RegisParam extends ParameterType {
 	constructor(d: string) {
 		super(d, ParamType.Register);
 	}
+	// eslint-disable-next-line class-methods-use-this
 	validate(n: number): boolean {
 		return isU3(n);
 	}
@@ -89,23 +90,14 @@ interface GenericComputer {
 	getCarry(): boolean;
 	setCarry(state: boolean): void;
 	softReset(): void;
-}
-
-interface AfterExecutionComputerAction {
-	// Does not step forward the program counter
-	noStep: () => void;
-	dispatch: CpuEventHandler["dispatch"];
+	halt(): void;
 }
 
 export interface Instruction {
 	readonly name: string;
 	readonly desc: string;
 	readonly params: Array<ParameterType>;
-	readonly execute: (
-		computer_reference: GenericComputer,
-		parameters: Array<u8>,
-		a: AfterExecutionComputerAction
-	) => void;
+	readonly execute: (computer_reference: GenericComputer, parameters: Array<u8>, nostep: () => void) => void;
 }
 
 export type InstrCategory = {
@@ -294,13 +286,13 @@ ISA.insertInstruction(0x20, {
 	name: "Goto",
 	desc: "Moves the CPU instruction counter to the value in register (P1)",
 	params: [new RegisParam("new instruction counter location")],
-	execute: (c, p, a) => {
+	execute: (c, p, nostep) => {
 		const register_no = p[0];
 		if (!isU3(register_no)) throw new Error("todo");
 
 		const new_address = c.getRegister(register_no);
 		c.setProgramCounter(new_address);
-		a.noStep();
+		nostep();
 	},
 });
 
@@ -308,10 +300,10 @@ ISA.insertInstruction(0x21, {
 	name: "Goto",
 	desc: "Moves the CPU instruction counter to the value in (P1)",
 	params: [new ConstParam("new instruction counter location")],
-	execute: (c, p, a) => {
+	execute: (c, p, nostep) => {
 		const new_address = p[0];
 		c.setProgramCounter(new_address);
-		a.noStep();
+		nostep();
 	},
 });
 
@@ -319,11 +311,11 @@ ISA.insertInstruction(0x26, {
 	name: "Goto Relative",
 	desc: "Increments the instruction counter by (P1)",
 	params: [new ConstParam("counter location offset")],
-	execute: (c, p, a) => {
+	execute: (c, p, nostep) => {
 		const new_address = m256(c.getProgramCounter() + p[0]);
 
 		c.setProgramCounter(new_address);
-		a.noStep();
+		nostep();
 	},
 });
 
@@ -331,7 +323,7 @@ ISA.insertInstruction(0x22, {
 	name: "Goto if True",
 	desc: "Moves the instruction counter to the value in register (P2) if the value in register (P1) is true",
 	params: [new RegisParam(""), new RegisParam("")],
-	execute: (c, p, a) => {
+	execute: (c, p, nostep) => {
 		const register_no_1 = p[0];
 		if (!isU3(register_no_1)) throw new Error("todo");
 		const bool = c.getRegister(register_no_1);
@@ -340,7 +332,7 @@ ISA.insertInstruction(0x22, {
 		if (!isU3(register_no_2)) throw new Error("todo");
 		const new_address = c.getRegister(register_no_2);
 		c.setProgramCounter(new_address);
-		a.noStep();
+		nostep();
 	},
 });
 
@@ -348,13 +340,13 @@ ISA.insertInstruction(0x23, {
 	name: "Goto if True",
 	desc: "Moves the instruction counter to the value in (P2) if the value in register (P1) is true",
 	params: [new RegisParam(""), new ConstParam("")],
-	execute: (c, p, a) => {
+	execute: (c, p, nostep) => {
 		const [register_no, constant_value] = p;
 		if (!isU3(register_no)) throw new Error("todo");
 		const bool = c.getRegister(register_no);
 		if (!bool) return;
 		c.setProgramCounter(constant_value);
-		a.noStep();
+		nostep();
 	},
 });
 
@@ -362,7 +354,7 @@ ISA.insertInstruction(0x25, {
 	name: "Goto and save position",
 	desc: "Moves the instruction counter to the value in (P2) and stores the address of the following instruction to R!",
 	params: [new RegisAddrParam(""), new ConstParam("")],
-	execute: (c, p, a) => {
+	execute: (c, p, nostep) => {
 		const [register_no, constant_value] = p;
 		if (!isU3(register_no)) throw new Error("todo");
 		const bool = c.getRegister(register_no);
@@ -370,7 +362,7 @@ ISA.insertInstruction(0x25, {
 		c.setRegister(register_no, next_instruction);
 
 		c.setProgramCounter(constant_value);
-		a.noStep();
+		nostep();
 	},
 });
 
@@ -378,13 +370,13 @@ ISA.insertInstruction(0x28, {
 	name: "Goto if Carry Flag set",
 	desc: "Moves the instruction counter to the value in register (P1) if CPU Carry flag is true",
 	params: [new RegisParam("")],
-	execute: (c, p, a) => {
+	execute: (c, p, nostep) => {
 		if (!c.getCarry()) return;
 		const register_no = p[0];
 		if (!isU3(register_no)) throw new Error("todo");
 		const register_value = c.getRegister(register_no);
 		c.setProgramCounter(register_value);
-		a.noStep();
+		nostep();
 		c.setCarry(false);
 	},
 });
@@ -392,11 +384,11 @@ ISA.insertInstruction(0x29, {
 	name: "Goto if Carry Flag set",
 	desc: "Moves the instruction counter to the value in (P1) if CPU Carry flag is true",
 	params: [new ConstParam("")],
-	execute: (c, p, a) => {
+	execute: (c, p, nostep) => {
 		if (!c.getCarry()) return;
 		const goto_address = p[0];
 		c.setProgramCounter(goto_address);
-		a.noStep();
+		nostep();
 		c.setCarry(false);
 	},
 });
@@ -412,9 +404,9 @@ ISA.insertInstruction(0x2f, {
 	name: "Halt",
 	desc: "Stops CPU execution and soft resets",
 	params: [],
-	execute(c, p, a) {
-		a.dispatch(CpuEvent.Halt);
+	execute(c, p, nostep) {
 		c.softReset();
+		c.halt();
 	},
 });
 

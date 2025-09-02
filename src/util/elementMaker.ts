@@ -22,6 +22,12 @@ class ElementInProgress<E extends HTMLElement> {
 		return this;
 	}
 
+	/** Append child */
+	ch(child: HTMLElement): ElementInProgress<E> {
+		this.element.appendChild(child);
+		return this;
+	}
+
 	/** Set textContent */
 	tx(text_contents: string): ElementInProgress<E> {
 		this.element.textContent = text_contents;

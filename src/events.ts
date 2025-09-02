@@ -77,9 +77,15 @@ export enum UiCpuSignal {
 	RequestMemoryDump,
 	RequestVramDump,
 	RequestProgramCounterChange,
+	TurboOn,
+	TurboOff,
 }
 
-type VoidDataUiCpuSignalList = UiCpuSignal.RequestCpuReset | UiCpuSignal.RequestCpuSoftReset;
+type VoidDataUiCpuSignalList =
+	| UiCpuSignal.RequestCpuReset
+	| UiCpuSignal.RequestCpuSoftReset
+	| UiCpuSignal.TurboOn
+	| UiCpuSignal.TurboOff;
 
 interface UiCpuSignalMap {
 	[UiCpuSignal.RequestCpuCycle]: number;

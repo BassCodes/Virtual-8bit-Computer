@@ -10,7 +10,7 @@ import HoverTextBox from "../hoverTextBox";
 
 const MAX_SLIDER = 1000;
 
-export default class pausePlay implements UiComponent {
+export default class PausePlay implements UiComponent {
 	container: HTMLElement;
 	start_button: HTMLButtonElement;
 	step_button: HTMLButtonElement;
@@ -51,23 +51,18 @@ export default class pausePlay implements UiComponent {
 
 		const s_width = this.start_button.offsetWidth;
 		this.start_button.style.width = `${s_width.toString()}px`;
-
-		// const tb = new HoverTextBox(this.start_button, el("span").tx("hover test").st("color", "yellow").fin(), "left", 10);
-		// tb.show();
 	}
 
 	disable(): void {
 		this.stop();
 		this.start_button.setAttribute("disabled", "true");
 		this.step_button.setAttribute("disabled", "true");
-
 		this.range.setAttribute("disabled", "true");
 	}
 
 	enable(): void {
 		this.start_button.removeAttribute("disabled");
 		this.step_button.removeAttribute("disabled");
-
 		this.range.removeAttribute("disabled");
 	}
 
@@ -86,7 +81,7 @@ export default class pausePlay implements UiComponent {
 		const loop = (): void => {
 			if (this.on === false) return;
 
-			this.cpu_signals.dispatch(UiCpuSignal.RequestCpuCycle, 64);
+			this.cpu_signals.dispatch(UiCpuSignal.RequestCpuCycle, 1);
 			setTimeout(loop, this.cycle_delay);
 		};
 		loop();

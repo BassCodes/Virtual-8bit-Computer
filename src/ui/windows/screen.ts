@@ -12,6 +12,9 @@ export default class Screen extends WindowBox implements UiComponent {
 	screen: HTMLCanvasElement;
 	cpu_signals: UiCpuSignalHandler;
 	ctx: CanvasRenderingContext2D;
+	// actual VRAM buffer stored in computer.
+	// This one is here to reduce computations
+	vram_copy: Uint8Array = new Uint8Array(256);
 	scale: number;
 
 	constructor(element: HTMLElement, event: UiEventHandler, cpu_signals: UiCpuSignalHandler) {
@@ -37,6 +40,12 @@ export default class Screen extends WindowBox implements UiComponent {
 		}
 	}
 
+	private clearScreen(): void {
+		for (let x = 0; x < 256; x++) {
+			this.setPixel(x as u8, 0);
+		}
+	}
+
 	reset(): void {
 		for (let i = 0; i < 256; i++) {
 			this.setPixel(i as u8, 0);
@@ -54,6 +63,12 @@ export default class Screen extends WindowBox implements UiComponent {
 	}
 
 	setPixel(address: u8, value: u8): void {
+		const previous_value = this.vram_copy[address];
+		if (previous_value === value) {
+			return;
+		}
+		this.vram_copy[address] = value;
+
 		const x = (address % 16) as u4;
 		const y = Math.floor(address / 16) as u4;
 		const point: [number, number] = [x * this.scale, y * this.scale];
