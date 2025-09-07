@@ -28,12 +28,12 @@ export default class UI {
 		this.register_component(InstructionExplainer, "instruction_explainer");
 		this.register_component(RegisterView, "registers");
 		this.register_component(Screen, "tv");
-		this.register_component(EditButton, "edit_button");
 		this.register_component(PausePlay, "controls_buttons");
-		this.register_component(TurboButton, "turbo_button");
 		this.register_component(SaveLoad, "save_load_buttons");
-		this.register_component(ResetButton, "reset_button");
-		this.register_component(TrashButton, "trash_button");
+		this.register_component(EditButton, "edit_button_box");
+		this.register_component(TurboButton, "turbo_button_box");
+		this.register_component(ResetButton, "reset_button_box");
+		this.register_component(TrashButton, "trash_button_box");
 		this.register_component(TitleBox, "title_box");
 		this.seal();
 	}

@@ -7,7 +7,6 @@ import { el, formatHex } from "../../etc";
 import { CpuEvent, CpuEventHandler, UiCpuSignalHandler, UiEvent, UiEventHandler } from "../../events";
 import { Instruction, ParamType, ParameterType } from "../../instructionSet";
 import { u8 } from "../../num";
-import WindowBox from "../windowBox";
 import UiComponent from "../uiComponent";
 
 const p_map = {
@@ -18,12 +17,16 @@ const p_map = {
 	[ParamType.NibbleRegisterPair]: "nrpair",
 };
 
-export default class InstructionExplainer extends WindowBox implements UiComponent {
+export default class InstructionExplainer implements UiComponent {
 	events: UiEventHandler;
 	cpu_signals: UiCpuSignalHandler;
+	container: HTMLElement;
 	activated: boolean = true;
 	constructor(element: HTMLElement, events: UiEventHandler, cpu_signals: UiCpuSignalHandler) {
-		super(element, "Instruction Explainer");
+		this.container = element;
+		this.container.classList.add("window");
+
+		el("div").cl("window_title").ch(el("div").id("text").tx("Instruction Explainer")).appendTo(this.container);
 		this.cpu_signals = cpu_signals;
 		this.events = events;
 

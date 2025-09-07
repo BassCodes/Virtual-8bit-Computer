@@ -39,17 +39,23 @@ main {
 #grid {
 	justify-content: center;
 	display: grid;
-	grid-template-columns: min-content min-content min-content;
-	grid-template-rows: min-content min-content min-content;
+	grid-template-columns: min-content min-content min-content min-content;
+	grid-template-rows: min-content min-content min-content min-content;
 	grid-template-areas:
-		".        reglabel  .       ."
-		".        registers .       bank "
-		"title    memory	memory	memory"
-		"title    memory	memory  memory"
-		".        buttons   buttons buttons";
+		".        .  	    .       .       .		 "
+		".        registers .		.       titlebar "
+		"title    memory	memory	memory  tv		 "
+		"title    memory	memory  memory  explainer"
+		".        buttons   buttons buttons explainer";
 
-	#window_box {
-		grid-area: windowbox;
+	#instruction_explainer {
+		grid-area: explainer;
+	}
+	#tv {
+		grid-area: tv;
+	}
+	#program_meta {
+		grid-area: titlebar;
 	}
 	#registers {
 		grid-area: registers;
@@ -167,7 +173,7 @@ div#main.editor {
 
 #controls_bar {
 	grid-area: buttons;
-
+	border-right: 5px solid yellow;
 	display: flex;
 	gap: 10px;
 	#controls_buttons {

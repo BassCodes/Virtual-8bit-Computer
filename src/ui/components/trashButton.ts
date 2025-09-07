@@ -3,6 +3,7 @@
  * @copyright Alexander Bass 2025
  * @license GPL-3.0
  */
+import { el } from "../../etc";
 import { UiEventHandler, UiCpuSignalHandler, UiCpuSignal } from "../../events";
 import UiComponent from "../uiComponent";
 
@@ -14,9 +15,12 @@ export default class TrashButton implements UiComponent {
 		this.container = element;
 		this.events = events;
 		this.cpu_signals = cpu_signals;
-		// const trash_button = el("button").cl("nostyle").ti("Delete Code").tx("🗑").fin();
-
-		this.container.addEventListener("click", () => this.trashClicked());
+		el("button")
+			.ev("click", () => this.trashClicked())
+			.ti("Delete Code")
+			.cl("trash_button")
+			.tx("🗑")
+			.appendTo(this.container);
 	}
 
 	trashClicked(): void {

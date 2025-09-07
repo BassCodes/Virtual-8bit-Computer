@@ -2,14 +2,14 @@ import { el } from "../../etc";
 import { UiEventHandler, CpuEventHandler, CpuEvent, UiCpuSignalHandler, UiCpuSignal } from "../../events";
 import { u4, u8 } from "../../num";
 import UiComponent from "../uiComponent";
-import WindowBox from "../windowBox";
 
 const CANVAS_SIZE = 512;
 const WIDTH = 16;
 
-export default class Screen extends WindowBox implements UiComponent {
+export default class Screen implements UiComponent {
 	events: UiEventHandler;
 	screen: HTMLCanvasElement;
+	container: HTMLElement;
 	cpu_signals: UiCpuSignalHandler;
 	ctx: CanvasRenderingContext2D;
 	// actual VRAM buffer stored in computer.
@@ -18,9 +18,13 @@ export default class Screen extends WindowBox implements UiComponent {
 	scale: number;
 
 	constructor(element: HTMLElement, event: UiEventHandler, cpu_signals: UiCpuSignalHandler) {
-		super(element, "TV", { collapsed: false, fit_content: true });
 		this.cpu_signals = cpu_signals;
 		this.events = event;
+
+		this.container = element;
+		this.container.classList.add("window");
+
+		el("div").cl("window_title").ch(el("div").id("text").tx("TV")).appendTo(this.container);
 
 		this.scale = CANVAS_SIZE / WIDTH;
 		this.screen = el("canvas").id("screen").fin();
