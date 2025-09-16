@@ -119,8 +119,12 @@ export default class Computer {
 				};
 				if (this.current_instr.valid) {
 					const params: Array<u8> = this.current_instr.params.map((p) => p as u8);
-					this.current_instr.instr.execute(this, params, nostep);
-					this.events.dispatch(CpuEvent.InstructionExecuted, { instr: this.current_instr.instr });
+					try {
+						this.current_instr.instr.execute(this, params, nostep);
+						this.events.dispatch(CpuEvent.InstructionExecuted, { instr: this.current_instr.instr });
+					} catch (all) {
+						this.events.dispatch(CpuEvent.InstructionErrored, { instr: this.current_instr.instr, error_type: "todo" });
+					}
 				}
 
 				this.events.dispatch(CpuEvent.InstructionParseEnd);

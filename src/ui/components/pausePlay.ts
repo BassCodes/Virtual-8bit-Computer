@@ -4,8 +4,10 @@
  * @license GPL-3.0
  */
 import { el } from "../../etc";
-import { UiEventHandler, UiEvent, UiCpuSignalHandler, UiCpuSignal } from "../../events";
+import { UiEventHandler, UiEvent, UiCpuSignalHandler, UiCpuSignal, CpuSpeed } from "../../events";
 import UiComponent from "../uiComponent";
+
+const SPEED_STATES: CpuSpeed[] = ["slow", "normal", "fast", "turbo"];
 
 export default class PausePlay implements UiComponent {
 	container: HTMLElement;
@@ -14,6 +16,7 @@ export default class PausePlay implements UiComponent {
 	events: UiEventHandler;
 	on: boolean = false;
 	cpu_signals: UiCpuSignalHandler;
+	current_speed: CpuSpeed;
 
 	constructor(element: HTMLElement, events: UiEventHandler, cpu_signals: UiCpuSignalHandler) {
 		this.container = element;
@@ -30,6 +33,19 @@ export default class PausePlay implements UiComponent {
 			.ev("click", () => this.step())
 			.appendTo(this.container);
 
+		this.current_speed = "normal";
+		el("button")
+			.id("turbo_button")
+			.tx(this.current_speed.toUpperCase())
+			.ev("click", (e) => {
+				const new_idx = (SPEED_STATES.indexOf(this.current_speed) + 1) % SPEED_STATES.length;
+				this.current_speed = SPEED_STATES[new_idx];
+				this.cpu_signals.dispatch(UiCpuSignal.SetSpeed, this.current_speed);
+				if (e.target) {
+					e.target.textContent = this.current_speed.toUpperCase();
+				}
+			})
+			.appendTo(this.container);
 		this.events.listen(UiEvent.EditOn, () => this.disable());
 		this.events.listen(UiEvent.EditOff, () => this.enable());
 

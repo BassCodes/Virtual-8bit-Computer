@@ -27,6 +27,7 @@ export enum CpuEvent {
 	Halt,
 	MemoryAccessed,
 	SetFlagCarry,
+	InstructionErrored,
 }
 
 type VoidDataCpuEventList = CpuEvent.Halt | CpuEvent.Reset | CpuEvent.SoftReset | CpuEvent.InstructionParseEnd;
@@ -42,6 +43,7 @@ interface CpuEventMap {
 	[CpuEvent.InvalidParameterParsed]: { pos: u8; code: u8; param: ParameterType };
 	[CpuEvent.InvalidInstructionParsed]: { pos: u8; code: u8 };
 	[CpuEvent.InstructionExecuted]: { instr: Instruction };
+	[CpuEvent.InstructionErrored]: { instr: Instruction; error_type: "todo" };
 	[CpuEvent.SetFlagCarry]: boolean;
 	[CpuEvent.Cycle]: number;
 }

@@ -14,7 +14,6 @@ import TitleBox from "./ui/components/titleBox";
 // Window Components
 import InstructionExplainer from "./ui/windows/instructionExplainer";
 import Screen from "./ui/windows/screen";
-import TurboButton from "./ui/components/speedButton";
 
 export default class UI {
 	ui_events: UiEventHandler = new UiEventHandler();
@@ -31,7 +30,6 @@ export default class UI {
 		this.register_component(PausePlay, "controls_buttons");
 		this.register_component(SaveLoad, "save_load_buttons");
 		this.register_component(EditButton, "edit_button_box");
-		this.register_component(TurboButton, "turbo_button_box");
 		this.register_component(ResetButton, "reset_button_box");
 		this.register_component(TrashButton, "trash_button_box");
 		this.register_component(TitleBox, "title_box");
