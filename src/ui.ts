@@ -14,7 +14,7 @@ import TitleBox from "./ui/components/titleBox";
 // Window Components
 import InstructionExplainer from "./ui/windows/instructionExplainer";
 import Screen from "./ui/windows/screen";
-import TurboButton from "./ui/components/turboButton";
+import TurboButton from "./ui/components/speedButton";
 
 export default class UI {
 	ui_events: UiEventHandler = new UiEventHandler();

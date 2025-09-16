@@ -3,10 +3,17 @@
  * @copyright Alexander Bass 2025
  * @license GPL-3.0
  */
-import { CpuEvent, CpuEventHandler, UiCpuSignal, UiCpuSignalHandler } from "./events";
+import { CpuEvent, CpuEventHandler, CpuSpeed, UiCpuSignal, UiCpuSignalHandler } from "./events";
 import { formatHex } from "./etc";
 import { Instruction, ISA, ParameterType } from "./instructionSet";
 import { m256, u3, u8 } from "./num";
+
+const CLOCK_SPEED_MAP: Record<CpuSpeed, [number, number]> = {
+	slow: [1000, 1],
+	normal: [200, 1],
+	fast: [100, 1],
+	turbo: [1, 128],
+};
 
 interface IAbstractComputer {
 	readonly memory: Uint8Array;
@@ -61,8 +68,10 @@ export default class Computer {
 	carry_flag: boolean = false;
 	program_counter: u8 = 0;
 	current_instr: IReadingInstruction | null = null;
-	turbo: boolean = false;
 	events: CpuEventHandler = new CpuEventHandler();
+	on: boolean = false;
+	clock_speed: number = CLOCK_SPEED_MAP.normal[0];
+	instr_per_cycle: number = CLOCK_SPEED_MAP.normal[1];
 
 	cycle(): void {
 		let should_step = true;
@@ -121,7 +130,6 @@ export default class Computer {
 		if (should_step) {
 			this.stepForward();
 		}
-		this.events.dispatch(CpuEvent.Cycle);
 	}
 
 	private getMemorySilent(address: u8): u8 {
@@ -182,18 +190,37 @@ export default class Computer {
 		return this.carry_flag;
 	}
 
+	clockStop(): void {
+		this.on = false;
+	}
+	clockStart(): void {
+		if (this.on) return;
+		this.on = true;
+		const loop = (): void => {
+			if (!this.on) return;
+			for (let i = 0; i < this.instr_per_cycle; i++) {
+				this.cycle();
+			}
+			this.events.dispatch(CpuEvent.Cycle, this.instr_per_cycle);
+			setTimeout(loop, this.clock_speed);
+		};
+		loop();
+	}
+	clockStep(): void {
+		this.clockStop();
+		this.cycle();
+	}
+
 	initEvents(ui: UiCpuSignalHandler): void {
-		ui.listen(UiCpuSignal.RequestCpuCycle, (cycle_count) => {
-			for (let i = 0; i < cycle_count; i++) this.cycle();
+		ui.listen(UiCpuSignal.StepCpu, () => this.clockStep());
+		ui.listen(UiCpuSignal.StartCpu, () => this.clockStart());
+		ui.listen(UiCpuSignal.StopCpu, () => this.clockStop());
+
+		ui.listen(UiCpuSignal.SetSpeed, (speed) => {
+			console.log("new speed", speed);
+			[this.clock_speed, this.instr_per_cycle] = CLOCK_SPEED_MAP[speed];
 		});
-		ui.listen(UiCpuSignal.TurboOn, () => {
-			this.turbo = true;
-			// todo
-		});
-		ui.listen(UiCpuSignal.TurboOff, () => {
-			this.turbo = false;
-			// todo
-		});
+
 		ui.listen(UiCpuSignal.RequestMemoryChange, ({ address, value }) => this.setMemory(address, value));
 		ui.listen(UiCpuSignal.RequestVramChange, ({ address, value }) => this.setVram(address, value));
 		ui.listen(UiCpuSignal.RequestRegisterChange, ({ register_no, value }) => this.setRegister(register_no, value));

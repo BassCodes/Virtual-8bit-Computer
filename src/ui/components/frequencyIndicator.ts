@@ -49,10 +49,6 @@ export default class frequencyIndicator implements UiComponent {
 		this.count = 0;
 	}
 
-	clockCycle(): void {
-		this.count += 1;
-	}
-
 	reset(): void {
 		this.stop();
 		this.count = 0;
@@ -65,8 +61,8 @@ export default class frequencyIndicator implements UiComponent {
 	}
 
 	initCpuEvents(c: CpuEventHandler): void {
-		c.listen(CpuEvent.Cycle, () => {
-			this.count += 1;
+		c.listen(CpuEvent.Cycle, (c) => {
+			this.count += c;
 		});
 	}
 }

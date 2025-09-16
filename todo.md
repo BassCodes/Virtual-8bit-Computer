@@ -28,8 +28,6 @@ Example Programs (loaded as one of those encoded string url things)
 
 Switch to unified icons (no emojis)
 
-Remove "windows" concept
-
 Instruction table, print parameter purpose
 
 Memory color legend
@@ -37,14 +35,7 @@ Memory color legend
 Nibble Memory colors.
 Nibble intruction explainer colors.
 
-Export and load as ascii
-
 Make comparison operators have NR(...) as first param
-
-Purpose built registers. E.g.:
-
-- R7 is for vram manip
-- R0 is for results of comparison
 
 When paused, yellowish colors fade to dark yellow
 

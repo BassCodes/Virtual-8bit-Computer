@@ -1,3 +1,5 @@
+goto :randgen
+
 L glider
 MOV 56 R6
 SET_VRAM RM6 1
