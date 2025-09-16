@@ -43,6 +43,4 @@ Button state colored properly based on active and available
 
 Dedicated fonts
 
-Actual Turbo button
-
-Multiply and Divide
+Don't check errors in instruction execute. Throw in functions and catch in CPU

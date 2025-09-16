@@ -724,6 +724,53 @@ ISA.insertInstruction(0x53, {
 	},
 });
 
+ISA.insertInstruction(0x54, {
+	name: "Multiply",
+	desc: "Multiplies the value in register (P1) by value in register (P2)",
+	params: [new RegisParam("TODO"), new RegisParam("TODO")],
+	execute(c, p) {
+		const [register_no_1, register_no_2] = p;
+		if (!isU3(register_no_1)) throw new Error("TODO");
+		if (!isU3(register_no_2)) throw new Error("TODO");
+		const product = c.getRegister(register_no_1) * c.getRegister(register_no_2);
+		c.setRegister(register_no_1, m256(product));
+	},
+});
+ISA.insertInstruction(0x55, {
+	name: "Multiply",
+	desc: "Multiplies the value in register (P1) by constant value (P2)",
+	params: [new RegisParam("TODO"), new ConstParam("TODO")],
+	execute(c, p) {
+		const [register_no, constant_value] = p;
+		if (!isU3(register_no)) throw new Error("TODO");
+		const product = c.getRegister(register_no) * constant_value;
+		c.setRegister(register_no, m256(product));
+	},
+});
+ISA.insertInstruction(0x56, {
+	name: "Divide",
+	desc: "Divides the value in register (P1) by value in register (P2)",
+	params: [new RegisParam("TODO"), new RegisParam("TODO")],
+	execute(c, p) {
+		const [register_no_1, register_no_2] = p;
+		if (!isU3(register_no_1)) throw new Error("TODO");
+		if (!isU3(register_no_2)) throw new Error("TODO");
+		const quotient = Math.floor(c.getRegister(register_no_1) / c.getRegister(register_no_2));
+		c.setRegister(register_no_1, m256(quotient));
+	},
+});
+ISA.insertInstruction(0x57, {
+	name: "Divide",
+	desc: "Divides the value in register (P1) by constant value (P2)",
+	params: [new RegisParam("TODO"), new ConstParam("TODO")],
+	execute(c, p) {
+		const [register_no, constant_value] = p;
+		if (!isU3(register_no)) throw new Error("TODO");
+		const quotient = Math.floor(c.getRegister(register_no) / constant_value);
+		c.setRegister(register_no, m256(quotient));
+	},
+});
+
 ISA.insertInstruction(0x5e, {
 	name: "Increment",
 	desc: "Increments the value within register (P1) by 1",
