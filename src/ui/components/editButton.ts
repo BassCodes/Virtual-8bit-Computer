@@ -11,11 +11,12 @@ export default class EditButton implements UiComponent {
 	container: HTMLElement;
 	events: UiEventHandler;
 	cpu_signals: UiCpuSignalHandler;
+	edit_button: HTMLButtonElement;
 	constructor(element: HTMLElement, event: UiEventHandler, cpu_signals: UiCpuSignalHandler) {
 		this.container = element;
 		this.events = event;
 		this.cpu_signals = cpu_signals;
-		el("button")
+		this.edit_button = el("button")
 			.tx("Edit")
 			.cl("edit_button")
 			.ev("click", () => this.editToggle())
@@ -23,24 +24,23 @@ export default class EditButton implements UiComponent {
 	}
 
 	disable(): void {
-		const is_on = this.container.classList.contains("on");
-		if (is_on) {
+		if (this.edit_button.classList.contains("on")) {
 			this.editToggle();
 		}
 	}
 
 	editToggle(): void {
-		const is_on = this.container.classList.contains("on");
-		if (is_on) {
-			this.container.classList.remove("on");
+		if (this.edit_button.classList.contains("on")) {
+			this.edit_button.classList.remove("on");
 			$("root").classList.remove("editor");
-			this.container.classList.add("off");
+			this.edit_button.classList.add("off");
 			this.events.dispatch(UiEvent.EditOff);
 		} else {
 			this.events.dispatch(UiEvent.EditOn);
+			this.cpu_signals.dispatch(UiCpuSignal.StopCpu);
 			$("root").classList.add("editor");
-			this.container.classList.add("on");
-			this.container.classList.remove("off");
+			this.edit_button.classList.add("on");
+			this.edit_button.classList.remove("off");
 		}
 	}
 

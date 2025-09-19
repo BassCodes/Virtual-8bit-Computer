@@ -21,16 +21,24 @@ export enum CpuEvent {
 	InvalidInstructionParsed,
 	VramChanged,
 	InstructionExecuted,
-	Cycle,
 	Reset,
 	SoftReset,
 	Halt,
 	MemoryAccessed,
 	SetFlagCarry,
 	InstructionErrored,
+	ClockCycle,
+	ClockStarted,
+	ClockStopped,
 }
 
-type VoidDataCpuEventList = CpuEvent.Halt | CpuEvent.Reset | CpuEvent.SoftReset | CpuEvent.InstructionParseEnd;
+type VoidDataCpuEventList =
+	| CpuEvent.Halt
+	| CpuEvent.Reset
+	| CpuEvent.SoftReset
+	| CpuEvent.InstructionParseEnd
+	| CpuEvent.ClockStarted
+	| CpuEvent.ClockStopped;
 
 interface CpuEventMap {
 	[CpuEvent.MemoryChanged]: { address: u8; value: u8 };
@@ -42,10 +50,10 @@ interface CpuEventMap {
 	[CpuEvent.ParameterParsed]: { pos: u8; code: u8; param: ParameterType };
 	[CpuEvent.InvalidParameterParsed]: { pos: u8; code: u8; param: ParameterType };
 	[CpuEvent.InvalidInstructionParsed]: { pos: u8; code: u8 };
-	[CpuEvent.InstructionExecuted]: { instr: Instruction };
+	[CpuEvent.InstructionExecuted]: { instr: Instruction; code: u8; start_pos: u8; end_pos: u8 };
 	[CpuEvent.InstructionErrored]: { instr: Instruction; error_type: "todo" };
 	[CpuEvent.SetFlagCarry]: boolean;
-	[CpuEvent.Cycle]: number;
+	[CpuEvent.ClockCycle]: number;
 }
 
 export interface CpuEventHandler extends EventHandler<CpuEvent> {
@@ -87,7 +95,7 @@ type VoidDataUiCpuSignalList =
 	| UiCpuSignal.StopCpu
 	| UiCpuSignal.StepCpu;
 
-export type CpuSpeed = "slow" | "normal" | "fast" | "turbo";
+export type CpuSpeed = "slow" | "normal" | "fast" | "super fast" | "turbo";
 
 interface UiCpuSignalMap {
 	[UiCpuSignal.RequestMemoryChange]: { address: u8; value: u8 };

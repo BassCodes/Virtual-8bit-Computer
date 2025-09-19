@@ -1,10 +1,11 @@
+@use "vars" as *;
+
 h1,
 h2,
 h3 {
 	color: white;
 	font-family: charter;
 	margin-block: unset;
-	// margin-bottom: unset;
 }
 
 h2 {
@@ -20,6 +21,6 @@ p {
 article {
 	margin-top: 0.5rem;
 	width: 1000px;
-	font-family: Helvetica, sans-serif;
+	font-family: $sans;
 	margin-inline: auto;
 }

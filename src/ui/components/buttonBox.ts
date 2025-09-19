@@ -4,15 +4,24 @@
  * @license GPL-3.0
  */
 import { el } from "../../etc";
-import { UiEventHandler, UiEvent, UiCpuSignalHandler, UiCpuSignal, CpuSpeed } from "../../events";
+import {
+	UiEventHandler,
+	UiEvent,
+	UiCpuSignalHandler,
+	UiCpuSignal,
+	CpuSpeed,
+	CpuEventHandler,
+	CpuEvent,
+} from "../../events";
 import UiComponent from "../uiComponent";
 
-const SPEED_STATES: CpuSpeed[] = ["slow", "normal", "fast", "turbo"];
+const SPEED_STATES: CpuSpeed[] = ["slow", "normal", "fast", "super fast", "turbo"];
 
-export default class PausePlay implements UiComponent {
+export default class ButtonBox implements UiComponent {
 	container: HTMLElement;
 	start_button: HTMLButtonElement;
 	step_button: HTMLButtonElement;
+	speed_button: HTMLButtonElement;
 	events: UiEventHandler;
 	on: boolean = false;
 	cpu_signals: UiCpuSignalHandler;
@@ -34,16 +43,15 @@ export default class PausePlay implements UiComponent {
 			.appendTo(this.container);
 
 		this.current_speed = "normal";
-		el("button")
+		this.speed_button = el("button")
 			.id("turbo_button")
 			.tx(this.current_speed.toUpperCase())
 			.ev("click", (e) => {
 				const new_idx = (SPEED_STATES.indexOf(this.current_speed) + 1) % SPEED_STATES.length;
 				this.current_speed = SPEED_STATES[new_idx];
 				this.cpu_signals.dispatch(UiCpuSignal.SetSpeed, this.current_speed);
-				if (e.target) {
-					e.target.textContent = this.current_speed.toUpperCase();
-				}
+
+				(e.target as HTMLElement).textContent = this.current_speed.toUpperCase();
 			})
 			.appendTo(this.container);
 		this.events.listen(UiEvent.EditOn, () => this.disable());
@@ -56,11 +64,13 @@ export default class PausePlay implements UiComponent {
 	disable(): void {
 		this.start_button.setAttribute("disabled", "true");
 		this.step_button.setAttribute("disabled", "true");
+		this.speed_button.setAttribute("disabled", "true");
 	}
 
 	enable(): void {
 		this.start_button.removeAttribute("disabled");
 		this.step_button.removeAttribute("disabled");
+		this.speed_button.removeAttribute("disabled");
 	}
 
 	step(): void {
@@ -69,12 +79,8 @@ export default class PausePlay implements UiComponent {
 
 	toggle(): void {
 		if (this.on) {
-			this.start_button.textContent = "Start";
-			this.on = false;
 			this.cpu_signals.dispatch(UiCpuSignal.StopCpu);
 		} else {
-			this.start_button.textContent = "Stop";
-			this.on = true;
 			this.cpu_signals.dispatch(UiCpuSignal.StartCpu);
 		}
 	}
@@ -85,5 +91,16 @@ export default class PausePlay implements UiComponent {
 
 	softReset(): void {
 		this.reset();
+	}
+
+	initCpuEvents(c: CpuEventHandler): void {
+		c.listen(CpuEvent.ClockStopped, () => {
+			this.start_button.textContent = "Start";
+			this.on = false;
+		});
+		c.listen(CpuEvent.ClockStarted, () => {
+			this.start_button.textContent = "Stop";
+			this.on = true;
+		});
 	}
 }

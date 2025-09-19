@@ -4,27 +4,54 @@
  * @license GPL-3.0
  */
 
+// Serialize
+
 import { formatHex } from "./etc";
 import { u8 } from "./num";
+import { ISerializableState } from "./types";
+import { b64_encode } from "./util/b64";
 
 // Serialize<=>Deserialize
 // Takes some facets of the computer state to be saved to a string (for later sharing)
 
-interface ISerializableState {
-	filename?: string;
-	vram?: Uint8Array;
-	memory: Uint8Array;
-}
-
 function clean_string(s: string): string {
-	let str = s;
-	str = str.replaceAll("\n", " ");
-	str = str.trim();
-	return str;
+	const ALLOWED_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxy01234567890!@(){}[]<>";
+	const str = s.trim();
+	let out = "";
+
+	for (let i = 0; i < str.length; i++) {
+		if (ALLOWED_CHARS.includes(str[i])) {
+			out += str[i];
+		} else {
+			out += "_";
+		}
+	}
+	return out;
 }
 
-export function serialize(state: ISerializableState): [string, string] {
-	const filename = state.filename ? clean_string(state.filename).replaceAll(" ", "_") : "new_program";
+function clean_filename(s: string): string {
+	return clean_string(s);
+}
+
+export function serialize_short(state: ISerializableState): string {
+	let query = "";
+	if (state.filename) {
+		query += encodeURIComponent(clean_filename(state.filename));
+	}
+
+	{
+		const m = [...state.memory];
+		while (m[m.length - 1] === 0) {
+			m.pop();
+		}
+		query += `?p=${encodeURIComponent(b64_encode(m))}`;
+	}
+
+	return query;
+}
+
+export function serialize_long(state: ISerializableState): [string, string] {
+	const filename = state.filename ? clean_filename(state.filename) : "new_program";
 	const filename_ext = `${filename}.txt`;
 	let out = "";
 	// Write
@@ -77,7 +104,7 @@ const parse_transitions = {
 	after_vram: ["end"],
 };
 
-export function deserialize(s: string): ISerializableState {
+export function deserialize_long(s: string): ISerializableState {
 	type parse_modes =
 		| "start"
 		| "filename"
@@ -157,8 +184,6 @@ export function deserialize(s: string): ISerializableState {
 
 		i += 1;
 	}
-
-	console.log(parsed);
 
 	return parsed;
 }

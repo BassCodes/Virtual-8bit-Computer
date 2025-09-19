@@ -1,46 +1,37 @@
-Verify mod256 behavior on negatives
-
-Edit Mode
-
-change program counter.
-
-Speed control slider behavior
-Speed control slider styling
-Overclock Box
-
-Error log:
 error in instruction when number out of range (fix new Error("todo"))
-
-- Allow ignoring errors
-- Highlight errored instruction parameters and give description
 
 Improve instruction explainer. Clearly show what is an instruction and what is a parameter
 
 Ui showing CPU flag(s) (Carry)
 
-Responsive layout
-
 Documentation with standard names
 
-Share programs from encoded url
+URL Loading:
+
+- Determine how to have multiple data in one url.
+- load parse url to serializabledata.
 
 Example Programs (loaded as one of those encoded string url things)
-
-Switch to unified icons (no emojis)
 
 Instruction table, print parameter purpose
 
 Memory color legend
 
-Nibble Memory colors.
-Nibble intruction explainer colors.
-
-Make comparison operators have NR(...) as first param
+Better Memory colors
 
 When paused, yellowish colors fade to dark yellow
 
 Button state colored properly based on active and available
 
-Dedicated fonts
-
 Don't check errors in instruction execute. Throw in functions and catch in CPU
+
+Lock Icon over on/off/speed buttons when edit mode on
+
+Halt on invalid instruction/parameter/div by zero
+
+## CSS Styles
+
+Extract colors into variables
+Replace font size with rm units
+
+mobile layout

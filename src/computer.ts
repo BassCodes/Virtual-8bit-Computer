@@ -10,15 +10,11 @@ import { m256, u3, u8 } from "./num";
 
 const CLOCK_SPEED_MAP: Record<CpuSpeed, [number, number]> = {
 	slow: [1000, 1],
-	normal: [200, 1],
+	normal: [150, 1],
 	fast: [100, 1],
-	turbo: [1, 128],
+	"super fast": [5, 1],
+	turbo: [1, 512],
 };
-
-interface IAbstractComputer {
-	readonly memory: Uint8Array;
-	readonly program_counter: u8;
-}
 
 interface InstructionReadError {
 	error: true;
@@ -37,30 +33,6 @@ interface IReadingInstruction {
 	params: Array<u8 | null>;
 }
 
-function read_next_instruction(c: IAbstractComputer): IReadingInstruction | InstructionReadError {
-	const byte = c.memory[c.program_counter] as u8;
-	const parsed_instruction = ISA.getInstruction(byte);
-	if (parsed_instruction === null) {
-		return { error: true, data: byte };
-	}
-	const instruction: IReadingInstruction = {
-		pos: c.program_counter,
-		opcode: byte,
-		instr: parsed_instruction,
-		valid: true,
-		params: [],
-	};
-	return instruction;
-}
-
-function read_next_instruction_param(c: IAbstractComputer, param_type: ParameterType): u8 | ParamReadError {
-	const byte = c.memory[c.program_counter] as u8;
-	if (!param_type.validate(byte)) {
-		return { error: true, data: byte };
-	}
-	return byte;
-}
-
 export default class Computer {
 	memory: Uint8Array = new Uint8Array(256);
 	vram: Uint8Array = new Uint8Array(256);
@@ -77,7 +49,7 @@ export default class Computer {
 		let should_step = true;
 
 		if (this.current_instr === null) {
-			const instruction = read_next_instruction(this);
+			const instruction = this.read_next_instruction();
 			if ("error" in instruction) {
 				this.events.dispatch(CpuEvent.InvalidInstructionParsed, {
 					pos: this.program_counter,
@@ -94,7 +66,7 @@ export default class Computer {
 			}
 		} else if (this.current_instr.params.length < this.current_instr.instr.params.length) {
 			const param_type = this.current_instr.instr.params[this.current_instr.params.length];
-			const param = read_next_instruction_param(this, param_type);
+			const param = this.read_next_instruction_param(param_type);
 
 			if (typeof param === "number") {
 				this.events.dispatch(CpuEvent.ParameterParsed, {
@@ -121,7 +93,12 @@ export default class Computer {
 					const params: Array<u8> = this.current_instr.params.map((p) => p as u8);
 					try {
 						this.current_instr.instr.execute(this, params, nostep);
-						this.events.dispatch(CpuEvent.InstructionExecuted, { instr: this.current_instr.instr });
+						this.events.dispatch(CpuEvent.InstructionExecuted, {
+							instr: this.current_instr.instr,
+							code: this.current_instr.opcode,
+							start_pos: this.current_instr.pos,
+							end_pos: m256(this.current_instr.pos + this.current_instr.params.length),
+						});
 					} catch (all) {
 						this.events.dispatch(CpuEvent.InstructionErrored, { instr: this.current_instr.instr, error_type: "todo" });
 					}
@@ -136,10 +113,28 @@ export default class Computer {
 		}
 	}
 
-	private getMemorySilent(address: u8): u8 {
-		const value = this.memory[address] as u8;
+	private read_next_instruction(): IReadingInstruction | InstructionReadError {
+		const byte = this.memory[this.program_counter] as u8;
+		const parsed_instruction = ISA.getInstruction(byte);
+		if (parsed_instruction === null) {
+			return { error: true, data: byte };
+		}
+		const instruction: IReadingInstruction = {
+			pos: this.program_counter,
+			opcode: byte,
+			instr: parsed_instruction,
+			valid: true,
+			params: [],
+		};
+		return instruction;
+	}
 
-		return value;
+	private read_next_instruction_param(param_type: ParameterType): u8 | ParamReadError {
+		const byte = this.memory[this.program_counter] as u8;
+		if (!param_type.validate(byte)) {
+			return { error: true, data: byte };
+		}
+		return byte;
 	}
 
 	halt(): void {
@@ -147,7 +142,7 @@ export default class Computer {
 	}
 
 	getMemory(address: u8): u8 {
-		const value = this.getMemorySilent(address);
+		const value = this.memory[address] as u8;
 		this.events.dispatch(CpuEvent.MemoryAccessed, { address, value });
 
 		return value;
@@ -196,6 +191,7 @@ export default class Computer {
 
 	clockStop(): void {
 		this.on = false;
+		this.events.dispatch(CpuEvent.ClockStopped);
 	}
 	clockStart(): void {
 		if (this.on) return;
@@ -205,10 +201,11 @@ export default class Computer {
 			for (let i = 0; i < this.instr_per_cycle; i++) {
 				this.cycle();
 			}
-			this.events.dispatch(CpuEvent.Cycle, this.instr_per_cycle);
+			this.events.dispatch(CpuEvent.ClockCycle, this.instr_per_cycle);
 			setTimeout(loop, this.clock_speed);
 		};
 		loop();
+		this.events.dispatch(CpuEvent.ClockStarted);
 	}
 	clockStep(): void {
 		this.clockStop();
@@ -221,7 +218,6 @@ export default class Computer {
 		ui.listen(UiCpuSignal.StopCpu, () => this.clockStop());
 
 		ui.listen(UiCpuSignal.SetSpeed, (speed) => {
-			console.log("new speed", speed);
 			[this.clock_speed, this.instr_per_cycle] = CLOCK_SPEED_MAP[speed];
 		});
 
@@ -244,6 +240,7 @@ export default class Computer {
 		this.setCarry(false);
 		this.current_instr = null;
 		this.setProgramCounter(0);
+		this.clockStop();
 	}
 	reset(): void {
 		this.events.dispatch(CpuEvent.Reset);
@@ -255,6 +252,7 @@ export default class Computer {
 		this.setCarry(false);
 		this.current_instr = null;
 		this.setProgramCounter(0);
+		this.clockStop();
 	}
 
 	loadMemory(program: Array<u8>): void {

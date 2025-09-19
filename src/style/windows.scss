@@ -2,7 +2,6 @@
 	overflow-y: hidden;
 	position: relative;
 	border: 5px Solid var(--border);
-	border-bottom: unset;
 
 	.window_title {
 		display: flex;
@@ -28,7 +27,6 @@
 .window#tv {
 	height: unset;
 	border-left: 0;
-	border-bottom: 0;
 	#screen {
 		max-width: 100%;
 		aspect-ratio: 1;
@@ -36,8 +34,8 @@
 }
 
 #instruction_explainer {
-	border-left: 0;
-
+	border-left: unset;
+	border-top: unset;
 	display: flex;
 	flex-direction: column;
 	gap: 5px;

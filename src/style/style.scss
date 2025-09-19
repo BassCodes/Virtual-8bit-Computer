@@ -1,11 +1,11 @@
+@use "fonts";
 @use "memory_registers";
-@use "hover_text_box";
 @use "article";
 @use "windows";
 @use "top_meta";
 @use "buttons";
 @use "table";
-@use "vars";
+@use "vars" as *;
 
 #isa_container summary {
 	font-size: 1.5rem;
@@ -26,8 +26,8 @@ img {
 body {
 	color: #808080;
 	background-color: black;
-	font-size: 2.5em;
-	font-family: monospace;
+	font-size: 1.6em;
+	font-family: $monospace;
 }
 
 main {
@@ -43,9 +43,9 @@ main {
 	grid-template-rows: min-content min-content min-content min-content;
 	grid-template-areas:
 		".        .  	    .       .       .		 "
-		".        registers .		.       titlebar "
+		".        registers reglabel		.       titlebar "
+		"memlabel memory	memory	memory  tv		 "
 		"title    memory	memory	memory  tv		 "
-		"title    memory	memory  memory  explainer"
 		".        buttons   buttons buttons explainer";
 
 	#instruction_explainer {
@@ -88,19 +88,6 @@ main {
 	}
 }
 
-#reset_buttons {
-	flex-direction: column;
-	display: flex;
-	align-items: end;
-	button {
-		margin-bottom: 7px;
-		margin-right: 7px;
-		border: 5px solid yellow;
-		padding: 5px;
-		width: fit-content;
-	}
-}
-
 #reg_label,
 #mem_label {
 	font-size: 0.75em;
@@ -110,39 +97,7 @@ main {
 #mem_label {
 	writing-mode: vertical-lr;
 	text-align: right;
-	margin-top: 5px;
-	user-select: none;
 	transform: scale(-1, -1);
-}
-
-#memory_bank_view {
-	display: flex;
-	#bank_boxes {
-		display: flex;
-		align-items: flex-end;
-		$pad: 8px;
-		$border-width: 5px;
-		$border: $border-width solid var(--border);
-		button {
-			border-top: $border;
-			border-bottom: unset;
-			padding-inline: $pad + $border-width;
-		}
-		button:first-child {
-			border-left: $border;
-			padding-left: $pad;
-		}
-		button:last-child {
-			padding-right: $pad;
-			border-right: $border;
-		}
-		button.selected {
-			color: lightgray;
-			padding-block: 5px;
-			padding-inline: $pad;
-			border-inline: $border;
-		}
-	}
 }
 
 .invalid {
@@ -160,48 +115,20 @@ main {
 .instruction {
 	--color: var(--mem-instruction);
 }
-
-div#main.editor {
-	#memory,
-	#registers {
-		border-style: dashed;
-		div {
-			cursor: text;
-		}
-	}
+.nibregpair {
+	--color: var(--mem-reg-nib-pair);
 }
 
 #controls_bar {
 	grid-area: buttons;
-	border-right: 5px solid yellow;
+	border-right: $thick-border-width solid yellow;
 	display: flex;
-	gap: 10px;
+	gap: 0.5ch;
+	height: min-content;
 	#controls_buttons {
 		display: flex;
+
 		gap: inherit;
 		justify-content: inherit;
-	}
-	#save_load_buttons {
-		display: flex;
-		gap: inherit;
-		justify-content: inherit;
-	}
-}
-
-#edit_button {
-	aspect-ratio: 1;
-
-	display: flex;
-	justify-content: center;
-	align-content: center;
-	img {
-		min-height: 30px;
-		min-width: 30px;
-		&:hover {
-			filter: grayscale(100%) brightness(500%);
-		}
-	}
-	&.on img {
-		filter: grayscale(100%) brightness(500%);
 	}
 }

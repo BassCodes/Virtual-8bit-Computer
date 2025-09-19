@@ -9,7 +9,6 @@ import { $ } from "./etc";
 import { ISA } from "./instructionSet";
 import { generateIsaTable } from "./isaGenerator";
 import { u8 } from "./num";
-
 import "./style/style.scss";
 import { CpuEvent } from "./events";
 

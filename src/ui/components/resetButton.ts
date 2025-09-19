@@ -17,7 +17,7 @@ export default class ResetButton implements UiComponent {
 		this.cpu_signals = cpu_signals;
 		el("button")
 			.ti("Reset State")
-			.tx("⟳")
+			.tx("Reset")
 			.ev("click", () => this.cpu_signals.dispatch(UiCpuSignal.RequestCpuSoftReset))
 			.appendTo(this.container);
 	}

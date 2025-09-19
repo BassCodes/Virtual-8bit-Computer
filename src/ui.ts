@@ -6,14 +6,13 @@ import MemoryView from "./ui/components/memoryView";
 import frequencyIndicator from "./ui/components/frequencyIndicator";
 import RegisterView from "./ui/components/registerView";
 import EditButton from "./ui/components/editButton";
-import PausePlay from "./ui/components/pausePlay";
+import ButtonBox from "./ui/components/buttonBox";
 import SaveLoad from "./ui/components/saveLoad";
 import ResetButton from "./ui/components/resetButton";
-import TrashButton from "./ui/components/trashButton";
 import TitleBox from "./ui/components/titleBox";
 // Window Components
-import InstructionExplainer from "./ui/windows/instructionExplainer";
-import Screen from "./ui/windows/screen";
+import InstructionExplainer from "./ui/components/instructionExplainer";
+import Screen from "./ui/components/screen";
 
 export default class UI {
 	ui_events: UiEventHandler = new UiEventHandler();
@@ -27,11 +26,10 @@ export default class UI {
 		this.register_component(InstructionExplainer, "instruction_explainer");
 		this.register_component(RegisterView, "registers");
 		this.register_component(Screen, "tv");
-		this.register_component(PausePlay, "controls_buttons");
+		this.register_component(ButtonBox, "controls_buttons");
 		this.register_component(SaveLoad, "save_load_buttons");
 		this.register_component(EditButton, "edit_button_box");
 		this.register_component(ResetButton, "reset_button_box");
-		this.register_component(TrashButton, "trash_button_box");
 		this.register_component(TitleBox, "title_box");
 		this.seal();
 	}

@@ -23,6 +23,7 @@ div#program_meta {
 			gap: inherit;
 		}
 	}
+
 	justify-content: space-between;
 
 	border-bottom: 2px solid yellow;
@@ -34,6 +35,10 @@ div#program_meta {
 		margin: unset;
 		padding: unset;
 		border: unset;
+		img {
+			margin-top: auto;
+			display: block;
+		}
 	}
 
 	#trash_button:hover {
