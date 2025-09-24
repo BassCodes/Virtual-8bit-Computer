@@ -33,7 +33,7 @@ export default class StateManager implements UiComponent {
 
 	initCpuEvents(c: CpuEventHandler): void {
 		c.listen(CpuEvent.ClockStarted, () => this.setState("Running"));
-		// c.listen(CpuEvent.ClockStopped, () => this.setState("Ready"));
+		c.listen(CpuEvent.ClockStopped, () => this.setState("Ready"));
 		c.listen(CpuEvent.InstructionErrored, () => this.setState("Errored"));
 		c.listen(CpuEvent.InstructionParseErrored, () => this.setState("Errored"));
 	}
