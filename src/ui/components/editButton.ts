@@ -35,6 +35,7 @@ export default class EditButton implements UiComponent {
 			$("root").classList.remove("editor");
 			this.edit_button.classList.add("off");
 			this.events.dispatch(UiEvent.EditOff);
+			this.cpu_signals.dispatch(UiCpuSignal.RequestProgramCounterChange, 0);
 		} else {
 			this.events.dispatch(UiEvent.EditOn);
 			this.cpu_signals.dispatch(UiCpuSignal.StopCpu);

@@ -7,6 +7,7 @@ import { CpuEvent, CpuEventHandler, CpuSpeed, UiCpuSignal, UiCpuSignalHandler } 
 import { formatHex } from "./etc";
 import { Instruction, ISA, ParameterType } from "./instructionSet";
 import { m256, u3, u8 } from "./num";
+import { InstructionReadError, ParamReadError } from "./runtime_errors.js";
 
 const CLOCK_SPEED_MAP: Record<CpuSpeed, [number, number]> = {
 	slow: [1000, 1],
@@ -15,15 +16,6 @@ const CLOCK_SPEED_MAP: Record<CpuSpeed, [number, number]> = {
 	"super fast": [5, 1],
 	turbo: [1, 512],
 };
-
-interface InstructionReadError {
-	error: true;
-	data: u8;
-}
-interface ParamReadError {
-	error: true;
-	data: u8;
-}
 
 interface IReadingInstruction {
 	pos: u8;
@@ -44,6 +36,7 @@ export default class Computer {
 	on: boolean = false;
 	clock_speed: number = CLOCK_SPEED_MAP.normal[0];
 	instr_per_cycle: number = CLOCK_SPEED_MAP.normal[1];
+	clock_locked: boolean = false;
 
 	cycle(): void {
 		let should_step = true;
@@ -55,7 +48,8 @@ export default class Computer {
 					pos: this.program_counter,
 					code: instruction.data,
 				});
-				console.log(`Invalid instruction: ${formatHex(instruction.data)}`);
+
+				this.clockStop();
 			} else {
 				this.events.dispatch(CpuEvent.InstructionParseBegin, {
 					pos: this.program_counter,
@@ -84,23 +78,25 @@ export default class Computer {
 				this.current_instr.valid = false;
 				this.current_instr.params.push(null);
 			}
+		}
 
+		if (this.current_instr !== null) {
 			if (this.current_instr.params.length === this.current_instr.instr.params.length) {
 				const nostep = (): void => {
 					should_step = false;
 				};
 				if (this.current_instr.valid) {
 					const params: Array<u8> = this.current_instr.params.map((p) => p as u8);
-					try {
-						this.current_instr.instr.execute(this, params, nostep);
-						this.events.dispatch(CpuEvent.InstructionExecuted, {
-							instr: this.current_instr.instr,
-							code: this.current_instr.opcode,
-							start_pos: this.current_instr.pos,
-							end_pos: m256(this.current_instr.pos + this.current_instr.params.length),
-						});
-					} catch (all) {
-						this.events.dispatch(CpuEvent.InstructionErrored, { instr: this.current_instr.instr, error_type: "todo" });
+					const error = this.current_instr.instr.execute(this, params, nostep);
+					this.events.dispatch(CpuEvent.InstructionExecuted, {
+						instr: this.current_instr.instr,
+						code: this.current_instr.opcode,
+						start_pos: this.current_instr.pos,
+						end_pos: m256(this.current_instr.pos + this.current_instr.params.length),
+					});
+					if (error) {
+						this.reset();
+						return;
 					}
 				}
 
@@ -135,10 +131,6 @@ export default class Computer {
 			return { error: true, data: byte };
 		}
 		return byte;
-	}
-
-	halt(): void {
-		this.events.dispatch(CpuEvent.Halt);
 	}
 
 	getMemory(address: u8): u8 {
@@ -194,7 +186,7 @@ export default class Computer {
 		this.events.dispatch(CpuEvent.ClockStopped);
 	}
 	clockStart(): void {
-		if (this.on) return;
+		if (this.on || this.clock_locked) return;
 		this.on = true;
 		const loop = (): void => {
 			if (!this.on) return;
@@ -211,6 +203,12 @@ export default class Computer {
 		this.clockStop();
 		this.cycle();
 	}
+	clockLock(): void {
+		if (this.clock_locked) return;
+		this.clockStop();
+		this.events.dispatch(CpuEvent.ClockLocked);
+		this.clock_locked = true;
+	}
 
 	initEvents(ui: UiCpuSignalHandler): void {
 		ui.listen(UiCpuSignal.StepCpu, () => this.clockStep());
@@ -226,23 +224,25 @@ export default class Computer {
 		ui.listen(UiCpuSignal.RequestRegisterChange, ({ register_no, value }) => this.setRegister(register_no, value));
 		ui.listen(UiCpuSignal.RequestMemoryDump, (callback) => callback(this.dumpMemory()));
 		ui.listen(UiCpuSignal.RequestVramDump, (callback) => callback(this.dumpVram()));
-		ui.listen(UiCpuSignal.RequestProgramCounterChange, ({ address }) => {
-			this.setProgramCounter(address);
-		});
+		ui.listen(UiCpuSignal.RequestProgramCounterChange, (address) => this.setProgramCounter(address));
 		ui.listen(UiCpuSignal.RequestCpuReset, () => this.reset());
 		ui.listen(UiCpuSignal.RequestCpuSoftReset, () => this.softReset());
 	}
 
 	softReset(): void {
+		this.clockStop();
+		this.clock_locked = false;
 		this.events.dispatch(CpuEvent.SoftReset);
 		for (let i = 0; i < 8; i++) this.setRegister(i as u3, 0);
 		this.vram = new Uint8Array(256);
 		this.setCarry(false);
 		this.current_instr = null;
 		this.setProgramCounter(0);
-		this.clockStop();
 	}
 	reset(): void {
+		this.clockStop();
+		this.clock_locked = false;
+
 		this.events.dispatch(CpuEvent.Reset);
 		// Hard reset
 		this.memory = new Uint8Array(256);
@@ -252,7 +252,6 @@ export default class Computer {
 		this.setCarry(false);
 		this.current_instr = null;
 		this.setProgramCounter(0);
-		this.clockStop();
 	}
 
 	loadMemory(program: Array<u8>): void {

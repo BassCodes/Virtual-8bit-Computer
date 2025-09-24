@@ -5,7 +5,7 @@
  */
 import { EventHandler } from "./eventHandler";
 import { Instruction, ParameterType } from "./instructionSet";
-import { u2, u3, u8 } from "./num";
+import { u3, u8 } from "./num";
 
 //
 // CPU Event Handler Definition
@@ -23,22 +23,22 @@ export enum CpuEvent {
 	InstructionExecuted,
 	Reset,
 	SoftReset,
-	Halt,
 	MemoryAccessed,
 	SetFlagCarry,
 	InstructionErrored,
 	ClockCycle,
 	ClockStarted,
 	ClockStopped,
+	ClockLocked,
 }
 
 type VoidDataCpuEventList =
-	| CpuEvent.Halt
 	| CpuEvent.Reset
 	| CpuEvent.SoftReset
 	| CpuEvent.InstructionParseEnd
 	| CpuEvent.ClockStarted
-	| CpuEvent.ClockStopped;
+	| CpuEvent.ClockStopped
+	| CpuEvent.ClockLocked;
 
 interface CpuEventMap {
 	[CpuEvent.MemoryChanged]: { address: u8; value: u8 };
@@ -101,7 +101,7 @@ interface UiCpuSignalMap {
 	[UiCpuSignal.RequestMemoryChange]: { address: u8; value: u8 };
 	[UiCpuSignal.RequestVramChange]: { address: u8; value: u8 };
 	[UiCpuSignal.RequestRegisterChange]: { register_no: u3; value: u8 };
-	[UiCpuSignal.RequestProgramCounterChange]: { address: u8 };
+	[UiCpuSignal.RequestProgramCounterChange]: u8;
 	[UiCpuSignal.RequestMemoryDump]: (memory: Uint8Array) => void;
 	[UiCpuSignal.RequestVramDump]: (vram: Uint8Array) => void;
 	[UiCpuSignal.SetSpeed]: CpuSpeed;

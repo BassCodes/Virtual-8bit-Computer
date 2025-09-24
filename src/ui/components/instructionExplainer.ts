@@ -42,10 +42,16 @@ export default class InstructionExplainer implements UiComponent {
 		this.addBox(formatHex(byte), instr.name, "instruction");
 	}
 
-	private addBox(box_icon_text: string, name: string, css_class: string): void {
+	private addBox(box_icon_text: string, name: string, ...css_class: string[]): void {
 		el("div")
 			.id("expl_box")
-			.ch(el("span").id("expl_icon").cl(css_class).at("title", css_class.toUpperCase()).tx(box_icon_text))
+			.ch(
+				el("span")
+					.id("expl_icon")
+					.do((t) => css_class.forEach((c) => t.cl(c)))
+					.at("title", css_class[0].toUpperCase())
+					.tx(box_icon_text)
+			)
 			.ch(el("span").id("expl_text").tx(name))
 			.appendTo(this.container);
 	}
@@ -59,7 +65,7 @@ export default class InstructionExplainer implements UiComponent {
 	addInvalidParam(param: ParameterType, pos: u8, byte: u8): void {
 		const t = param.type;
 
-		this.addBox(formatHex(byte), param.desc, `${p_map[t]} invalid`);
+		this.addBox(formatHex(byte), param.desc, p_map[t], "invalid");
 	}
 
 	addInvalidInstr(pos: u8, byte: u8): void {

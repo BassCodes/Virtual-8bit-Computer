@@ -66,6 +66,13 @@ class ElementInProgress<E extends HTMLElement> {
 	fin(): E {
 		return this.element;
 	}
+
+	/** Do something with element */
+	do(fn: (p: ElementInProgress<E>) => void): ElementInProgress<E> {
+		fn(this);
+		return this;
+	}
+
 	/** custom logic */
 	map(f: (e: E) => void): ElementInProgress<E> {
 		f(this.element);

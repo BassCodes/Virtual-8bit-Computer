@@ -23,11 +23,14 @@ When paused, yellowish colors fade to dark yellow
 
 Button state colored properly based on active and available
 
-Don't check errors in instruction execute. Throw in functions and catch in CPU
-
 Lock Icon over on/off/speed buttons when edit mode on
 
 Halt on invalid instruction/parameter/div by zero
+Don't check errors in instruction execute. Throw in functions and catch in CPU
+
+Noop stalls computer
+
+TV color schemes
 
 ## CSS Styles
 

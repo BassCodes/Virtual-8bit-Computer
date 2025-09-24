@@ -40,12 +40,18 @@ $thickness: 2px;
 			border-bottom-left-radius: $radius;
 			border-right-color: transparent;
 		}
+
 		.endcap.active {
 			border-right: $thickness dashed var(--color);
 		}
 		.endcap:not(.active) {
 			border-top-right-radius: $radius;
 			border-bottom-right-radius: $radius;
+			&.instruction {
+				border-top-right-radius: $radius;
+				border-bottom-right-radius: $radius;
+				border-right-color: var(--color);
+			}
 		}
 
 		.invalid ::after {

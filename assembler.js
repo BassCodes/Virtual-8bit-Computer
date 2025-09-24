@@ -107,7 +107,7 @@ addInstruction("gotosave", (p) => {
 	return [hex(0x25), hex(r), { label }];
 });
 addInstruction("nop", (p) => {
-	return [hex(0x2c)];
+	return [hex(0x00)];
 });
 
 addInstruction("EQ", (p) => {
