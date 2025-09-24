@@ -154,7 +154,7 @@ ISA.addCategory(category(0xf0, 0xff, "IO"));
 
 // COPY
 ISA.insertInstruction(0x10, {
-	name: "Copy CR -> CA",
+	name: "Copy CR -> CM",
 	desc: "Copy the byte in register (P1) to the memory address (P2)",
 	params: [new RegisParam("Write the byte in this register"), new ConstMemorParam("To this memory address")],
 	execute(c, p) {
@@ -164,19 +164,8 @@ ISA.insertInstruction(0x10, {
 	},
 });
 
-ISA.insertInstruction(0x16, {
-	name: "Copy CA -> CR",
-	desc: "Copy the byte in memory address (P2) to the register (P1)",
-	params: [new ConstMemorParam("Store to this register"), new ConstMemorParam("The byte at this memory address")],
-	execute(c, p) {
-		const [register_no_1, mem_address] = p;
-		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
-		c.setRegister(register_no_1, c.getMemory(mem_address));
-	},
-});
-
 ISA.insertInstruction(0x11, {
-	name: "Copy CA -> R",
+	name: "Copy CM -> R",
 	desc: "Copy the byte in memory address (P1) to the register (P2)",
 	params: [new ConstMemorParam(""), new RegisParam("")],
 	execute(c, p) {
@@ -187,7 +176,7 @@ ISA.insertInstruction(0x11, {
 });
 
 ISA.insertInstruction(0x12, {
-	name: "Copy CM -> CA",
+	name: "Copy CM -> CM",
 	desc: "Copy the byte in memory address (P1) to memory address (P2)",
 	params: [new ConstMemorParam("Copy the byte in this memory address"), new ConstMemorParam("To this memory address")],
 	execute(c, p) {
@@ -211,11 +200,7 @@ ISA.insertInstruction(0x13, {
 ISA.insertInstruction(0x14, {
 	name: "Load RA -> R",
 	desc: "Copy the byte in memory addressed by register (P1) to register (P2)",
-	params: [
-		// new RegisAddrParam("Copy the byte in the memory cell addressed in this register"),
-		// new RegisParam("To this register"),
-		new NibbleRegisPairParam("", "RM", "R"),
-	],
+	params: [new NibbleRegisPairParam("", "RM", "R")],
 	execute(c, p) {
 		const [nibbles] = p;
 		const [register_no_1, register_no_2] = splitNibbles(nibbles);
