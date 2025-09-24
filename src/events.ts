@@ -7,6 +7,7 @@ import { EventHandler } from "./eventHandler";
 import { Instruction, ParameterType } from "./instructionSet";
 import { u3, u8 } from "./num";
 import { InstructionParseError, RuntimeError } from "./errorTypes";
+import { ComputerStateUiRepresentation } from "./ui/components/stateManager.js";
 
 //
 // CPU Event Handler Definition
@@ -132,11 +133,13 @@ export enum UiEvent {
 	TurboOff,
 	FileNameChange,
 	RequestFilename,
+	StateChange,
 }
 
 interface UiEventMap {
 	[UiEvent.FileNameChange]: string;
 	[UiEvent.RequestFilename]: (s: string) => void;
+	[UiEvent.StateChange]: ComputerStateUiRepresentation;
 }
 
 type VoidDataUiEventList = UiEvent.EditOn | UiEvent.EditOff | UiEvent.TurboOff | UiEvent.TurboOn;

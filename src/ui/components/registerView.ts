@@ -16,14 +16,14 @@ export default class RegisterView extends CelledViewer implements UiComponent {
 		this.events = events;
 		this.cpu_signals = cpu_signals;
 
-		this.events.listen(UiEvent.EditOn, () => {
-			this.editor.enable();
-			for (const cell of this.cells) cell.el.className = "";
-		});
-		this.events.listen(UiEvent.EditOff, () => {
-			this.editor.disable();
-			for (const cell of this.cells) cell.el.className = "";
-		});
+		// this.events.listen(UiEvent.EditOn, () => {
+		// 	this.editor.enable();
+		// 	for (const cell of this.cells) cell.el.className = "";
+		// });
+		// this.events.listen(UiEvent.EditOff, () => {
+		// 	this.editor.disable();
+		// 	for (const cell of this.cells) cell.el.className = "";
+		// });
 	}
 
 	onEdit(address: u8, value: u8): void {

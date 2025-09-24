@@ -80,11 +80,12 @@ export default class InstructionExplainer implements UiComponent {
 		c.listen(CpuEvent.ParameterParsed, ({ param, code, pos }) => {
 			if (this.activated) this.addParameter(param, pos, code);
 		});
-		c.listen(CpuEvent.InvalidParameterParsed, ({ param, code, pos }) => {
-			if (this.activated) this.addInvalidParam(param, code, pos);
-		});
-		c.listen(CpuEvent.InvalidInstructionParsed, ({ code, pos }) => {
-			if (this.activated) this.addInvalidInstr(pos, code);
+		c.listen(CpuEvent.InstructionParseErrored, ({ instr, error, pos }) => {
+			if (error.err === "invalid_parameter") {
+				if (this.activated) this.addInvalidParam(error.expected, error.data, pos);
+			} else {
+				if (this.activated) this.addInvalidInstr(pos, error.data);
+			}
 		});
 	}
 

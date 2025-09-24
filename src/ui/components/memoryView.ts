@@ -25,7 +25,6 @@ function createMemoryViewer(element: HTMLElement, edit_callback: (address: u8, v
 		edit_callback(address, value);
 	});
 
-	view.container.classList.add("selected");
 	element.appendChild(view.container);
 
 	return view;

@@ -1,8 +1,6 @@
-error in instruction when number out of range (fix new Error("todo"))
-
 Improve instruction explainer. Clearly show what is an instruction and what is a parameter
 
-Ui showing CPU flag(s) (Carry)
+Ui showing CPU flag(s) (Carry), UIStateRepresentation, and clockspeed
 
 Documentation with standard names
 
@@ -19,18 +17,9 @@ Memory color legend
 
 Better Memory colors
 
-When paused, yellowish colors fade to dark yellow
-
-Button state colored properly based on active and available
-
-Lock Icon over on/off/speed buttons when edit mode on
-
-Halt on invalid instruction/parameter/div by zero
-Don't check errors in instruction execute. Throw in functions and catch in CPU
-
-Noop stalls computer
-
 TV color schemes
+
+Hover explainer
 
 ## CSS Styles
 

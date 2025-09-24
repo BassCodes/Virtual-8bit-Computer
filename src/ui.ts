@@ -2,14 +2,16 @@ import { CpuEvent, CpuEventHandler, UiCpuSignalHandler, UiEventHandler } from ".
 import { $ } from "./etc";
 import UiComponent, { UiComponentConstructor } from "./ui/uiComponent";
 // Components
+import StateManager from "./ui/components/stateManager";
 import MemoryView from "./ui/components/memoryView";
 import frequencyIndicator from "./ui/components/frequencyIndicator";
 import RegisterView from "./ui/components/registerView";
 import EditButton from "./ui/components/editButton";
 import ButtonBox from "./ui/components/buttonBox";
 import SaveLoad from "./ui/components/saveLoad";
-import ResetButton from "./ui/components/resetButton";
+// import ResetButton from "./ui/components/resetButton";
 import TitleBox from "./ui/components/titleBox";
+import StatusIndicator from "./ui/components/statusIndicator";
 // Window Components
 import InstructionExplainer from "./ui/components/instructionExplainer";
 import Screen from "./ui/components/screen";
@@ -17,27 +19,24 @@ import Screen from "./ui/components/screen";
 export default class UI {
 	ui_events: UiEventHandler = new UiEventHandler();
 	cpu_signaler: UiCpuSignalHandler = new UiCpuSignalHandler();
-	private sealed: boolean = false;
 	private components: Array<UiComponent> = [];
 
 	constructor() {
+		this.register_component(StateManager, "ui");
 		this.register_component(MemoryView, "memory");
-		this.register_component(frequencyIndicator, "cycles");
 		this.register_component(InstructionExplainer, "instruction_explainer");
 		this.register_component(RegisterView, "registers");
 		this.register_component(Screen, "tv");
 		this.register_component(ButtonBox, "controls_buttons");
 		this.register_component(SaveLoad, "save_load_buttons");
 		this.register_component(EditButton, "edit_button_box");
-		this.register_component(ResetButton, "reset_button_box");
+		// this.register_component(ResetButton, "reset_button_box");
 		this.register_component(TitleBox, "title_box");
-		this.seal();
+		// this.register_component(frequencyIndicator, "cycles");
+		this.register_component(StatusIndicator, "status_indicator");
 	}
 
 	private register_component(ctor: UiComponentConstructor, el_id: string): void {
-		if (this.sealed) {
-			throw new Error("attempted to add component to sealed UI");
-		}
 		const e = $(el_id);
 		if (!e) {
 			console.log(ctor);
@@ -47,16 +46,10 @@ export default class UI {
 		this.components.push(component);
 	}
 
-	private seal(): void {
-		if (this.sealed) {
-			throw new Error("attempted to double-seal UI");
-		}
-		this.sealed = true;
-	}
-
 	initEvents(cpu_events: CpuEventHandler): void {
 		cpu_events.listen(CpuEvent.Reset, () => this.reset());
 		cpu_events.listen(CpuEvent.SoftReset, () => this.softReset());
+
 		for (const c of this.components) if (c.initCpuEvents) c.initCpuEvents(cpu_events);
 	}
 

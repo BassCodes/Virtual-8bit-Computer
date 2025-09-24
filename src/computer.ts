@@ -180,8 +180,8 @@ export default class Computer implements GenericComputer {
 
 	clockStop(): void {
 		if (this.clock_on) {
-			this.clock_on = false;
 			this.events.dispatch(CpuEvent.ClockStopped);
+			this.clock_on = false;
 		}
 	}
 	clockStart(): void {
@@ -195,8 +195,8 @@ export default class Computer implements GenericComputer {
 			this.events.dispatch(CpuEvent.ClockCycle, this.instr_per_cycle);
 			setTimeout(loop, this.clock_speed);
 		};
-		loop();
 		this.events.dispatch(CpuEvent.ClockStarted);
+		loop();
 	}
 	clockStep(): void {
 		this.clockStop();
@@ -205,7 +205,7 @@ export default class Computer implements GenericComputer {
 		}
 	}
 	clockLock(): void {
-		this.clockStop();
+		this.clock_on = false;
 		if (this.clock_locked) return;
 		this.events.dispatch(CpuEvent.ClockLocked);
 		this.clock_locked = true;

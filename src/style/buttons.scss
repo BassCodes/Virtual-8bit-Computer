@@ -3,7 +3,7 @@
 
 button,
 label.button {
-	border: $thick-border-width solid yellow;
+	border: $thick-border-width solid var(--border);
 	color: gray;
 	margin: 10px;
 	margin-inline: 0px;

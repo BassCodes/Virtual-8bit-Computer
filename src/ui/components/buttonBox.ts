@@ -22,6 +22,7 @@ export default class ButtonBox implements UiComponent {
 	start_button: HTMLButtonElement;
 	step_button: HTMLButtonElement;
 	speed_button: HTMLButtonElement;
+	reset_button: HTMLButtonElement;
 	events: UiEventHandler;
 	on: boolean = false;
 	cpu_signals: UiCpuSignalHandler;
@@ -34,7 +35,13 @@ export default class ButtonBox implements UiComponent {
 		this.start_button = el("button")
 			.id("pause_play_button")
 			.tx("Start")
-			.ev("click", () => this.toggle())
+			.ev("click", () => {
+				if (this.on) {
+					this.cpu_signals.dispatch(UiCpuSignal.StopCpu);
+				} else {
+					this.cpu_signals.dispatch(UiCpuSignal.StartCpu);
+				}
+			})
 			.appendTo(this.container);
 		this.step_button = el("button")
 			.id("step_button")
@@ -54,30 +61,44 @@ export default class ButtonBox implements UiComponent {
 				(e.target as HTMLElement).textContent = this.current_speed.toUpperCase();
 			})
 			.appendTo(this.container);
-		this.events.listen(UiEvent.EditOn, () => this.disable());
-		this.events.listen(UiEvent.EditOff, () => this.enable());
+
+		this.reset_button = el("button")
+			.ti("Reset State")
+			.tx("Reset")
+			.ev("click", () => this.cpu_signals.dispatch(UiCpuSignal.RequestCpuSoftReset))
+			.appendTo(this.container);
+
+		this.events.listen(UiEvent.StateChange, (s) => {
+			switch (s) {
+				case "Edit":
+					this.lock();
+					lock_button(this.reset_button);
+					this.start_button.textContent = "Start";
+					break;
+				case "Errored":
+					this.lock();
+					this.start_button.textContent = "Start";
+					break;
+				case "Ready":
+					this.start_button.textContent = "Start";
+					this.on = false;
+					break;
+				case "Running":
+					this.start_button.textContent = "Stop";
+					this.on = true;
+					break;
+			}
+		});
+		this.events.listen(UiEvent.EditOn, () => this.lock());
+		this.events.listen(UiEvent.EditOff, () => this.reset());
 
 		const s_width = this.start_button.offsetWidth;
 		this.start_button.style.width = `${s_width.toString()}px`;
 	}
 
-	disable(): void {
-		this.start_button.setAttribute("disabled", "true");
-		this.step_button.setAttribute("disabled", "true");
-		this.speed_button.setAttribute("disabled", "true");
-	}
-
-	enable(): void {
-		for (const button of [this.start_button, this.step_button, this.speed_button]) {
-			button.classList.remove("locked");
-			button.removeAttribute("disabled");
-		}
-	}
-
 	lock(): void {
-		this.disable();
 		for (const button of [this.start_button, this.step_button, this.speed_button]) {
-			button.classList.add("locked");
+			lock_button(button);
 		}
 	}
 
@@ -85,31 +106,25 @@ export default class ButtonBox implements UiComponent {
 		this.cpu_signals.dispatch(UiCpuSignal.StepCpu);
 	}
 
-	toggle(): void {
-		if (this.on) {
-			this.cpu_signals.dispatch(UiCpuSignal.StopCpu);
-		} else {
-			this.cpu_signals.dispatch(UiCpuSignal.StartCpu);
-		}
-	}
-
 	reset(): void {
-		this.enable();
+		for (const button of [this.start_button, this.step_button, this.speed_button, this.reset_button]) {
+			unlock_button(button);
+		}
+		this.on = false;
+		this.start_button.textContent = "Start";
 	}
 
 	softReset(): void {
 		this.reset();
 	}
+}
 
-	initCpuEvents(c: CpuEventHandler): void {
-		c.listen(CpuEvent.ClockStopped, () => {
-			this.start_button.textContent = "Start";
-			this.on = false;
-		});
-		c.listen(CpuEvent.ClockStarted, () => {
-			this.start_button.textContent = "Stop";
-			this.on = true;
-		});
-		c.listen(CpuEvent.ClockLocked, () => this.lock());
-	}
+function lock_button(b: HTMLButtonElement): void {
+	b.setAttribute("disabled", "true");
+	b.classList.add("locked");
+}
+
+function unlock_button(b: HTMLButtonElement): void {
+	b.removeAttribute("disabled");
+	b.classList.remove("locked");
 }

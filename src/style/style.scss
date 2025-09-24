@@ -30,6 +30,37 @@ body {
 	font-family: $monospace;
 }
 
+// @property --border {
+// 	syntax: "<color>"; /* <- defined as type number for the transition to work */
+// 	initial-value: #ffffff;
+// 	inherits: true;
+// }
+
+#ui {
+	&.ready {
+		--border: var(--state-ready);
+	}
+	&.running {
+		--border: var(--state-running);
+	}
+	&.errored {
+		--border: var(--state-errored);
+	}
+	&.edit {
+		--border: var(--state-edit);
+	}
+	.celled_viewer,
+	.window,
+	.window_title,
+	button,
+	#celled_viewer,
+	#program_meta {
+		transition-property: border-color, background-image;
+		transition-duration: 0.2s;
+		transition-timing-function: ease-in-out;
+	}
+}
+
 main {
 	display: flex;
 	justify-content: center;
@@ -123,7 +154,6 @@ main {
 
 #controls_bar {
 	grid-area: buttons;
-	border-right: $thick-border-width solid yellow;
 	display: flex;
 	gap: 0.5ch;
 	height: min-content;

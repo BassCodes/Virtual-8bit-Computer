@@ -11,7 +11,9 @@
 		font-size: 0.6em;
 		color: lightgray;
 		border-bottom: 5px solid var(--border);
-		background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAHUlEQVQI12P4/5/h////DP8ZoICJAQ0wIstiVQEA3CAI/c69TucAAAAASUVORK5CYII=");
+		background-image: linear-gradient(0deg, var(--border), var(--border)),
+			url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAHklEQVQI12P4////////GRgYGBgYmBiQACNcGF0GAGpaCP0BZiNyAAAAAElFTkSuQmCC");
+		background-blend-mode: multiply;
 		image-rendering: pixelated;
 
 		#text {

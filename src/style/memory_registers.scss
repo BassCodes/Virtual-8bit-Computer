@@ -8,8 +8,13 @@ $thickness: 2px;
 #memory {
 	.celled_viewer > div {
 		border: $thickness solid transparent;
+		&[contenteditable="true"] {
+			text-decoration: underline;
+			text-decoration-thickness: 1px;
+			text-decoration-color: #333;
+		}
 	}
-	.celled_viewer.selected {
+	.celled_viewer {
 		grid-template-columns: repeat(16, min-content);
 		display: grid;
 		.program_counter:not(.locked) {
@@ -64,9 +69,6 @@ $thickness: 2px;
 			content: "!";
 		}
 	}
-	.celled_viewer {
-		display: none;
-	}
 }
 #registers {
 	border-bottom: none !important;
@@ -79,7 +81,7 @@ $thickness: 2px;
 	display: grid;
 	max-width: fit-content;
 	row-gap: 2px;
-	border: $thick-border-width solid yellow;
+	border: $thick-border-width solid var(--border);
 	padding: 10px;
 	user-select: none;
 
