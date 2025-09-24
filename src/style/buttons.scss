@@ -34,3 +34,9 @@ button:hover,
 label.button:hover {
 	color: white;
 }
+
+button.locked {
+	background-image: url("/src/include/icons/padlock.png");
+	background-repeat: no-repeat;
+	background-position: right top;
+}

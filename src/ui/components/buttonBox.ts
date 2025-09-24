@@ -68,9 +68,17 @@ export default class ButtonBox implements UiComponent {
 	}
 
 	enable(): void {
-		this.start_button.removeAttribute("disabled");
-		this.step_button.removeAttribute("disabled");
-		this.speed_button.removeAttribute("disabled");
+		for (const button of [this.start_button, this.step_button, this.speed_button]) {
+			button.classList.remove("locked");
+			button.removeAttribute("disabled");
+		}
+	}
+
+	lock(): void {
+		this.disable();
+		for (const button of [this.start_button, this.step_button, this.speed_button]) {
+			button.classList.add("locked");
+		}
 	}
 
 	step(): void {
@@ -102,5 +110,6 @@ export default class ButtonBox implements UiComponent {
 			this.start_button.textContent = "Stop";
 			this.on = true;
 		});
+		c.listen(CpuEvent.ClockLocked, () => this.lock());
 	}
 }

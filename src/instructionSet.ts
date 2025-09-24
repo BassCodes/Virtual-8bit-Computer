@@ -5,7 +5,8 @@
  */
 import { formatHex, inRange, splitNibbles } from "./etc";
 import { isU3, isU8, m256, u3, u8 } from "./num";
-import { RuntimeError } from "./runtime_errors.js";
+import { RuntimeError } from "./errorTypes";
+import { GenericComputer } from "./types";
 
 export enum ParamType {
 	Const,
@@ -83,22 +84,6 @@ export class NibbleRegisPairParam extends ParameterType {
 	}
 }
 
-// An interface of required computer methods.
-// Declared so that computer.ts needn't be imported to avoid circular dependency.
-interface GenericComputer {
-	getMemory: (address: u8) => u8;
-	setMemory: (address: u8, value: u8) => void;
-	getVram: (address: u8) => u8;
-	setVram: (address: u8, value: u8) => void;
-	setProgramCounter: (address: u8) => void;
-	getProgramCounter: () => u8;
-	getRegister: (number: u3) => u8;
-	setRegister: (number: u3, value: u8) => void;
-	getCarry(): boolean;
-	setCarry(state: boolean): void;
-	softReset(): void;
-}
-
 export interface Instruction {
 	readonly name: string;
 	readonly desc: string;
@@ -173,9 +158,9 @@ ISA.insertInstruction(0x10, {
 	desc: "Copy the byte in register (P1) to the memory address (P2)",
 	params: [new RegisParam("Write the byte in this register"), new ConstMemorParam("To this memory address")],
 	execute(c, p) {
-		const [register_no, mem_address] = p;
-		if (!isU3(register_no)) return { err: "invalid_register" };
-		c.setMemory(mem_address, c.getRegister(register_no));
+		const [register_no_1, mem_address] = p;
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		c.setMemory(mem_address, c.getRegister(register_no_1));
 	},
 });
 
@@ -184,9 +169,9 @@ ISA.insertInstruction(0x16, {
 	desc: "Copy the byte in memory address (P2) to the register (P1)",
 	params: [new ConstMemorParam("Store to this register"), new ConstMemorParam("The byte at this memory address")],
 	execute(c, p) {
-		const [register_no, mem_address] = p;
-		if (!isU3(register_no)) return { err: "invalid_register" };
-		c.setRegister(register_no, c.getMemory(mem_address));
+		const [register_no_1, mem_address] = p;
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		c.setRegister(register_no_1, c.getMemory(mem_address));
 	},
 });
 
@@ -195,9 +180,9 @@ ISA.insertInstruction(0x11, {
 	desc: "Copy the byte in memory address (P1) to the register (P2)",
 	params: [new ConstMemorParam(""), new RegisParam("")],
 	execute(c, p) {
-		const [mem_address, register_no] = p;
-		if (!isU3(register_no)) return { err: "invalid_register" };
-		c.setRegister(register_no, c.getMemory(mem_address));
+		const [mem_address, register_no_1] = p;
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		c.setRegister(register_no_1, c.getMemory(mem_address));
 	},
 });
 
@@ -218,8 +203,8 @@ ISA.insertInstruction(0x13, {
 	execute(c, p) {
 		const [nibbles] = p;
 		const [register_no_1, register_no_2] = splitNibbles(nibbles);
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
-		if (!isU3(register_no_2)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		if (!isU3(register_no_2)) return { err: "invalid_register", no: register_no_2 };
 		c.setRegister(register_no_2, c.getRegister(register_no_1));
 	},
 });
@@ -234,8 +219,8 @@ ISA.insertInstruction(0x14, {
 	execute(c, p) {
 		const [nibbles] = p;
 		const [register_no_1, register_no_2] = splitNibbles(nibbles);
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
-		if (!isU3(register_no_2)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		if (!isU3(register_no_2)) return { err: "invalid_register", no: register_no_2 };
 		c.setRegister(register_no_2, c.getMemory(c.getRegister(register_no_1)));
 	},
 });
@@ -250,8 +235,8 @@ ISA.insertInstruction(0x15, {
 	execute(c, p) {
 		const [nibbles] = p;
 		const [register_no_1, register_no_2] = splitNibbles(nibbles);
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
-		if (!isU3(register_no_2)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		if (!isU3(register_no_2)) return { err: "invalid_register", no: register_no_2 };
 		c.setMemory(c.getRegister(register_no_2), c.getRegister(register_no_1));
 	},
 });
@@ -261,9 +246,9 @@ ISA.insertInstruction(0x17, {
 	desc: "Set the byte in register (P1) to 0",
 	params: [new RegisParam("Set the value in this register to 0")],
 	execute(c, p) {
-		const register_no = p[0];
-		if (!isU3(register_no)) return { err: "invalid_register" };
-		c.setRegister(register_no, 0);
+		const register_no_1 = p[0];
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		c.setRegister(register_no_1, 0);
 	},
 });
 ISA.insertInstruction(0x18, {
@@ -281,9 +266,9 @@ ISA.insertInstruction(0x19, {
 	desc: "Assigns constant value (P2) to register (P1)",
 	params: [new RegisParam("Set this register"), new ConstParam("to this constant")],
 	execute(c, p) {
-		const [register_no, value] = p;
-		if (!isU3(register_no)) return { err: "invalid_register" };
-		c.setRegister(register_no, value);
+		const [register_no_1, value] = p;
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		c.setRegister(register_no_1, value);
 	},
 });
 
@@ -297,10 +282,10 @@ ISA.insertInstruction(0x20, {
 	desc: "Moves the CPU instruction counter to the value in register (P1)",
 	params: [new RegisParam("new instruction counter location")],
 	execute: (c, p, nostep) => {
-		const register_no = p[0];
-		if (!isU3(register_no)) return { err: "invalid_register" };
+		const register_no_1 = p[0];
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
 
-		const new_address = c.getRegister(register_no);
+		const new_address = c.getRegister(register_no_1);
 		c.setProgramCounter(new_address);
 		nostep();
 	},
@@ -334,12 +319,11 @@ ISA.insertInstruction(0x22, {
 	desc: "Moves the instruction counter to the value in register (P2) if the value in register (P1) is true",
 	params: [new RegisParam(""), new RegisParam("")],
 	execute: (c, p, nostep) => {
-		const register_no_1 = p[0];
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
+		const [register_no_1, register_no_2] = p;
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		if (!isU3(register_no_2)) return { err: "invalid_register", no: register_no_2 };
 		const bool = c.getRegister(register_no_1);
 		if (!bool) return;
-		const register_no_2 = p[1];
-		if (!isU3(register_no_2)) return { err: "invalid_register" };
 		const new_address = c.getRegister(register_no_2);
 		c.setProgramCounter(new_address);
 		nostep();
@@ -351,9 +335,9 @@ ISA.insertInstruction(0x23, {
 	desc: "Moves the instruction counter to the value in (P2) if the value in register (P1) is true",
 	params: [new RegisParam(""), new ConstParam("")],
 	execute: (c, p, nostep) => {
-		const [register_no, constant_value] = p;
-		if (!isU3(register_no)) return { err: "invalid_register" };
-		const bool = c.getRegister(register_no);
+		const [register_no_1, constant_value] = p;
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		const bool = c.getRegister(register_no_1);
 		if (!bool) return;
 		c.setProgramCounter(constant_value);
 		nostep();
@@ -365,11 +349,11 @@ ISA.insertInstruction(0x25, {
 	desc: "Moves the instruction counter to the value in (P2) and stores the address of the following instruction to R!",
 	params: [new RegisAddrParam(""), new ConstParam("")],
 	execute: (c, p, nostep) => {
-		const [register_no, constant_value] = p;
-		if (!isU3(register_no)) return { err: "invalid_register" };
-		const bool = c.getRegister(register_no);
+		const [register_no_1, constant_value] = p;
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		const bool = c.getRegister(register_no_1);
 		const next_instruction = m256(c.getProgramCounter() + 1);
-		c.setRegister(register_no, next_instruction);
+		c.setRegister(register_no_1, next_instruction);
 
 		c.setProgramCounter(constant_value);
 		nostep();
@@ -383,7 +367,7 @@ ISA.insertInstruction(0x28, {
 	execute: (c, p, nostep) => {
 		if (!c.getCarry()) return;
 		const register_no = p[0];
-		if (!isU3(register_no)) return { err: "invalid_register" };
+		if (!isU3(register_no)) return { err: "invalid_register", no: register_no };
 		const register_value = c.getRegister(register_no);
 		c.setProgramCounter(register_value);
 		nostep();
@@ -403,7 +387,7 @@ ISA.insertInstruction(0x29, {
 	},
 });
 
-ISA.insertInstruction(0x00, {
+ISA.insertInstruction(0x2e, {
 	name: "NoOp",
 	desc: "No operation; do nothing",
 	params: [],
@@ -414,7 +398,7 @@ ISA.insertInstruction(0x2f, {
 	name: "Halt",
 	desc: "Stops CPU execution and soft resets",
 	params: [],
-	execute(c, p, nostep) {
+	execute(c) {
 		c.softReset();
 	},
 });
@@ -434,9 +418,9 @@ ISA.insertInstruction(0x30, {
 	execute(c, p) {
 		const [register_no_1, nibbles] = p;
 		const [register_no_2, register_no_3] = splitNibbles(nibbles);
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
-		if (!isU3(register_no_2)) return { err: "invalid_register" };
-		if (!isU3(register_no_3)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		if (!isU3(register_no_2)) return { err: "invalid_register", no: register_no_2 };
+		if (!isU3(register_no_3)) return { err: "invalid_register", no: register_no_3 };
 		const truth = c.getRegister(register_no_2) === c.getRegister(register_no_3) ? 0x01 : 0x00;
 		c.setRegister(register_no_1, truth);
 	},
@@ -451,8 +435,8 @@ ISA.insertInstruction(0x31, {
 	],
 	execute(c, p) {
 		const [register_no_1, register_no_2, constant_value] = p;
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
-		if (!isU3(register_no_2)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		if (!isU3(register_no_2)) return { err: "invalid_register", no: register_no_2 };
 		const truth = c.getRegister(register_no_2) === constant_value ? 0x01 : 0x00;
 		c.setRegister(register_no_1, truth);
 	},
@@ -467,9 +451,9 @@ ISA.insertInstruction(0x32, {
 	execute(c, p) {
 		const [register_no_1, nibbles] = p;
 		const [register_no_2, register_no_3] = splitNibbles(nibbles);
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
-		if (!isU3(register_no_2)) return { err: "invalid_register" };
-		if (!isU3(register_no_3)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		if (!isU3(register_no_2)) return { err: "invalid_register", no: register_no_2 };
+		if (!isU3(register_no_3)) return { err: "invalid_register", no: register_no_3 };
 		const truth = c.getRegister(register_no_2) < c.getRegister(register_no_3) ? 0x01 : 0x00;
 		c.setRegister(register_no_1, truth);
 	},
@@ -484,8 +468,8 @@ ISA.insertInstruction(0x33, {
 	],
 	execute(c, p) {
 		const [register_no_1, register_no_2, constant_value] = p;
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
-		if (!isU3(register_no_2)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		if (!isU3(register_no_2)) return { err: "invalid_register", no: register_no_2 };
 		const truth = c.getRegister(register_no_2) < constant_value ? 0x01 : 0x00;
 		c.setRegister(register_no_1, truth);
 	},
@@ -501,9 +485,9 @@ ISA.insertInstruction(0x34, {
 		const [register_no_1, nibbles] = p;
 		const [register_no_2, register_no_3] = splitNibbles(nibbles);
 
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
-		if (!isU3(register_no_2)) return { err: "invalid_register" };
-		if (!isU3(register_no_3)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		if (!isU3(register_no_2)) return { err: "invalid_register", no: register_no_2 };
+		if (!isU3(register_no_3)) return { err: "invalid_register", no: register_no_3 };
 		const truth = c.getRegister(register_no_2) > c.getRegister(register_no_3) ? 0x01 : 0x00;
 		c.setRegister(register_no_1, truth);
 	},
@@ -518,8 +502,8 @@ ISA.insertInstruction(0x35, {
 	],
 	execute(c, p) {
 		const [register_no_1, register_no_2, constant_value] = p;
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
-		if (!isU3(register_no_2)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		if (!isU3(register_no_2)) return { err: "invalid_register", no: register_no_2 };
 		const truth = c.getRegister(register_no_2) > constant_value ? 0x01 : 0x00;
 		c.setRegister(register_no_1, truth);
 	},
@@ -537,8 +521,8 @@ ISA.insertInstruction(0x40, {
 	execute(c, p) {
 		const [nibbles] = p;
 		const [register_no_1, register_no_2] = splitNibbles(nibbles);
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
-		if (!isU3(register_no_2)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		if (!isU3(register_no_2)) return { err: "invalid_register", no: register_no_2 };
 		const new_value = c.getRegister(register_no_1) | c.getRegister(register_no_2);
 		c.setRegister(register_no_1, new_value as u8);
 	},
@@ -549,7 +533,7 @@ ISA.insertInstruction(0x41, {
 	params: [new RegisParam(""), new ConstParam("")],
 	execute(c, p) {
 		const [register_no_1, constant_value] = p;
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
 		const new_value = c.getRegister(register_no_1) | constant_value;
 		c.setRegister(register_no_1, new_value as u8);
 	},
@@ -563,8 +547,8 @@ ISA.insertInstruction(0x42, {
 		const [nibbles] = p;
 
 		const [register_no_1, register_no_2] = splitNibbles(nibbles);
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
-		if (!isU3(register_no_2)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		if (!isU3(register_no_2)) return { err: "invalid_register", no: register_no_2 };
 		const new_value = c.getRegister(register_no_1) & c.getRegister(register_no_2);
 		c.setRegister(register_no_1, new_value as u8);
 	},
@@ -575,7 +559,7 @@ ISA.insertInstruction(0x43, {
 	params: [new RegisParam(""), new ConstParam("")],
 	execute(c, p) {
 		const [register_no_1, constant_value] = p;
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
 		const new_value = c.getRegister(register_no_1) & constant_value;
 		c.setRegister(register_no_1, new_value as u8);
 	},
@@ -588,8 +572,8 @@ ISA.insertInstruction(0x44, {
 		const [nibbles] = p;
 
 		const [register_no_1, register_no_2] = splitNibbles(nibbles);
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
-		if (!isU3(register_no_2)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		if (!isU3(register_no_2)) return { err: "invalid_register", no: register_no_2 };
 		const new_value = c.getRegister(register_no_1) ^ c.getRegister(register_no_2);
 		c.setRegister(register_no_1, new_value as u8);
 	},
@@ -600,7 +584,7 @@ ISA.insertInstruction(0x45, {
 	params: [new RegisParam(""), new ConstParam("")],
 	execute(c, p) {
 		const [register_no_1, constant_value] = p;
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
 		const new_value = c.getRegister(register_no_1) ^ constant_value;
 		c.setRegister(register_no_1, new_value as u8);
 	},
@@ -613,8 +597,8 @@ ISA.insertInstruction(0x46, {
 	execute(c, p) {
 		const [nibbles] = p;
 		const [register_no_1, register_no_2] = splitNibbles(nibbles);
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
-		if (!isU3(register_no_2)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		if (!isU3(register_no_2)) return { err: "invalid_register", no: register_no_2 };
 		const new_value = (c.getRegister(register_no_1) << c.getRegister(register_no_2)) & 0xff;
 		c.setRegister(register_no_1, new_value as u8);
 	},
@@ -625,7 +609,7 @@ ISA.insertInstruction(0x47, {
 	params: [new RegisParam(""), new ConstParam("")],
 	execute(c, p) {
 		const [register_no_1, constant_value] = p;
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
 		const new_value = (c.getRegister(register_no_1) << constant_value) & 0xff;
 		c.setRegister(register_no_1, new_value as u8);
 	},
@@ -637,8 +621,8 @@ ISA.insertInstruction(0x48, {
 	execute(c, p) {
 		const [nibbles] = p;
 		const [register_no_1, register_no_2] = splitNibbles(nibbles);
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
-		if (!isU3(register_no_2)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		if (!isU3(register_no_2)) return { err: "invalid_register", no: register_no_2 };
 		const new_value = c.getRegister(register_no_1) >> c.getRegister(register_no_2);
 		c.setRegister(register_no_1, new_value as u8);
 	},
@@ -649,7 +633,7 @@ ISA.insertInstruction(0x49, {
 	params: [new RegisParam(""), new ConstParam("")],
 	execute(c, p) {
 		const [register_no_1, constant_value] = p;
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
 		const new_value = c.getRegister(register_no_1) >> constant_value;
 		c.setRegister(register_no_1, new_value as u8);
 	},
@@ -660,10 +644,10 @@ ISA.insertInstruction(0x4a, {
 	desc: "Flips each bit in register (P1)",
 	params: [new RegisParam("")],
 	execute(c, p) {
-		const register_no = p[0];
-		if (!isU3(register_no)) return { err: "invalid_register" };
-		const new_value = ~c.getRegister(register_no) & 0xff;
-		c.setRegister(register_no, new_value as u8);
+		const register_no_1 = p[0];
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		const new_value = ~c.getRegister(register_no_1) & 0xff;
+		c.setRegister(register_no_1, new_value as u8);
 	},
 });
 
@@ -679,8 +663,8 @@ ISA.insertInstruction(0x50, {
 	execute(c, p) {
 		const [nibbles] = p;
 		const [register_no_1, register_no_2] = splitNibbles(nibbles);
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
-		if (!isU3(register_no_2)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		if (!isU3(register_no_2)) return { err: "invalid_register", no: register_no_2 };
 		const sum = c.getRegister(register_no_1) + c.getRegister(register_no_2);
 		if (sum > 255) {
 			c.setCarry(true);
@@ -695,7 +679,7 @@ ISA.insertInstruction(0x51, {
 	params: [new RegisParam("set this register to"), new ConstParam("it's sum with this constant")],
 	execute(c, p) {
 		const [register_no_1, constant_value] = p;
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
 		const sum = c.getRegister(register_no_1) + constant_value;
 		if (sum > 255) c.setCarry(true);
 		c.setRegister(register_no_1, m256(sum));
@@ -710,8 +694,8 @@ ISA.insertInstruction(0x52, {
 		const [nibbles] = p;
 		const [register_no_1, register_no_2] = splitNibbles(nibbles);
 
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
-		if (!isU3(register_no_2)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		if (!isU3(register_no_2)) return { err: "invalid_register", no: register_no_2 };
 		const difference = c.getRegister(register_no_1) - c.getRegister(register_no_2);
 		if (difference < 0) {
 			c.setCarry(true);
@@ -726,7 +710,7 @@ ISA.insertInstruction(0x53, {
 	params: [new RegisParam("set this register to"), new ConstParam("it's difference with this constant")],
 	execute(c, p) {
 		const [register_no_1, constant_value] = p;
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
 		const difference = c.getRegister(register_no_1) - constant_value;
 		if (difference < 0) c.setCarry(true);
 		c.setRegister(register_no_1, m256(difference));
@@ -739,8 +723,8 @@ ISA.insertInstruction(0x54, {
 	params: [new RegisParam("TODO"), new RegisParam("TODO")],
 	execute(c, p) {
 		const [register_no_1, register_no_2] = p;
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
-		if (!isU3(register_no_2)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		if (!isU3(register_no_2)) return { err: "invalid_register", no: register_no_2 };
 		const product = c.getRegister(register_no_1) * c.getRegister(register_no_2);
 		c.setRegister(register_no_1, m256(product));
 	},
@@ -750,10 +734,10 @@ ISA.insertInstruction(0x55, {
 	desc: "Multiplies the value in register (P1) by constant value (P2)",
 	params: [new RegisParam("TODO"), new ConstParam("TODO")],
 	execute(c, p) {
-		const [register_no, constant_value] = p;
-		if (!isU3(register_no)) return { err: "invalid_register" };
-		const product = c.getRegister(register_no) * constant_value;
-		c.setRegister(register_no, m256(product));
+		const [register_no_1, constant_value] = p;
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		const product = c.getRegister(register_no_1) * constant_value;
+		c.setRegister(register_no_1, m256(product));
 	},
 });
 ISA.insertInstruction(0x56, {
@@ -762,13 +746,14 @@ ISA.insertInstruction(0x56, {
 	params: [new RegisParam("TODO"), new RegisParam("TODO")],
 	execute(c, p) {
 		const [register_no_1, register_no_2] = p;
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
-		if (!isU3(register_no_2)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		if (!isU3(register_no_2)) return { err: "invalid_register", no: register_no_2 };
+		const numerator = c.getRegister(register_no_1);
 		const denominator = c.getRegister(register_no_2);
 		if (denominator === 0) {
-			return { err: "divide_zero" };
+			return { err: "divide_zero", register: register_no_2 };
 		}
-		const quotient = Math.floor(c.getRegister(register_no_1) / denominator);
+		const quotient = Math.floor(numerator / denominator);
 		c.setRegister(register_no_1, m256(quotient));
 	},
 });
@@ -777,13 +762,14 @@ ISA.insertInstruction(0x57, {
 	desc: "Divides the value in register (P1) by constant value (P2)",
 	params: [new RegisParam("TODO"), new ConstParam("TODO")],
 	execute(c, p) {
-		const [register_no, constant_value] = p;
-		if (!isU3(register_no)) return { err: "invalid_register" };
+		const [register_no_1, constant_value] = p;
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		const numerator = c.getRegister(register_no_1);
 		if (constant_value === 0) {
 			return { err: "divide_zero" };
 		}
-		const quotient = Math.floor(c.getRegister(register_no) / constant_value);
-		c.setRegister(register_no, m256(quotient));
+		const quotient = Math.floor(numerator / constant_value);
+		c.setRegister(register_no_1, m256(quotient));
 	},
 });
 
@@ -792,12 +778,12 @@ ISA.insertInstruction(0x5e, {
 	desc: "Increments the value within register (P1) by 1",
 	params: [new RegisParam("register to be incremented")],
 	execute(c, p) {
-		const register_no = p[0];
-		if (!isU3(register_no)) return { err: "invalid_register" };
-		const current_value = c.getRegister(register_no);
+		const register_no_1 = p[0];
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		const current_value = c.getRegister(register_no_1);
 		const incremented = current_value + 1;
 		if (incremented > 255) c.setCarry(true);
-		c.setRegister(register_no, m256(incremented));
+		c.setRegister(register_no_1, m256(incremented));
 	},
 });
 
@@ -806,12 +792,12 @@ ISA.insertInstruction(0x5f, {
 	desc: "Decrements the value within register (P1) by 1",
 	params: [new RegisParam("register to be decremented")],
 	execute(c, p) {
-		const register_no = p[0];
-		if (!isU3(register_no)) return { err: "invalid_register" };
-		const current_value = c.getRegister(register_no);
+		const register_no_1 = p[0];
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		const current_value = c.getRegister(register_no_1);
 		const decremented = current_value - 1;
 		if (decremented < 0) c.setCarry(true);
-		c.setRegister(register_no, m256(decremented) as u8);
+		c.setRegister(register_no_1, m256(decremented) as u8);
 	},
 });
 
@@ -822,13 +808,13 @@ ISA.insertInstruction(0xf0, {
 	desc: "Sets register (R1) to a random value",
 	params: [new RegisParam("register")],
 	execute(c, p, e) {
-		const [register_no] = p;
-		if (!isU3(register_no)) return { err: "invalid_register" };
+		const [register_no_1] = p;
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
 		// Math.random returns a value  n: 0 =< n < 1, thus
 		// floor(n * 256): 0 =< floor(n * 256) < 256
 		// Mod256 it just for safety
 		const value = m256(Math.floor(Math.random() * 256));
-		c.setRegister(register_no, value);
+		c.setRegister(register_no_1, value);
 	},
 });
 
@@ -839,9 +825,9 @@ ISA.insertInstruction(0xff, {
 	desc: "Sets the color constant (P2) for pixel at position in register (P1)",
 	params: [new RegisParam("Pixel Id"), new ConstParam("Pixel Value")],
 	execute(c, p, e) {
-		const [register_no, pixel_val] = p;
-		if (!isU3(register_no)) return { err: "invalid_register" };
-		const pixel_no = c.getRegister(register_no);
+		const [register_no_1, pixel_val] = p;
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		const pixel_no = c.getRegister(register_no_1);
 		c.setVram(pixel_no, pixel_val);
 	},
 });
@@ -854,8 +840,8 @@ ISA.insertInstruction(0xfe, {
 		const [nibbles] = p;
 		const [register_no_1, register_no_2] = splitNibbles(nibbles);
 
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
-		if (!isU3(register_no_2)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		if (!isU3(register_no_2)) return { err: "invalid_register", no: register_no_2 };
 		const pixel_no = c.getRegister(register_no_1);
 		const pixel_val = c.getRegister(register_no_2);
 		c.setVram(pixel_no, pixel_val);
@@ -868,12 +854,12 @@ ISA.insertInstruction(0xfd, {
 	params: [new NibbleRegisPairParam("", "RM", "R")],
 	execute(c, p, e) {
 		const [nibbles] = p;
-		const [register_no_1, out_register] = splitNibbles(nibbles);
+		const [register_no_1, register_no_2] = splitNibbles(nibbles);
 
-		if (!isU3(register_no_1)) return { err: "invalid_register" };
+		if (!isU3(register_no_1)) return { err: "invalid_register", no: register_no_1 };
+		if (!isU3(register_no_2)) return { err: "invalid_register", no: register_no_2 };
 		const pixel_no = c.getRegister(register_no_1);
-		if (!isU3(out_register)) return { err: "invalid_register" };
 		const value = c.getVram(pixel_no);
-		c.setRegister(out_register, value);
+		c.setRegister(register_no_2, value);
 	},
 });

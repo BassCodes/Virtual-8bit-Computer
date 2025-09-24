@@ -85,6 +85,9 @@ export default class MemoryView implements UiComponent {
 				this.last_accessed_cell = { address };
 			}
 		});
+		c.listen(CpuEvent.ClockLocked, () => {
+			this.cells.addCellClass(this.program_counter, "locked");
+		});
 		c.listen(CpuEvent.MemoryChanged, ({ address, value }) => {
 			this.cells.setCellValue(address, value);
 		});
@@ -110,9 +113,13 @@ export default class MemoryView implements UiComponent {
 			this.cells.addCellClass(pos, "endcap");
 		});
 
-		c.listen(CpuEvent.InvalidInstructionParsed, ({ code, pos }) => {
-			this.cells.removeCellClass(pos, "constant", "register", "memory", "instruction");
-			this.cells.addCellClass(pos, "invalid");
+		c.listen(CpuEvent.InstructionParseErrored, ({ instr, pos, error }) => {
+			if (error.err === "unknown_instruction") {
+				this.cells.removeCellClass(pos, "constant", "register", "memory", "instruction");
+				this.cells.addCellClass(pos, "invalid");
+			} else if (error.err === "invalid_parameter") {
+				// todo
+			}
 		});
 	}
 }

@@ -6,6 +6,7 @@
 import { EventHandler } from "./eventHandler";
 import { Instruction, ParameterType } from "./instructionSet";
 import { u3, u8 } from "./num";
+import { InstructionParseError, RuntimeError } from "./errorTypes";
 
 //
 // CPU Event Handler Definition
@@ -26,6 +27,7 @@ export enum CpuEvent {
 	MemoryAccessed,
 	SetFlagCarry,
 	InstructionErrored,
+	InstructionParseErrored,
 	ClockCycle,
 	ClockStarted,
 	ClockStopped,
@@ -48,10 +50,9 @@ interface CpuEventMap {
 	[CpuEvent.ProgramCounterChanged]: { counter: u8 };
 	[CpuEvent.InstructionParseBegin]: { pos: u8; code: u8; instr: Instruction };
 	[CpuEvent.ParameterParsed]: { pos: u8; code: u8; param: ParameterType };
-	[CpuEvent.InvalidParameterParsed]: { pos: u8; code: u8; param: ParameterType };
-	[CpuEvent.InvalidInstructionParsed]: { pos: u8; code: u8 };
 	[CpuEvent.InstructionExecuted]: { instr: Instruction; code: u8; start_pos: u8; end_pos: u8 };
-	[CpuEvent.InstructionErrored]: { instr: Instruction; error_type: "todo" };
+	[CpuEvent.InstructionErrored]: { instr: Instruction; error: RuntimeError };
+	[CpuEvent.InstructionParseErrored]: { instr?: Instruction; pos: u8; error: InstructionParseError };
 	[CpuEvent.SetFlagCarry]: boolean;
 	[CpuEvent.ClockCycle]: number;
 }

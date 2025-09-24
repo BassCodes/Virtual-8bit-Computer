@@ -12,7 +12,7 @@ $thickness: 2px;
 	.celled_viewer.selected {
 		grid-template-columns: repeat(16, min-content);
 		display: grid;
-		.program_counter {
+		.program_counter:not(.locked) {
 			border-bottom: $thickness solid orange !important;
 			border-image: linear-gradient(to right, transparent 0%, orange 30%, orange 70%, transparent 100%) 1 !important;
 		}

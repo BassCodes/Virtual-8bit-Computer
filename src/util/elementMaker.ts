@@ -73,7 +73,7 @@ class ElementInProgress<E extends HTMLElement> {
 		return this;
 	}
 
-	/** custom logic */
+	/** Apply statements of logic (for,if,switch,etc.) whilst keeping method chaining.	 */
 	map(f: (e: E) => void): ElementInProgress<E> {
 		f(this.element);
 		return this;

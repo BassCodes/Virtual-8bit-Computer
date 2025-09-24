@@ -4,10 +4,10 @@
  * @license GPL-3.0
  */
 import { CpuEvent, CpuEventHandler, CpuSpeed, UiCpuSignal, UiCpuSignalHandler } from "./events";
-import { formatHex } from "./etc";
 import { Instruction, ISA, ParameterType } from "./instructionSet";
 import { m256, u3, u8 } from "./num";
-import { InstructionReadError, ParamReadError } from "./runtime_errors.js";
+import { InstructionReadError, ParamReadError } from "./errorTypes";
+import { GenericComputer } from "./types";
 
 const CLOCK_SPEED_MAP: Record<CpuSpeed, [number, number]> = {
 	slow: [1000, 1],
@@ -21,11 +21,10 @@ interface IReadingInstruction {
 	pos: u8;
 	opcode: u8;
 	instr: Instruction;
-	valid: boolean;
 	params: Array<u8 | null>;
 }
 
-export default class Computer {
+export default class Computer implements GenericComputer {
 	memory: Uint8Array = new Uint8Array(256);
 	vram: Uint8Array = new Uint8Array(256);
 	registers: Uint8Array = new Uint8Array(8);
@@ -33,7 +32,7 @@ export default class Computer {
 	program_counter: u8 = 0;
 	current_instr: IReadingInstruction | null = null;
 	events: CpuEventHandler = new CpuEventHandler();
-	on: boolean = false;
+	clock_on: boolean = false;
 	clock_speed: number = CLOCK_SPEED_MAP.normal[0];
 	instr_per_cycle: number = CLOCK_SPEED_MAP.normal[1];
 	clock_locked: boolean = false;
@@ -43,41 +42,41 @@ export default class Computer {
 
 		if (this.current_instr === null) {
 			const instruction = this.read_next_instruction();
-			if ("error" in instruction) {
-				this.events.dispatch(CpuEvent.InvalidInstructionParsed, {
+			if ("err" in instruction) {
+				this.events.dispatch(CpuEvent.InstructionParseErrored, {
 					pos: this.program_counter,
-					code: instruction.data,
+					error: instruction,
 				});
 
-				this.clockStop();
-			} else {
-				this.events.dispatch(CpuEvent.InstructionParseBegin, {
-					pos: this.program_counter,
-					instr: instruction.instr,
-					code: instruction.opcode,
-				});
-				this.current_instr = instruction;
+				this.clockLock();
+				return;
 			}
+			this.events.dispatch(CpuEvent.InstructionParseBegin, {
+				pos: this.program_counter,
+				instr: instruction.instr,
+				code: instruction.opcode,
+			});
+			this.current_instr = instruction;
 		} else if (this.current_instr.params.length < this.current_instr.instr.params.length) {
 			const param_type = this.current_instr.instr.params[this.current_instr.params.length];
 			const param = this.read_next_instruction_param(param_type);
 
-			if (typeof param === "number") {
-				this.events.dispatch(CpuEvent.ParameterParsed, {
-					param: param_type,
+			if (typeof param !== "number") {
+				this.events.dispatch(CpuEvent.InstructionParseErrored, {
+					instr: this.current_instr.instr,
 					pos: this.program_counter,
-					code: param,
+					error: param,
 				});
-				this.current_instr.params.push(param);
-			} else {
-				this.events.dispatch(CpuEvent.InvalidParameterParsed, {
-					param: param_type,
-					pos: this.program_counter,
-					code: param.data,
-				});
-				this.current_instr.valid = false;
-				this.current_instr.params.push(null);
+				this.clockStop();
+				return;
 			}
+
+			this.events.dispatch(CpuEvent.ParameterParsed, {
+				param: param_type,
+				pos: this.program_counter,
+				code: param,
+			});
+			this.current_instr.params.push(param);
 		}
 
 		if (this.current_instr !== null) {
@@ -85,19 +84,18 @@ export default class Computer {
 				const nostep = (): void => {
 					should_step = false;
 				};
-				if (this.current_instr.valid) {
-					const params: Array<u8> = this.current_instr.params.map((p) => p as u8);
-					const error = this.current_instr.instr.execute(this, params, nostep);
-					this.events.dispatch(CpuEvent.InstructionExecuted, {
-						instr: this.current_instr.instr,
-						code: this.current_instr.opcode,
-						start_pos: this.current_instr.pos,
-						end_pos: m256(this.current_instr.pos + this.current_instr.params.length),
-					});
-					if (error) {
-						this.reset();
-						return;
-					}
+				const params: Array<u8> = this.current_instr.params.map((p) => p as u8);
+				const error = this.current_instr.instr.execute(this, params, nostep);
+				this.events.dispatch(CpuEvent.InstructionExecuted, {
+					instr: this.current_instr.instr,
+					code: this.current_instr.opcode,
+					start_pos: this.current_instr.pos,
+					end_pos: m256(this.current_instr.pos + this.current_instr.params.length),
+				});
+				if (error) {
+					this.events.dispatch(CpuEvent.InstructionErrored, { instr: this.current_instr.instr, error: error });
+					this.clockStop();
+					return;
 				}
 
 				this.events.dispatch(CpuEvent.InstructionParseEnd);
@@ -113,13 +111,12 @@ export default class Computer {
 		const byte = this.memory[this.program_counter] as u8;
 		const parsed_instruction = ISA.getInstruction(byte);
 		if (parsed_instruction === null) {
-			return { error: true, data: byte };
+			return { err: "unknown_instruction", data: byte };
 		}
 		const instruction: IReadingInstruction = {
 			pos: this.program_counter,
 			opcode: byte,
 			instr: parsed_instruction,
-			valid: true,
 			params: [],
 		};
 		return instruction;
@@ -128,7 +125,7 @@ export default class Computer {
 	private read_next_instruction_param(param_type: ParameterType): u8 | ParamReadError {
 		const byte = this.memory[this.program_counter] as u8;
 		if (!param_type.validate(byte)) {
-			return { error: true, data: byte };
+			return { err: "invalid_parameter", expected: param_type, data: byte };
 		}
 		return byte;
 	}
@@ -182,14 +179,16 @@ export default class Computer {
 	}
 
 	clockStop(): void {
-		this.on = false;
-		this.events.dispatch(CpuEvent.ClockStopped);
+		if (this.clock_on) {
+			this.clock_on = false;
+			this.events.dispatch(CpuEvent.ClockStopped);
+		}
 	}
 	clockStart(): void {
-		if (this.on || this.clock_locked) return;
-		this.on = true;
+		if (this.clock_on || this.clock_locked) return;
+		this.clock_on = true;
 		const loop = (): void => {
-			if (!this.on) return;
+			if (!this.clock_on) return;
 			for (let i = 0; i < this.instr_per_cycle; i++) {
 				this.cycle();
 			}
@@ -201,11 +200,13 @@ export default class Computer {
 	}
 	clockStep(): void {
 		this.clockStop();
-		this.cycle();
+		if (!this.clock_locked) {
+			this.cycle();
+		}
 	}
 	clockLock(): void {
-		if (this.clock_locked) return;
 		this.clockStop();
+		if (this.clock_locked) return;
 		this.events.dispatch(CpuEvent.ClockLocked);
 		this.clock_locked = true;
 	}
