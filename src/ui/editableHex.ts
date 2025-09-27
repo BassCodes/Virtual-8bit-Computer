@@ -4,9 +4,10 @@
  * @license GPL-3.0
  */
 // This file was cobbled together and is the messiest part of this project
+// Surprisingly enough, it has been the stablest part of the project — requiring the fewest changes.
 
 import { at } from "../etc";
-import { isU8, u8 } from "../num";
+import { isU8, m256, u8 } from "../num";
 
 const HEX_CHARACTERS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
 
@@ -85,10 +86,10 @@ export default class EditorContext {
 		if (!this.enabled) return;
 		const cell = e.target as HTMLElement;
 
-		const next: null | HTMLElement = at(this.list, cell_index + 1);
-		const prev: null | HTMLElement = at(this.list, cell_index - 1);
-		const up: null | HTMLElement = at(this.list, cell_index - this.width);
-		const down: null | HTMLElement = at(this.list, cell_index + this.width);
+		const next: null | HTMLElement = at(this.list, m256(cell_index + 1));
+		const prev: null | HTMLElement = at(this.list, m256(cell_index - 1));
+		const up: null | HTMLElement = at(this.list, m256(cell_index - this.width));
+		const down: null | HTMLElement = at(this.list, m256(cell_index + this.width));
 
 		const k = e.key;
 		if (k === "ArrowUp") {
