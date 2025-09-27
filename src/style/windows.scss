@@ -1,12 +1,12 @@
 .window {
-	border: 5px solid var(--border);
+	border: 4px solid var(--border);
 
 	.window_title {
 		display: flex;
 		align-items: center;
 		user-select: none;
 		color: lightgray;
-		border-bottom: 5px solid var(--border);
+		border-bottom: 4px solid var(--border);
 		background-image: linear-gradient(0deg, var(--border), var(--border)),
 			url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAHklEQVQI12P4////////GRgYGBgYmBiQACNcGF0GAGpaCP0BZiNyAAAAAElFTkSuQmCC");
 		background-blend-mode: multiply;
@@ -40,7 +40,7 @@
 #instruction_explainer {
 	display: flex;
 	flex-direction: column;
-	gap: 5px;
+	gap: 4px;
 	height: 300px;
 	#expl_box {
 		padding-inline: 2ch;
@@ -55,7 +55,7 @@
 	#expl_icon {
 		user-select: none;
 		margin-inline-end: 0.5em;
-		padding: 5px;
+		padding: 4px;
 		color: var(--color);
 		outline: 3px dashed var(--color);
 	}
