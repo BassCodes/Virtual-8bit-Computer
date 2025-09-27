@@ -3,7 +3,7 @@
  * @copyright Alexander Bass 2025
  * @license GPL-3.0
  */
-import { el } from "../../etc";
+import { $, el } from "../../etc";
 import {
 	UiEventHandler,
 	UiEvent,
@@ -22,6 +22,7 @@ export default class ButtonBox implements UiComponent {
 	start_button: HTMLButtonElement;
 	step_button: HTMLButtonElement;
 	speed_button: HTMLButtonElement;
+	edit_button: HTMLButtonElement;
 	reset_button: HTMLButtonElement;
 	events: UiEventHandler;
 	on: boolean = false;
@@ -68,6 +69,12 @@ export default class ButtonBox implements UiComponent {
 			.ev("click", () => this.cpu_signals.dispatch(UiCpuSignal.RequestCpuSoftReset))
 			.appendTo(this.container);
 
+		this.edit_button = el("button")
+			.tx("Edit")
+			.cl("edit_button")
+			.ev("click", () => this.editToggle())
+			.appendTo(this.container);
+
 		this.events.listen(UiEvent.StateChange, (s) => {
 			switch (s) {
 				case "Edit":
@@ -107,6 +114,9 @@ export default class ButtonBox implements UiComponent {
 	}
 
 	reset(): void {
+		if (this.edit_button.classList.contains("on")) {
+			this.editToggle();
+		}
 		for (const button of [this.start_button, this.step_button, this.speed_button, this.reset_button]) {
 			unlock_button(button);
 		}
@@ -116,6 +126,22 @@ export default class ButtonBox implements UiComponent {
 
 	softReset(): void {
 		this.reset();
+	}
+
+	editToggle(): void {
+		if (this.edit_button.classList.contains("on")) {
+			this.edit_button.classList.remove("on");
+			$("root").classList.remove("editor");
+			this.edit_button.classList.add("off");
+			this.events.dispatch(UiEvent.EditOff);
+			this.cpu_signals.dispatch(UiCpuSignal.RequestCpuSoftReset);
+		} else {
+			this.events.dispatch(UiEvent.EditOn);
+			this.cpu_signals.dispatch(UiCpuSignal.StopCpu);
+			$("root").classList.add("editor");
+			this.edit_button.classList.add("on");
+			this.edit_button.classList.remove("off");
+		}
 	}
 }
 

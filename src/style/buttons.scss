@@ -5,20 +5,16 @@ button,
 label.button {
 	border: $thick-border-width solid var(--border);
 	color: gray;
-	margin: 10px;
-	margin-inline: 0px;
 	padding: 10px;
-	font-size: 0.8em;
-	font-family: monospace;
+	font-family: $monospace;
 	background-color: transparent;
 	cursor: pointer;
 	user-select: none;
 }
 
 button:disabled {
-	border: $thick-border-width solid rgb(255, 255, 128);
 	color: orange;
-	cursor: default;
+	cursor: unset;
 }
 
 button.nostyle {

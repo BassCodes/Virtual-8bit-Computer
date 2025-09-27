@@ -22,6 +22,7 @@ export enum CpuEvent {
 	InvalidParameterParsed,
 	InvalidInstructionParsed,
 	VramChanged,
+	ColorPaletteChanged,
 	InstructionExecuted,
 	Reset,
 	SoftReset,
@@ -47,6 +48,7 @@ interface CpuEventMap {
 	[CpuEvent.MemoryChanged]: { address: u8; value: u8 };
 	[CpuEvent.MemoryAccessed]: { address: u8; value: u8 };
 	[CpuEvent.VramChanged]: { address: u8; value: u8 };
+	[CpuEvent.ColorPaletteChanged]: u8;
 	[CpuEvent.RegisterChanged]: { register_no: u3; value: u8 };
 	[CpuEvent.ProgramCounterChanged]: { counter: u8 };
 	[CpuEvent.InstructionParseBegin]: { pos: u8; code: u8; instr: Instruction };

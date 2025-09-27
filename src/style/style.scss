@@ -5,38 +5,29 @@
 @use "top_meta";
 @use "buttons";
 @use "table";
+@use "control_buttons";
 @use "vars" as *;
 
-#isa_container summary {
-	font-size: 1.5rem;
+:root {
+	font-size: 110%;
 }
 
 * {
 	box-sizing: border-box;
-}
-
-pre {
-	font-size: 0.5em;
-}
-
-img {
-	image-rendering: pixelated;
+	margin: 0;
+	padding: 0;
 }
 
 body {
+	font-family: $sans;
+
 	color: #808080;
 	background-color: black;
-	font-size: 1.6em;
-	font-family: $monospace;
 }
 
-// @property --border {
-// 	syntax: "<color>"; /* <- defined as type number for the transition to work */
-// 	initial-value: #ffffff;
-// 	inherits: true;
-// }
-
 #ui {
+	font-family: $monospace;
+
 	&.ready {
 		--border: var(--state-ready);
 	}
@@ -61,26 +52,17 @@ body {
 	}
 }
 
-main {
-	display: flex;
-	justify-content: center;
-	align-items: flex-start;
-}
-
 #grid {
 	justify-content: center;
 	display: grid;
-	grid-template-columns: min-content min-content min-content min-content;
-	grid-template-rows: min-content min-content min-content min-content;
+	grid-template-columns: min-content min-content 1ch min-content;
+	grid-template-rows: min-content min-content min-content 1ch min-content;
 	grid-template-areas:
-		".        .  	    .       .       .		 "
-		".        registers reglabel		.       titlebar "
-		"memlabel memory	memory	memory  tv		 "
-		"title    memory	memory	memory  tv		 "
-		"title    memory	memory	memory  .		 "
-		"title    memory	memory	memory  explainer		 "
-		".        buttons   buttons buttons explainer";
-
+		".        registers .		  titlebar 	"
+		"title    memory	.         tv  		"
+		"title    memory	.		  tv		"
+		". 		  .         . 		  .    		"
+		".        buttons   .		  explainer ";
 	#instruction_explainer {
 		grid-area: explainer;
 	}
@@ -93,9 +75,7 @@ main {
 	#registers {
 		grid-area: registers;
 	}
-	#memory_bank_view {
-		grid-area: bank;
-	}
+
 	#reg_label {
 		grid-area: reglabel;
 	}
@@ -106,7 +86,6 @@ main {
 		grid-area: cycles;
 		text-align: right;
 		align-self: center;
-		font-size: 0.48em;
 		user-select: none;
 	}
 	#title {
@@ -119,11 +98,13 @@ main {
 	#memory {
 		grid-area: memory;
 	}
+	#controls_bar {
+		grid-area: buttons;
+	}
 }
 
 #reg_label,
 #mem_label {
-	font-size: 0.75em;
 	user-select: none;
 }
 
@@ -152,15 +133,17 @@ main {
 	--color: var(--mem-reg-nib-pair);
 }
 
-#controls_bar {
-	grid-area: buttons;
-	display: flex;
-	gap: 0.5ch;
-	height: min-content;
-	#controls_buttons {
+#memory_color_explainer {
+	li {
 		display: flex;
+		gap: 1ch;
+	}
 
-		gap: inherit;
-		justify-content: inherit;
+	.color {
+		background-color: var(--color);
+		max-width: 1lh;
+		width: 1lh;
+		height: 100%;
+		aspect-ratio: 1;
 	}
 }

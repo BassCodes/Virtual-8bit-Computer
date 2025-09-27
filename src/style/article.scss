@@ -8,19 +8,23 @@ h3 {
 	margin-block: unset;
 }
 
-h2 {
-	font-size: 2rem;
-}
-
 p {
 	margin-top: unset;
-	font-size: 1.4rem;
 	color: lightgray;
 }
 
-article {
-	margin-top: 0.5rem;
-	width: 1000px;
-	font-family: $sans;
+div#documentation {
 	margin-inline: auto;
+	max-width: 90ch;
+	line-height: 1.8;
+
+	h1,
+	h2,
+	h3,
+	p,
+	ul,
+	ol,
+	img {
+		max-width: 60ch;
+	}
 }

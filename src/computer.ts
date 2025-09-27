@@ -151,6 +151,10 @@ export default class Computer implements GenericComputer {
 		this.events.dispatch(CpuEvent.VramChanged, { address, value });
 	}
 
+	setColorPalette(p: u8): void {
+		this.events.dispatch(CpuEvent.ColorPaletteChanged, p);
+	}
+
 	getRegister(register_no: u3): u8 {
 		return this.registers[register_no] as u8;
 	}

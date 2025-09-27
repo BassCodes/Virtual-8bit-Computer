@@ -1,6 +1,8 @@
 Improve instruction explainer. Clearly show what is an instruction and what is a parameter
 
-Ui showing CPU flag(s) (Carry), UIStateRepresentation, and clockspeed
+Hover explainer
+
+Ui showing CPU flag Carry
 
 Documentation with standard names
 
@@ -13,17 +15,18 @@ Example Programs (loaded as one of those encoded string url things)
 
 Instruction table, print parameter purpose
 
-Memory color legend
-
 Better Memory colors
 
-TV color schemes
-
-Hover explainer
+nibregpair instruction explainer
 
 ## CSS Styles
 
-Extract colors into variables
+regaddr color
+
+Layout State indicator
+
+Layout frequency indicator
+
 Replace font size with rm units
 
 mobile layout

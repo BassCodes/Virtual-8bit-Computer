@@ -4,51 +4,44 @@ input[type="text"] {
 	border: none;
 	color: white;
 	font-family: monospace;
-	font-size: 20px;
 }
 
 div#program_meta {
+	display: flex;
+	justify-content: space-between;
 	align-items: center;
-	#title_div {
-		flex: 2;
+	gap: 1ch;
+
+	#title_box {
+		flex: 1;
+		input {
+			width: 100%;
+		}
 	}
 
 	#btn_div {
-		align-items: center;
-
 		display: flex;
-		gap: 10px;
+		gap: 1ch;
+		justify-content: right;
 		#save_load_buttons {
 			display: flex;
 			gap: inherit;
 		}
 	}
 
-	justify-content: space-between;
-
-	border-bottom: 2px solid var(--border);
-	margin-bottom: 7px;
 	button,
 	label.button {
-		font-size: 28px;
-
-		margin: unset;
 		padding: unset;
 		border: unset;
 		img {
-			margin-top: auto;
 			display: block;
 		}
-	}
-
-	#trash_button:hover {
-		color: orange;
 	}
 
 	input[type="text"] {
 		text-decoration: underline;
 		margin-block: auto;
-		padding: 10px;
+		padding: 1ch;
 		&:hover {
 			background-color: darkslategray;
 		}
@@ -56,5 +49,4 @@ div#program_meta {
 			background-color: darkslategray;
 		}
 	}
-	display: flex;
 }

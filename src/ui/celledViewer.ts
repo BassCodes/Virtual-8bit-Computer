@@ -16,8 +16,8 @@ export default class CelledViewer {
 	readonly width: number;
 	readonly height: number;
 	container: HTMLElement;
-	editor: EditorContext;
-	constructor(width: number, height: number, element: HTMLElement, edit_callback: (address: u8, value: u8) => void) {
+	editor?: EditorContext;
+	constructor(width: number, height: number, element: HTMLElement, edit_callback?: (address: u8, value: u8) => void) {
 		this.container = element;
 		this.width = width;
 		this.height = height;
@@ -31,10 +31,11 @@ export default class CelledViewer {
 			this.cells.push(mem_cell);
 		}
 		const list = this.cells.map((c) => c.el);
-
-		this.editor = new EditorContext(list, this.width, this.height, (address, value) => {
-			edit_callback(address, value);
-		});
+		if (edit_callback) {
+			this.editor = new EditorContext(list, this.width, this.height, (address, value) => {
+				edit_callback(address, value);
+			});
+		}
 	}
 
 	reset(): void {

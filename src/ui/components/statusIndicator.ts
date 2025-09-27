@@ -25,6 +25,6 @@ export default class StatusIndicator implements UiComponent {
 	}
 
 	setState(s: ComputerStateUiRepresentation): void {
-		this.indicator_element.textContent = `STATE: ${s}`;
+		this.indicator_element.textContent = s;
 	}
 }

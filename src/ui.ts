@@ -6,10 +6,8 @@ import StateManager from "./ui/components/stateManager";
 import MemoryView from "./ui/components/memoryView";
 import frequencyIndicator from "./ui/components/frequencyIndicator";
 import RegisterView from "./ui/components/registerView";
-import EditButton from "./ui/components/editButton";
 import ButtonBox from "./ui/components/buttonBox";
 import SaveLoad from "./ui/components/saveLoad";
-// import ResetButton from "./ui/components/resetButton";
 import TitleBox from "./ui/components/titleBox";
 import StatusIndicator from "./ui/components/statusIndicator";
 // Window Components
@@ -29,10 +27,8 @@ export default class UI {
 		this.register_component(Screen, "tv");
 		this.register_component(ButtonBox, "controls_buttons");
 		this.register_component(SaveLoad, "save_load_buttons");
-		this.register_component(EditButton, "edit_button_box");
-		// this.register_component(ResetButton, "reset_button_box");
 		this.register_component(TitleBox, "title_box");
-		// this.register_component(frequencyIndicator, "cycles");
+		this.register_component(frequencyIndicator, "cycles");
 		this.register_component(StatusIndicator, "status_indicator");
 	}
 

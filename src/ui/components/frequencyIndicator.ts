@@ -21,10 +21,9 @@ export default class frequencyIndicator implements UiComponent {
 
 	start(): void {
 		this.last_time = performance.now();
-		if (this.running !== null) {
-			throw new Error("Tried starting frequencyIndicator twice!");
+		if (this.running === null) {
+			window.setInterval(this.updateIndicator.bind(this), 1000);
 		}
-		window.setInterval(this.updateIndicator.bind(this), 1000);
 	}
 
 	stop(): void {

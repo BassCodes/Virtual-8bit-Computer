@@ -5,7 +5,7 @@
  */
 import { CpuEvent, CpuEventHandler, UiCpuSignal, UiCpuSignalHandler, UiEvent, UiEventHandler } from "../../events";
 import { ParamType } from "../../instructionSet";
-import { m256, u2, u8 } from "../../num";
+import { m256, u8 } from "../../num";
 import UiComponent from "../uiComponent";
 import { el } from "../../etc";
 import CelledViewer from "../celledViewer";
@@ -15,7 +15,7 @@ const p_map = {
 	[ParamType.ConstMemory]: "memory",
 	[ParamType.Register]: "register",
 	[ParamType.RegisterAddress]: "regaddr",
-	[ParamType.NibbleRegisterPair]: "nibregpair", // todo add style
+	[ParamType.NibbleRegisterPair]: "nibregpair",
 };
 
 /** Only to be run once */
@@ -46,11 +46,11 @@ export default class MemoryView implements UiComponent {
 			cpu_signals.dispatch(UiCpuSignal.RequestMemoryChange, { address, value });
 		});
 		this.events.listen(UiEvent.EditOn, () => {
-			this.cells.editor.enable();
+			this.cells.editor?.enable();
 			this.cells.clearAllClasses();
 		});
 		this.events.listen(UiEvent.EditOff, () => {
-			this.cells.editor.disable();
+			this.cells.editor?.disable();
 			this.cells.clearAllClasses();
 		});
 		this.setProgramCounter(0);

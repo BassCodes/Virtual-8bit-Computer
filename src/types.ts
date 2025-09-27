@@ -20,4 +20,5 @@ export interface GenericComputer {
 	getCarry(): boolean;
 	setCarry(state: boolean): void;
 	softReset(): void;
+	setColorPalette(p: u8): void;
 }

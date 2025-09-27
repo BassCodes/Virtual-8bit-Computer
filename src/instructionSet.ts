@@ -4,7 +4,7 @@
  * @license GPL-3.0
  */
 import { formatHex, inRange, splitNibbles } from "./etc";
-import { isU3, isU8, m256, u3, u8 } from "./num";
+import { isU3, m256, u8 } from "./num";
 import { RuntimeError } from "./errorTypes";
 import { GenericComputer } from "./types";
 
@@ -846,5 +846,26 @@ ISA.insertInstruction(0xfd, {
 		const pixel_no = c.getRegister(register_no_1);
 		const value = c.getVram(pixel_no);
 		c.setRegister(register_no_2, value);
+	},
+});
+
+ISA.insertInstruction(0xfa, {
+	name: "Set Palette",
+	desc: "Changes the color palette. The TV uses the color palette to interpret pixel values",
+	params: [new ConstParam("Color palette number")],
+	execute(c, p) {
+		const [pal] = p;
+		c.setColorPalette(pal);
+	},
+});
+
+ISA.insertInstruction(0xf1, {
+	name: "Clear Screen",
+	desc: "Sets all pixels on screen to zero.",
+	params: [],
+	execute(c) {
+		for (let i = 0; i < 256; i++) {
+			c.setVram(i as u8, 0);
+		}
 	},
 });
