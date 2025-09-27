@@ -3,17 +3,13 @@
  * @copyright Alexander Bass 2025
  * @license GPL-3.0
  */
-import { CpuEvent, CpuEventHandler, UiCpuSignalHandler, UiEventHandler } from "../../events";
+import { CpuEvent, CpuEventHandler } from "../../events";
 import CelledViewer from "../celledViewer";
 import UiComponent from "../uiComponent";
 
 export default class RegisterView extends CelledViewer implements UiComponent {
-	events: UiEventHandler;
-	cpu_signals: UiCpuSignalHandler;
-	constructor(element: HTMLElement, events: UiEventHandler, cpu_signals: UiCpuSignalHandler) {
+	constructor(element: HTMLElement) {
 		super(8, 1, element);
-		this.events = events;
-		this.cpu_signals = cpu_signals;
 	}
 
 	initCpuEvents(c: CpuEventHandler): void {

@@ -75,30 +75,6 @@ export default class ButtonBox implements UiComponent {
 			.ev("click", () => this.editToggle())
 			.appendTo(this.container);
 
-		this.events.listen(UiEvent.StateChange, (s) => {
-			switch (s) {
-				case "Edit":
-					this.lock();
-					lock_button(this.reset_button);
-					this.start_button.textContent = "Start";
-					break;
-				case "Errored":
-					this.lock();
-					this.start_button.textContent = "Start";
-					break;
-				case "Ready":
-					this.start_button.textContent = "Start";
-					this.on = false;
-					break;
-				case "Running":
-					this.start_button.textContent = "Stop";
-					this.on = true;
-					break;
-			}
-		});
-		this.events.listen(UiEvent.EditOn, () => this.lock());
-		this.events.listen(UiEvent.EditOff, () => this.reset());
-
 		const s_width = this.start_button.offsetWidth;
 		this.start_button.style.width = `${s_width.toString()}px`;
 	}
@@ -142,6 +118,32 @@ export default class ButtonBox implements UiComponent {
 			this.edit_button.classList.add("on");
 			this.edit_button.classList.remove("off");
 		}
+	}
+
+	initUiEvents(u: UiEventHandler): void {
+		u.listen(UiEvent.StateChange, (s) => {
+			switch (s) {
+				case "Edit":
+					this.lock();
+					lock_button(this.reset_button);
+					this.start_button.textContent = "Start";
+					break;
+				case "Errored":
+					this.lock();
+					this.start_button.textContent = "Start";
+					break;
+				case "Ready":
+					this.start_button.textContent = "Start";
+					this.on = false;
+					break;
+				case "Running":
+					this.start_button.textContent = "Stop";
+					this.on = true;
+					break;
+			}
+		});
+		u.listen(UiEvent.EditOn, () => this.lock());
+		u.listen(UiEvent.EditOff, () => this.reset());
 	}
 }
 

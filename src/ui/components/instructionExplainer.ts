@@ -29,13 +29,6 @@ export default class InstructionExplainer implements UiComponent {
 		el("div").cl("window_title").ch(el("div").id("text").tx("Instruction Explainer")).appendTo(this.container);
 		this.cpu_signals = cpu_signals;
 		this.events = events;
-
-		this.events.listen(UiEvent.TurboOff, () => {
-			this.enable();
-		});
-		this.events.listen(UiEvent.TurboOn, () => {
-			this.disable();
-		});
 	}
 	addInstruction(instr: Instruction, pos: u8, byte: u8): void {
 		this.reset();

@@ -131,8 +131,6 @@ export const UiCpuSignalHandler = EventHandler<UiCpuSignal> as UICpuSignalHandle
 export enum UiEvent {
 	EditOn,
 	EditOff,
-	TurboOn,
-	TurboOff,
 	FileNameChange,
 	RequestFilename,
 	StateChange,
@@ -144,7 +142,7 @@ interface UiEventMap {
 	[UiEvent.StateChange]: ComputerStateUiRepresentation;
 }
 
-type VoidDataUiEventList = UiEvent.EditOn | UiEvent.EditOff | UiEvent.TurboOff | UiEvent.TurboOn;
+type VoidDataUiEventList = UiEvent.EditOn | UiEvent.EditOff;
 
 export interface UiEventHandler extends EventHandler<UiEvent> {
 	listen<E extends keyof UiEventMap>(type: E, listener: (ev: UiEventMap[E]) => void): void;

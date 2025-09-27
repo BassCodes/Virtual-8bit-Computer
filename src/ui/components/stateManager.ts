@@ -7,18 +7,11 @@ export default class StateManager implements UiComponent {
 	container: HTMLElement;
 	events: UiEventHandler;
 	state: ComputerStateUiRepresentation;
-	constructor(element: HTMLElement, events: UiEventHandler, cpu_signals: UiCpuSignalHandler) {
+	constructor(element: HTMLElement, events: UiEventHandler) {
 		this.container = element;
 		this.events = events;
-		this.state = "init" as ComputerStateUiRepresentation;
+		this.state = "unset" as ComputerStateUiRepresentation;
 		this.setState("Ready");
-
-		this.events.listen(UiEvent.EditOn, () => {
-			this.setState("Edit");
-		});
-		this.events.listen(UiEvent.EditOff, () => {
-			this.setState("Ready");
-		});
 	}
 
 	setState(s: ComputerStateUiRepresentation): void {
@@ -38,6 +31,15 @@ export default class StateManager implements UiComponent {
 		});
 		c.listen(CpuEvent.InstructionErrored, () => this.setState("Errored"));
 		c.listen(CpuEvent.InstructionParseErrored, () => this.setState("Errored"));
+	}
+
+	initUiEvents(e: UiEventHandler): void {
+		e.listen(UiEvent.EditOn, () => {
+			this.setState("Edit");
+		});
+		e.listen(UiEvent.EditOff, () => {
+			this.setState("Ready");
+		});
 	}
 
 	reset(): void {

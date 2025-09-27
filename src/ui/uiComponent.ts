@@ -15,7 +15,7 @@ import { CpuEventHandler, UiCpuSignalHandler, UiEventHandler } from "../events";
 export default interface UiComponent {
 	container: HTMLElement;
 	/** Allows listening and emitting UiEvents*/
-	events: UiEventHandler;
+	events?: UiEventHandler;
 	/** Creating signals for the cpu to process */
 	cpu_signals?: UiCpuSignalHandler;
 	/** Completely reset the state of the component */
@@ -23,6 +23,8 @@ export default interface UiComponent {
 	softReset?: () => void;
 	/**  Allows listening CPUEvents*/
 	initCpuEvents?: (c: CpuEventHandler) => void;
+
+	initUiEvents?: (u: UiEventHandler) => void;
 }
 
 export interface UiComponentConstructor {

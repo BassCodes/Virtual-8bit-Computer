@@ -47,6 +47,7 @@ export default class UI {
 		cpu_events.listen(CpuEvent.SoftReset, () => this.softReset());
 
 		for (const c of this.components) if (c.initCpuEvents) c.initCpuEvents(cpu_events);
+		for (const c of this.components) if (c.initUiEvents) c.initUiEvents(this.ui_events);
 	}
 
 	reset(): void {

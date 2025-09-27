@@ -5,26 +5,26 @@
  */
 
 import { el } from "../../etc";
-import { UiEventHandler, UiCpuSignalHandler, UiEvent } from "../../events";
+import { UiEventHandler, UiEvent } from "../../events";
 import UiComponent from "../uiComponent";
 import { ComputerStateUiRepresentation } from "./stateManager.js";
 
 export default class StatusIndicator implements UiComponent {
 	container: HTMLElement;
 	indicator_element: HTMLElement;
-	events: UiEventHandler;
-	constructor(element: HTMLElement, events: UiEventHandler, cpu_signals: UiCpuSignalHandler) {
+	constructor(element: HTMLElement) {
 		this.container = element;
-		this.events = events;
 		this.indicator_element = el("div").appendTo(this.container);
 		this.setState("Ready");
-
-		this.events.listen(UiEvent.StateChange, (s) => {
-			this.setState(s);
-		});
 	}
 
 	setState(s: ComputerStateUiRepresentation): void {
 		this.indicator_element.textContent = s;
+	}
+
+	initUiEvents(e: UiEventHandler): void {
+		e.listen(UiEvent.StateChange, (s) => {
+			this.setState(s);
+		});
 	}
 }
