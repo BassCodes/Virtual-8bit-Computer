@@ -22,14 +22,15 @@ export default class frequencyIndicator implements UiComponent {
 	start(): void {
 		this.last_time = performance.now();
 		if (this.running === null) {
-			window.setInterval(this.updateIndicator.bind(this), 1000);
+			this.running = window.setInterval(this.updateIndicator.bind(this), 1000);
 		}
 	}
 
 	stop(): void {
-		if (this.running === null) return;
-		window.clearInterval(this.running);
-		this.running = null;
+		if (this.running !== null) {
+			window.clearInterval(this.running);
+			this.running = null;
+		}
 	}
 
 	updateIndicator(): void {

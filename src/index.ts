@@ -56,7 +56,7 @@ function main(): void {
 		}
 	};
 
-	// window.firehose();
+	window.firehose();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
