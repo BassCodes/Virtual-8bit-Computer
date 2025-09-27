@@ -33,6 +33,19 @@ $thickness: 2px;
 			}
 		}
 
+		.left_regaddr::first-letter {
+			color: var(--mem-memory);
+		}
+		.right_regaddr {
+			color: var(--mem-memory);
+		}
+		.left_register::first-letter {
+			color: var(--mem-register);
+		}
+		.right_register {
+			color: var(--mem-register);
+		}
+
 		.instruction_argument,
 		.instruction {
 			border: $thickness solid var(--color);

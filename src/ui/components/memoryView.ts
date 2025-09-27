@@ -4,7 +4,7 @@
  * @license GPL-3.0
  */
 import { CpuEvent, CpuEventHandler, UiCpuSignal, UiCpuSignalHandler, UiEvent, UiEventHandler } from "../../events";
-import { ParamType } from "../../instructionSet";
+import { NibbleRegisPairParam, ParamType } from "../../instructionSet";
 import { m256, u8 } from "../../num";
 import UiComponent from "../uiComponent";
 import { el } from "../../etc";
@@ -96,6 +96,15 @@ export default class MemoryView implements UiComponent {
 		c.listen(CpuEvent.ParameterParsed, ({ param, code, pos }) => {
 			this.cells.addCellClass(pos, "instruction_argument");
 			const t = param.type;
+			if (param instanceof NibbleRegisPairParam) {
+				const left_role = param.roleA;
+				const right_role = param.roleB;
+				const left_role_fmt = p_map[left_role];
+				const right_role_fmt = p_map[right_role];
+				// todo remove classes too
+				this.cells.addCellClass(pos, `left_${left_role_fmt}`);
+				this.cells.addCellClass(pos, `right_${right_role_fmt}`);
+			}
 			this.cells.removeCellClass(pos, "constant", "register", "memory", "instruction", "invalid", "hasright");
 			const name = p_map[t];
 			this.cells.addCellClass(pos, name);

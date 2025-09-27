@@ -7,7 +7,7 @@ import { EventHandler } from "./eventHandler";
 import { Instruction, ParameterType } from "./instructionSet";
 import { u3, u8 } from "./num";
 import { InstructionParseError, RuntimeError } from "./errorTypes";
-import { ComputerStateUiRepresentation } from "./ui/components/stateManager.js";
+import { ComputerStateUiRepresentation } from "./ui/components/stateManager";
 
 //
 // CPU Event Handler Definition

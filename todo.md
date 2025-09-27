@@ -19,6 +19,8 @@ Better Memory colors
 
 nibregpair instruction explainer
 
+Add param description to all ISA
+
 ## CSS Styles
 
 regaddr color

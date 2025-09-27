@@ -14,21 +14,17 @@ const p_map = {
 	[ParamType.ConstMemory]: "memory",
 	[ParamType.Register]: "register",
 	[ParamType.RegisterAddress]: "regaddr",
-	[ParamType.NibbleRegisterPair]: "nrpair",
+	[ParamType.NibbleRegisterPair]: "nibregpair",
 };
 
 export default class InstructionExplainer implements UiComponent {
-	events: UiEventHandler;
-	cpu_signals: UiCpuSignalHandler;
 	container: HTMLElement;
 	activated: boolean = true;
-	constructor(element: HTMLElement, events: UiEventHandler, cpu_signals: UiCpuSignalHandler) {
+	constructor(element: HTMLElement) {
 		this.container = element;
 		this.container.classList.add("window");
 
 		el("div").cl("window_title").ch(el("div").id("text").tx("Instruction Explainer")).appendTo(this.container);
-		this.cpu_signals = cpu_signals;
-		this.events = events;
 	}
 	addInstruction(instr: Instruction, pos: u8, byte: u8): void {
 		this.reset();
