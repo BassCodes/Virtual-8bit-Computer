@@ -4,15 +4,8 @@
  * @license GPL-3.0
  */
 import { $, el } from "../../etc";
-import {
-	UiEventHandler,
-	UiEvent,
-	UiCpuSignalHandler,
-	UiCpuSignal,
-	CpuSpeed,
-	CpuEventHandler,
-	CpuEvent,
-} from "../../events";
+import { UiEventHandler, UiEvent, UiCpuSignalHandler, UiCpuSignal } from "../../events";
+import { CpuSpeed } from "../../types";
 import UiComponent from "../uiComponent";
 
 const SPEED_STATES: CpuSpeed[] = ["slow", "normal", "fast", "super fast", "turbo"];
@@ -79,9 +72,9 @@ export default class ButtonBox implements UiComponent {
 		this.start_button.style.width = `${s_width.toString()}px`;
 	}
 
-	lock(): void {
+	disable(): void {
 		for (const button of [this.start_button, this.step_button, this.speed_button]) {
-			lock_button(button);
+			button.setAttribute("disabled", "true");
 		}
 	}
 
@@ -94,7 +87,7 @@ export default class ButtonBox implements UiComponent {
 			this.editToggle();
 		}
 		for (const button of [this.start_button, this.step_button, this.speed_button, this.reset_button]) {
-			unlock_button(button);
+			button.removeAttribute("disabled");
 		}
 		this.on = false;
 		this.start_button.textContent = "Start";
@@ -107,14 +100,12 @@ export default class ButtonBox implements UiComponent {
 	editToggle(): void {
 		if (this.edit_button.classList.contains("on")) {
 			this.edit_button.classList.remove("on");
-			$("root").classList.remove("editor");
 			this.edit_button.classList.add("off");
 			this.events.dispatch(UiEvent.EditOff);
 			this.cpu_signals.dispatch(UiCpuSignal.RequestCpuSoftReset);
 		} else {
 			this.events.dispatch(UiEvent.EditOn);
 			this.cpu_signals.dispatch(UiCpuSignal.StopCpu);
-			$("root").classList.add("editor");
 			this.edit_button.classList.add("on");
 			this.edit_button.classList.remove("off");
 		}
@@ -124,12 +115,12 @@ export default class ButtonBox implements UiComponent {
 		u.listen(UiEvent.StateChange, (s) => {
 			switch (s) {
 				case "Edit":
-					this.lock();
-					lock_button(this.reset_button);
+					this.disable();
+					this.reset_button.setAttribute("disabled", "true");
 					this.start_button.textContent = "Start";
 					break;
 				case "Errored":
-					this.lock();
+					this.disable();
 					this.start_button.textContent = "Start";
 					break;
 				case "Ready":
@@ -140,19 +131,12 @@ export default class ButtonBox implements UiComponent {
 					this.start_button.textContent = "Stop";
 					this.on = true;
 					break;
+				case "Halted":
+					this.start_button.textContent = "Start";
+					this.on = false;
 			}
 		});
-		u.listen(UiEvent.EditOn, () => this.lock());
+		u.listen(UiEvent.EditOn, () => this.disable());
 		u.listen(UiEvent.EditOff, () => this.reset());
 	}
-}
-
-function lock_button(b: HTMLButtonElement): void {
-	b.setAttribute("disabled", "true");
-	b.classList.add("locked");
-}
-
-function unlock_button(b: HTMLButtonElement): void {
-	b.removeAttribute("disabled");
-	b.classList.remove("locked");
 }

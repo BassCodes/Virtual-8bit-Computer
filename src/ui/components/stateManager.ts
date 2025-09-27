@@ -1,7 +1,7 @@
 import { CpuEvent, CpuEventHandler, UiCpuSignalHandler, UiEvent, UiEventHandler } from "../../events";
 import UiComponent from "../uiComponent";
 
-export type ComputerStateUiRepresentation = "Ready" | "Edit" | "Running" | "Errored";
+export type ComputerStateUiRepresentation = "Ready" | "Edit" | "Running" | "Halted" | "Errored";
 
 export default class StateManager implements UiComponent {
 	container: HTMLElement;
@@ -28,6 +28,12 @@ export default class StateManager implements UiComponent {
 		c.listen(CpuEvent.ClockStarted, () => this.setState("Running"));
 		c.listen(CpuEvent.ClockStopped, () => {
 			if (this.state !== "Edit") this.setState("Ready");
+		});
+		c.listen(CpuEvent.ClockLocked, () => {
+			this.setState("Errored");
+		});
+		c.listen(CpuEvent.Halted, () => {
+			this.setState("Halted");
 		});
 		c.listen(CpuEvent.InstructionErrored, () => this.setState("Errored"));
 		c.listen(CpuEvent.InstructionParseErrored, () => this.setState("Errored"));

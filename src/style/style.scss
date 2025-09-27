@@ -40,6 +40,9 @@ body {
 	&.edit {
 		--border: var(--state-edit);
 	}
+	&.halted {
+		--border: var(--state-halted);
+	}
 	.celled_viewer,
 	.window,
 	.window_title,

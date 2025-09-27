@@ -32,3 +32,12 @@ Layout frequency indicator
 Replace font size with rm units
 
 mobile layout
+
+## Stretch goal
+
+Editor selections:
+
+- Cut
+- Paste
+- Delete
+- Both with SHIFT+ARROW and mouse drag

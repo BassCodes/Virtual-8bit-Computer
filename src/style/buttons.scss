@@ -15,6 +15,9 @@ label.button {
 button:disabled {
 	color: orange;
 	cursor: unset;
+	background-image: url("/src/include/icons/padlock.png");
+	background-repeat: no-repeat;
+	background-position: right top;
 }
 
 button.nostyle {
@@ -29,10 +32,4 @@ button.nostyle {
 button:hover,
 label.button:hover {
 	color: white;
-}
-
-button.locked {
-	background-image: url("/src/include/icons/padlock.png");
-	background-repeat: no-repeat;
-	background-position: right top;
 }

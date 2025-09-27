@@ -51,13 +51,13 @@ export function generateIsaTable(iset: InstructionSet): HTMLTableElement {
 		.appendTo(table);
 
 	const instructions: Array<[u8, Instruction]> = [];
-	for (const kv of iset.instructions.entries()) instructions.push(kv);
+	for (const [opcode, instr] of iset.instructions.entries()) instr === null || instructions.push([opcode as u8, instr]);
 
 	let current_category: InstrCategory | null = null;
 	for (const [code, instr] of instructions) {
 		const cat = iset.category_ranges.find((i) => inRange(code, i.start, i.end));
 		if (cat === undefined) {
-			throw new Error("Instruction found which is not part of category");
+			throw new Error(`Instruction found which is not part of category ${code}`);
 		}
 		if (current_category !== cat) {
 			// prettier-ignore

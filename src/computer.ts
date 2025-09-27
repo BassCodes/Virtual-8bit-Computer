@@ -3,11 +3,11 @@
  * @copyright Alexander Bass 2025
  * @license GPL-3.0
  */
-import { CpuEvent, CpuEventHandler, CpuSpeed, UiCpuSignal, UiCpuSignalHandler } from "./events";
+import { CpuEvent, CpuEventHandler, UiCpuSignal, UiCpuSignalHandler } from "./events";
 import { Instruction, ISA, ParameterType } from "./instructionSet";
 import { m256, u3, u8 } from "./num";
 import { InstructionReadError, ParamReadError } from "./errorTypes";
-import { GenericComputer } from "./types";
+import { CpuSpeed, GenericComputer } from "./types";
 
 const CLOCK_SPEED_MAP: Record<CpuSpeed, [number, number]> = {
 	slow: [1000, 1],
@@ -20,8 +20,8 @@ const CLOCK_SPEED_MAP: Record<CpuSpeed, [number, number]> = {
 interface IReadingInstruction {
 	pos: u8;
 	opcode: u8;
-	instr: Instruction;
-	params: Array<u8 | null>;
+	schema: Instruction;
+	params: Array<u8>;
 }
 
 export default class Computer implements GenericComputer {
@@ -36,9 +36,10 @@ export default class Computer implements GenericComputer {
 	clock_speed: number = CLOCK_SPEED_MAP.normal[0];
 	instr_per_cycle: number = CLOCK_SPEED_MAP.normal[1];
 	clock_locked: boolean = false;
+	halted: boolean = false;
 
 	cycle(): void {
-		let should_step = true;
+		// It can't hurt you if you don't touch it.
 
 		if (this.current_instr === null) {
 			const instruction = this.read_next_instruction();
@@ -53,58 +54,66 @@ export default class Computer implements GenericComputer {
 			}
 			this.events.dispatch(CpuEvent.InstructionParseBegin, {
 				pos: this.program_counter,
-				instr: instruction.instr,
+				instr: instruction.schema,
 				code: instruction.opcode,
 			});
 			this.current_instr = instruction;
-		} else if (this.current_instr.params.length < this.current_instr.instr.params.length) {
-			const param_type = this.current_instr.instr.params[this.current_instr.params.length];
-			const param = this.read_next_instruction_param(param_type);
+		} else if (this.current_instr.params.length < this.current_instr.schema.params.length) {
+			const param_type = this.current_instr.schema.params[this.current_instr.params.length];
+			const param_byte = this.read_next_instruction_param(param_type);
 
-			if (typeof param !== "number") {
+			if (typeof param_byte !== "number") {
 				this.events.dispatch(CpuEvent.InstructionParseErrored, {
-					instr: this.current_instr.instr,
+					instr: this.current_instr.schema,
 					pos: this.program_counter,
-					error: param,
+					error: param_byte,
 				});
 				this.clockStop();
 				return;
 			}
+			this.current_instr.params.push(param_byte);
 
 			this.events.dispatch(CpuEvent.ParameterParsed, {
 				param: param_type,
 				pos: this.program_counter,
-				code: param,
+				code: param_byte,
 			});
-			this.current_instr.params.push(param);
 		}
 
-		if (this.current_instr !== null) {
-			if (this.current_instr.params.length === this.current_instr.instr.params.length) {
-				const nostep = (): void => {
-					should_step = false;
-				};
-				const params: Array<u8> = this.current_instr.params.map((p) => p as u8);
-				const error = this.current_instr.instr.execute(this, params, nostep);
-				this.events.dispatch(CpuEvent.InstructionExecuted, {
-					instr: this.current_instr.instr,
-					code: this.current_instr.opcode,
-					start_pos: this.current_instr.pos,
-					end_pos: m256(this.current_instr.pos + this.current_instr.params.length),
-				});
-				if (error) {
-					this.events.dispatch(CpuEvent.InstructionErrored, { instr: this.current_instr.instr, error: error });
-					this.clockStop();
-					return;
-				}
+		if (this.current_instr !== null && this.current_instr.params.length === this.current_instr.schema.params.length) {
+			let should_step = true;
+			let should_halt = false;
+			const nostep = (): void => {
+				should_step = false;
+			};
+			const halt = (): void => {
+				should_halt = true;
+			};
 
-				this.events.dispatch(CpuEvent.InstructionParseEnd);
-				this.current_instr = null;
+			const error = this.current_instr.schema.execute(this, this.current_instr.params, nostep, halt);
+
+			this.events.dispatch(CpuEvent.InstructionExecuted, {
+				instr: this.current_instr.schema,
+				code: this.current_instr.opcode,
+				start_pos: this.current_instr.pos,
+				end_pos: m256(this.current_instr.pos + this.current_instr.params.length),
+			});
+			if (error) {
+				this.events.dispatch(CpuEvent.InstructionErrored, { instr: this.current_instr.schema, error: error });
+				this.clockStop();
+				return;
 			}
+
+			this.events.dispatch(CpuEvent.InstructionParseEnd);
+			this.current_instr = null;
+			if (should_halt) {
+				this.halt();
+			} else if (should_step) {
+				this.stepForward();
+			}
+			return;
 		}
-		if (should_step) {
-			this.stepForward();
-		}
+		this.stepForward();
 	}
 
 	private read_next_instruction(): IReadingInstruction | InstructionReadError {
@@ -116,7 +125,7 @@ export default class Computer implements GenericComputer {
 		const instruction: IReadingInstruction = {
 			pos: this.program_counter,
 			opcode: byte,
-			instr: parsed_instruction,
+			schema: parsed_instruction,
 			params: [],
 		};
 		return instruction;
@@ -189,6 +198,10 @@ export default class Computer implements GenericComputer {
 		}
 	}
 	clockStart(): void {
+		if (this.halted) {
+			this.softReset();
+			this.halted = false;
+		}
 		if (this.clock_on || this.clock_locked) return;
 		this.clock_on = true;
 		const loop = (): void => {
@@ -215,6 +228,16 @@ export default class Computer implements GenericComputer {
 		this.clock_locked = true;
 	}
 
+	halt(): void {
+		if (!this.halted) {
+			this.clock_on = false;
+			console.log("HALT");
+			this.halted = true;
+			this.clockStop();
+			this.events.dispatch(CpuEvent.Halted);
+		}
+	}
+
 	initEvents(ui: UiCpuSignalHandler): void {
 		ui.listen(UiCpuSignal.StepCpu, () => this.clockStep());
 		ui.listen(UiCpuSignal.StartCpu, () => this.clockStart());
@@ -237,6 +260,7 @@ export default class Computer implements GenericComputer {
 	softReset(): void {
 		this.clockStop();
 		this.clock_locked = false;
+		this.halted = false;
 		this.events.dispatch(CpuEvent.SoftReset);
 		for (let i = 0; i < 8; i++) this.setRegister(i as u3, 0);
 		this.vram = new Uint8Array(256);
@@ -247,6 +271,7 @@ export default class Computer implements GenericComputer {
 	reset(): void {
 		this.clockStop();
 		this.clock_locked = false;
+		this.halted = false;
 
 		this.events.dispatch(CpuEvent.Reset);
 		// Hard reset

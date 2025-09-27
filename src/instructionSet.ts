@@ -93,7 +93,8 @@ export interface Instruction {
 	readonly execute: (
 		computer_reference: GenericComputer,
 		parameters: Array<u8>,
-		nostep: () => void
+		nostep: () => void,
+		halt: () => void
 	) => void | RuntimeError;
 }
 
@@ -104,18 +105,21 @@ export type InstrCategory = {
 };
 
 export class InstructionSet {
-	instructions: Map<u8, Instruction>;
+	instructions: Array<Instruction | null>;
 	category_ranges: Array<InstrCategory>;
 	constructor() {
-		this.instructions = new Map();
+		this.instructions = Array(256);
+		for (let i = 0; i < 256; i++) {
+			this.instructions[i] = null;
+		}
 		this.category_ranges = [];
 	}
 
 	insertInstruction(hexCode: u8, instruction: Instruction): void {
-		if (this.instructions.has(hexCode)) {
+		if (this.instructions[hexCode]) {
 			throw new Error(`Instruction "${formatHex(hexCode)}" already exists`);
 		}
-		this.instructions.set(hexCode, instruction);
+		this.instructions[hexCode] = instruction;
 	}
 
 	addCategory(c: InstrCategory): void {
@@ -130,7 +134,7 @@ export class InstructionSet {
 	}
 
 	getInstruction(hexCode: u8): Instruction | null {
-		return this.instructions.get(hexCode) ?? null;
+		return this.instructions[hexCode];
 	}
 }
 
@@ -389,8 +393,8 @@ ISA.insertInstruction(0x2f, {
 	name: "Halt",
 	desc: "Stops CPU execution and soft resets",
 	params: [],
-	execute(c) {
-		c.softReset();
+	execute(c, p, n, halt) {
+		halt();
 	},
 });
 

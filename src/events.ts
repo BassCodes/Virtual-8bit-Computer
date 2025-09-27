@@ -8,6 +8,7 @@ import { Instruction, ParameterType } from "./instructionSet";
 import { u3, u8 } from "./num";
 import { InstructionParseError, RuntimeError } from "./errorTypes";
 import { ComputerStateUiRepresentation } from "./ui/components/stateManager";
+import { CpuSpeed } from "./types";
 
 //
 // CPU Event Handler Definition
@@ -34,6 +35,7 @@ export enum CpuEvent {
 	ClockStarted,
 	ClockStopped,
 	ClockLocked,
+	Halted,
 }
 
 type VoidDataCpuEventList =
@@ -42,6 +44,7 @@ type VoidDataCpuEventList =
 	| CpuEvent.InstructionParseEnd
 	| CpuEvent.ClockStarted
 	| CpuEvent.ClockStopped
+	| CpuEvent.Halted
 	| CpuEvent.ClockLocked;
 
 interface CpuEventMap {
@@ -98,8 +101,6 @@ type VoidDataUiCpuSignalList =
 	| UiCpuSignal.StartCpu
 	| UiCpuSignal.StopCpu
 	| UiCpuSignal.StepCpu;
-
-export type CpuSpeed = "slow" | "normal" | "fast" | "super fast" | "turbo";
 
 interface UiCpuSignalMap {
 	[UiCpuSignal.RequestMemoryChange]: { address: u8; value: u8 };

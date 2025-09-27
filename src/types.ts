@@ -22,3 +22,5 @@ export interface GenericComputer {
 	softReset(): void;
 	setColorPalette(p: u8): void;
 }
+
+export type CpuSpeed = "slow" | "normal" | "fast" | "super fast" | "turbo";

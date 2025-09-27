@@ -86,10 +86,10 @@ export default class EditorContext {
 		if (!this.enabled) return;
 		const cell = e.target as HTMLElement;
 
-		const next: null | HTMLElement = at(this.list, m256(cell_index + 1));
-		const prev: null | HTMLElement = at(this.list, m256(cell_index - 1));
-		const up: null | HTMLElement = at(this.list, m256(cell_index - this.width));
-		const down: null | HTMLElement = at(this.list, m256(cell_index + this.width));
+		const next: null | HTMLElement = this.list[m256(cell_index + 1)];
+		const prev: null | HTMLElement = this.list[m256(cell_index - 1)];
+		const up: null | HTMLElement = this.list[m256(cell_index - this.width)];
+		const down: null | HTMLElement = this.list[m256(cell_index + this.width)];
 
 		const k = e.key;
 		if (k === "ArrowUp") {
