@@ -136,6 +136,7 @@ export enum UiEvent {
 	RequestFilename,
 	StateChange,
 	AddPresetProgram,
+	AttemptLoadFromUrl,
 }
 
 interface UiEventMap {
@@ -145,7 +146,7 @@ interface UiEventMap {
 	[UiEvent.AddPresetProgram]: { name: string; data_func: () => Array<u8> };
 }
 
-type VoidDataUiEventList = UiEvent.EditOn | UiEvent.EditOff;
+type VoidDataUiEventList = UiEvent.EditOn | UiEvent.EditOff | UiEvent.AttemptLoadFromUrl;
 
 export interface UiEventHandler extends EventHandler<UiEvent> {
 	listen<E extends keyof UiEventMap>(type: E, listener: (ev: UiEventMap[E]) => void): void;

@@ -1,3 +1,5 @@
+import { u8 } from "../num";
+
 const B64_ALPHABET: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
 const B64_REVERSE_ALPHABET: Record<string, number> = {};
@@ -67,13 +69,13 @@ export function b64_encode(array: number[]): string {
 	return out;
 }
 
-export function b64_decode(s: string): number[] {
+export function b64_decode(s: string): u8[] {
 	const sx = [...s].map((c) => B64_REVERSE_ALPHABET[c]);
-	const tmp: number[] = [];
+	const tmp: u8[] = [];
 	for (let i = 0; i < sx.length; i += 4) {
 		for (const byte of sextets_to_bytes(sx[i], sx[i + 1], sx[i + 2], sx[i + 3])) {
 			if (byte !== undefined) {
-				tmp.push(byte);
+				tmp.push(byte as u8);
 			} else {
 				break;
 			}

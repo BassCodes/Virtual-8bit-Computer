@@ -7,7 +7,7 @@
 import { el } from "../../etc";
 import { UiEventHandler, UiEvent } from "../../events";
 import UiComponent from "../uiComponent";
-import { ComputerStateUiRepresentation } from "./stateManager.js";
+import { ComputerStateUiRepresentation } from "./stateManager";
 
 export default class StatusIndicator implements UiComponent {
 	container: HTMLElement;

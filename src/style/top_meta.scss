@@ -36,6 +36,13 @@ div#program_meta {
 		img {
 			display: block;
 		}
+		position: relative;
+		filter: none;
+		transition: filter ease-out 0.5s;
+		&:active {
+			filter: brightness(50%);
+			bottom: 1px;
+		}
 	}
 
 	input[type="text"] {

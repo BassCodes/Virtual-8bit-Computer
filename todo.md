@@ -4,18 +4,17 @@ Hover explainer
 
 Ui showing CPU flag Carry
 
+Register/memory labels
+
 Documentation with standard names
-
-URL Loading:
-
-- Determine how to have multiple data in one url.
-- load parse url to serializabledata.
 
 Instruction table, print parameter purpose
 
 Favicon
 
 Better Memory colors
+
+Modulus Instruction
 
 nibregpair instruction explainer
 

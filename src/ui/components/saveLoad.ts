@@ -6,7 +6,8 @@
 import { el } from "../../etc";
 import { UiEventHandler, UiCpuSignalHandler, UiCpuSignal, UiEvent } from "../../events";
 import { isU8 } from "../../num";
-import { deserialize_long, serialize_long, serialize_short } from "../../serialize";
+import { deserailize_short, deserialize_long, serialize_long, serialize_short } from "../../serialize";
+import { ISerializableState } from "../../types";
 import UiComponent from "../uiComponent";
 
 export default class SaveLoad implements UiComponent {
@@ -61,6 +62,27 @@ export default class SaveLoad implements UiComponent {
 		});
 	}
 
+	/** Check page url and load data if available */
+	private load_link(): void {
+		const url = new URL(window.location.href);
+		const sp = url.searchParams;
+		const data = deserailize_short(sp);
+
+		if (data) {
+			// If data is defined, then it is safe to load. Otherwise link contains garbage
+			console.info("Loading data from url");
+			this.loadState(data);
+		} else {
+			console.info("Did not load from url");
+		}
+		// reset url search
+		{
+			const existing = new URL(window.location.href);
+			existing.search = "";
+			window.history.pushState({}, "", existing);
+		}
+	}
+
 	private copy_link(): void {
 		let memory: Uint8Array | undefined;
 		let filename: string | undefined;
@@ -68,7 +90,10 @@ export default class SaveLoad implements UiComponent {
 			if (memory !== undefined && filename !== undefined) {
 				const state = { memory, filename };
 				const encoded = serialize_short(state);
-				navigator.clipboard.writeText(encoded).then(() => {});
+				const url = new URL(window.location.href);
+				url.search = encoded.toString();
+				url.hash = "";
+				navigator.clipboard.writeText(url.toString()).then(() => {});
 				memory = undefined;
 				filename = undefined;
 			}
@@ -145,31 +170,43 @@ export default class SaveLoad implements UiComponent {
 				console.error("Could not load data file");
 				return;
 			}
-			const { filename, memory, vram } = deserialize_long(data);
+			const state = deserialize_long(data);
+			this.loadState(state);
+		});
+		reader.readAsText(file);
+	}
 
-			this.cpu_signals.dispatch(UiCpuSignal.RequestCpuReset);
+	loadState(s: ISerializableState): void {
+		console.log("loading ", s);
+		const { filename, memory, vram } = s;
 
+		this.cpu_signals.dispatch(UiCpuSignal.RequestCpuReset);
+
+		for (let i = 0; i < 256; i = i + 1) {
+			const value = memory[i] || 0;
+			if (!isU8(value) || !isU8(i)) {
+				throw new Error(`unreachable v=${value} i=${i}`);
+			}
+			this.cpu_signals.dispatch(UiCpuSignal.RequestMemoryChange, { address: i, value });
+		}
+		if (vram) {
 			for (let i = 0; i < 256; i = i + 1) {
-				const value = memory[i];
+				const value = vram[i];
 				if (!isU8(value) || !isU8(i)) {
 					throw new Error("unreachable");
 				}
-				this.cpu_signals.dispatch(UiCpuSignal.RequestMemoryChange, { address: i, value });
+				this.cpu_signals.dispatch(UiCpuSignal.RequestVramChange, { address: i, value });
 			}
-			if (vram) {
-				for (let i = 0; i < 256; i = i + 1) {
-					const value = vram[i];
-					if (!isU8(value) || !isU8(i)) {
-						throw new Error("unreachable");
-					}
-					this.cpu_signals.dispatch(UiCpuSignal.RequestVramChange, { address: i, value });
-				}
-			}
+		}
 
-			if (filename) {
-				this.events.dispatch(UiEvent.FileNameChange, filename);
-			}
+		if (filename) {
+			this.events.dispatch(UiEvent.FileNameChange, filename);
+		}
+	}
+
+	initUiEvents(u: UiEventHandler): void {
+		u.listen(UiEvent.AttemptLoadFromUrl, () => {
+			this.load_link();
 		});
-		reader.readAsText(file);
 	}
 }

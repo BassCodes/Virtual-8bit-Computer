@@ -9,7 +9,7 @@
 import { formatHex } from "./etc";
 import { u8 } from "./num";
 import { ISerializableState } from "./types";
-import { b64_encode } from "./util/b64";
+import { b64_decode, b64_encode } from "./util/b64";
 
 // Serialize<=>Deserialize
 // Takes some facets of the computer state to be saved to a string (for later sharing)
@@ -33,21 +33,38 @@ function clean_filename(s: string): string {
 	return clean_string(s);
 }
 
-export function serialize_short(state: ISerializableState): string {
-	let query = "";
+export function serialize_short(state: ISerializableState): URLSearchParams {
+	const params = new URLSearchParams();
 	if (state.filename) {
-		query += encodeURIComponent(clean_filename(state.filename));
+		params.append("fn", encodeURIComponent(clean_filename(state.filename)));
 	}
 
 	{
+		// remove trailing zeros
 		const m = [...state.memory];
-		while (m[m.length - 1] === 0) {
+		while (m[m.length - 1] === 0 && m.length > 1) {
 			m.pop();
 		}
-		query += `?p=${encodeURIComponent(b64_encode(m))}`;
+
+		params.append("p", encodeURIComponent(b64_encode(m)));
 	}
 
-	return query;
+	return params;
+}
+
+export function deserailize_short(params: URLSearchParams): ISerializableState | undefined {
+	let memory: undefined | Array<u8> = undefined;
+	let filename: undefined | string = undefined;
+	filename = params.get("fn") ?? undefined;
+	const mp = params.get("p");
+	if (mp) {
+		const decoded = b64_decode(mp);
+		memory = decoded;
+	}
+
+	if (memory) {
+		return { memory: new Uint8Array(memory), filename };
+	}
 }
 
 export function serialize_long(state: ISerializableState): [string, string] {
