@@ -66,6 +66,12 @@ export function isU3(n: number): n is u3 {
 	return false;
 }
 
+export function assertU3(n: number): asserts n is u3 {
+	if (n >= 8 || n < 0) {
+		throw new Error(`Assertion failed. ${n} is not a u3`);
+	}
+}
+
 /**
  * Determines whether a number is a u4 type (unsigned 4-bit integer).
  * Does not check for non integers

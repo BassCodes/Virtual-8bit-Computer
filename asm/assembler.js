@@ -248,6 +248,33 @@ addInstruction("dec", (p) => {
 	const lhs = p.getRegis();
 	return [hex(0x5f), hex(lhs)];
 });
+
+addInstruction("mul", (p) => {
+	const lhs = p.getRegis();
+	if (p.nextIs("R")) {
+		const rhs = p.getRegis();
+		return [hex(0x54), hex(merge(lhs, rhs))];
+	} else if (p.nextIs("NUM")) {
+		const rhs = p.getNum();
+		return [hex(0x55), hex(lhs), hex(rhs)];
+	} else {
+		throw new Error("");
+	}
+});
+
+addInstruction("div", (p) => {
+	const lhs = p.getRegis();
+	if (p.nextIs("R")) {
+		const rhs = p.getRegis();
+		return [hex(0x56), hex(merge(lhs, rhs))];
+	} else if (p.nextIs("NUM")) {
+		const rhs = p.getNum();
+		return [hex(0x57), hex(lhs), hex(rhs)];
+	} else {
+		throw new Error("");
+	}
+});
+
 addInstruction("RNG", (p) => {
 	const lhs = p.getRegis();
 	return [hex(0xf0), hex(lhs)];
@@ -275,7 +302,7 @@ addInstruction("GET_VRAM", (p) => {
 	return [hex(0xfd), hex(merge(src, dest))];
 });
 
-let asm = fs.readFileSync("./asm.txt", "utf-8");
+let asm = fs.readFileSync(0, "utf-8").toString();
 
 asm = asm.split("\n");
 console.log("starting.............");

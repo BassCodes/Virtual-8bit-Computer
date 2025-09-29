@@ -29,6 +29,7 @@ function main(): void {
 	ui.initEvents(computer.events);
 	// Load program
 	computer.loadMemory(game_of_life());
+	ui.ui_events.dispatch(UiEvent.FileNameChange, "Game of Life");
 	// Computer reacts to UI signals (Start execution, reset, etc.)
 	computer.initEvents(ui.cpu_signaler);
 
@@ -56,7 +57,7 @@ function main(): void {
 		}
 	};
 
-	window.firehose();
+	// window.firehose();
 }
 
 document.addEventListener("DOMContentLoaded", () => {

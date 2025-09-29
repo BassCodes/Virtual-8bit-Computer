@@ -6,11 +6,6 @@ export type DivideByZeroError = {
 	register?: u3;
 };
 
-export type InvalidRegisterNumber = {
-	err: "invalid_register";
-	no: u8;
-};
-
 export interface InstructionReadError {
 	err: "unknown_instruction";
 	data: u8;
@@ -23,4 +18,4 @@ export interface ParamReadError {
 
 export type InstructionParseError = InstructionReadError | ParamReadError;
 
-export type RuntimeError = DivideByZeroError | InvalidRegisterNumber;
+export type RuntimeError = DivideByZeroError;

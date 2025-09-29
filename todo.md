@@ -21,6 +21,12 @@ nibregpair instruction explainer
 
 Add param description to all ISA
 
+Three tab docs
+
+- 10 Minute explanation
+- ISA
+- Instruction Description and example
+
 ## CSS Styles
 
 regaddr color
