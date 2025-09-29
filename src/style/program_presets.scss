@@ -1,0 +1,58 @@
+#preset_programs {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	row-gap: 1ch;
+	button {
+		position: relative;
+		border-right: none;
+		border-bottom-right-radius: 4px;
+		border-top-right-radius: 4px;
+		// font-size: 1em;
+		word-wrap: normal;
+		word-break: keep-all;
+		white-space: nowrap;
+		transition: left 5s;
+	}
+	button:hover {
+		left: 1ch;
+		color: white;
+	}
+	button::after {
+		content: "";
+		// 1 / sqrt(2)
+		height: 70.7%;
+		aspect-ratio: 1;
+		position: absolute;
+		// These are intended to be in `em` units as they scale with respect
+		// to their parents font size.
+		top: 0.242em;
+		right: -1.11em;
+
+		border-top: var(--border) solid 4px;
+		border-right: var(--border) solid 4px;
+		border-top-right-radius: 4px;
+		transform: rotate(45deg);
+	}
+	.presets_title {
+		border: 4px solid var(--border);
+
+		display: flex;
+		align-items: center;
+		user-select: none;
+		color: lightgray;
+		border-bottom: 4px solid var(--border);
+		background-image: linear-gradient(0deg, var(--border), var(--border)),
+			url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAHklEQVQI12P4////////GRgYGBgYmBiQACNcGF0GAGpaCP0BZiNyAAAAAElFTkSuQmCC");
+		background-blend-mode: multiply;
+		image-rendering: pixelated;
+
+		div {
+			word-break: keep-all;
+			white-space: nowrap;
+			text-align: center;
+			padding-inline: 1ch;
+			background-color: black;
+		}
+	}
+}

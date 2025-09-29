@@ -13,6 +13,7 @@ import StatusIndicator from "./ui/components/statusIndicator";
 // Window Components
 import InstructionExplainer from "./ui/components/instructionExplainer";
 import Screen from "./ui/components/screen";
+import PresetPrograms from "./ui/components/presetPrograms";
 
 export default class UI {
 	ui_events: UiEventHandler = new UiEventHandler();
@@ -30,6 +31,7 @@ export default class UI {
 		this.register_component(TitleBox, "title_box");
 		this.register_component(frequencyIndicator, "cycles");
 		this.register_component(StatusIndicator, "status_indicator");
+		this.register_component(PresetPrograms, "preset_programs");
 	}
 
 	private register_component(ctor: UiComponentConstructor, el_id: string): void {

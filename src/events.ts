@@ -135,12 +135,14 @@ export enum UiEvent {
 	FileNameChange,
 	RequestFilename,
 	StateChange,
+	AddPresetProgram,
 }
 
 interface UiEventMap {
 	[UiEvent.FileNameChange]: string;
 	[UiEvent.RequestFilename]: (s: string) => void;
 	[UiEvent.StateChange]: ComputerStateUiRepresentation;
+	[UiEvent.AddPresetProgram]: { name: string; data_func: () => Array<u8> };
 }
 
 type VoidDataUiEventList = UiEvent.EditOn | UiEvent.EditOff;

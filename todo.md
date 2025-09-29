@@ -11,9 +11,9 @@ URL Loading:
 - Determine how to have multiple data in one url.
 - load parse url to serializabledata.
 
-Example Programs (loaded as one of those encoded string url things)
-
 Instruction table, print parameter purpose
+
+Favicon
 
 Better Memory colors
 
@@ -31,9 +31,7 @@ Three tab docs
 
 regaddr color
 
-Layout State indicator
-
-Layout frequency indicator
+touchup state/frequency indicator
 
 Replace font size with rm units
 
@@ -41,9 +39,17 @@ mobile layout
 
 ## Stretch goal
 
+16 bit instructions? for mandelbrot. :
+Each 16 bit instruction operates on registers 0 and 1 as the input/output
+
+- Mul
+- Add
+
 Editor selections:
 
 - Cut
 - Paste
 - Delete
 - Both with SHIFT+ARROW and mouse drag
+
+Persistent localstorage state

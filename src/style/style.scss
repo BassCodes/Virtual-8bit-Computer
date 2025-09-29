@@ -6,6 +6,7 @@
 @use "buttons";
 @use "table";
 @use "control_buttons";
+@use "program_presets";
 @use "vars" as *;
 
 :root {
@@ -58,13 +59,13 @@ body {
 #grid {
 	justify-content: center;
 	display: grid;
-	grid-template-columns: min-content min-content 1ch min-content;
+	grid-template-columns: min-content min-content 1ch min-content 1ch auto;
 	grid-template-rows: min-content min-content 1ch min-content;
 	grid-template-areas:
-		".        registers .		  titlebar 	"
-		"title    memory	.         tv  		"
-		". 		  .         . 		  .    		"
-		".        buttons   .		  explainer ";
+		".        registers .		  titlebar 	.	.	   "
+		"title    memory	.         tv  		.	presets"
+		". 		  .         . 		  .    		.	.      "
+		".        buttons   .		  explainer .	.      ";
 
 	#instruction_explainer {
 		grid-area: explainer;
@@ -84,6 +85,9 @@ body {
 	}
 	#mem_label {
 		grid-area: memlabel;
+	}
+	#preset_programs {
+		grid-area: presets;
 	}
 	#cycles {
 		grid-area: cycles;
