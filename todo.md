@@ -10,8 +10,6 @@ Documentation with standard names
 
 Instruction table, print parameter purpose
 
-Favicon
-
 Better Memory colors
 
 nibregpair instruction explainer
