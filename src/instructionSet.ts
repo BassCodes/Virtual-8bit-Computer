@@ -784,6 +784,39 @@ ISA.insertInstruction(0x57, {
 		c.setRegister(register_no_1, m256(quotient));
 	},
 });
+ISA.insertInstruction(0x58, {
+	name: "Modulus",
+	desc: "Divides the value in register (P1) by value in register (P2) stores remainder in (P1)",
+	params: [new RegisParam("TODO"), new RegisParam("TODO")],
+	execute(c, p) {
+		const [register_no_1, register_no_2] = p;
+		assertU3(register_no_1);
+		assertU3(register_no_2);
+		const numerator = c.getRegister(register_no_1);
+		const denominator = c.getRegister(register_no_2);
+		if (denominator === 0) {
+			return { err: "divide_zero", register: register_no_2 };
+		}
+		const rem = numerator % denominator;
+		c.setRegister(register_no_1, rem as u8);
+	},
+});
+
+ISA.insertInstruction(0x59, {
+	name: "Modulus",
+	desc: "Divides the value in register (P1) by constant value (P2) stores remainder in (P1)",
+	params: [new RegisParam("TODO"), new ConstParam("TODO")],
+	execute(c, p) {
+		const [register_no_1, constant_value] = p;
+		assertU3(register_no_1);
+		const numerator = c.getRegister(register_no_1);
+		if (constant_value === 0) {
+			return { err: "divide_zero" };
+		}
+		const rem = numerator % constant_value;
+		c.setRegister(register_no_1, rem as u8);
+	},
+});
 
 ISA.insertInstruction(0x5e, {
 	name: "Increment",
@@ -819,7 +852,7 @@ ISA.insertInstruction(0xf0, {
 	name: "Random Number",
 	desc: "Sets register (R1) to a random value",
 	params: [new RegisParam("register")],
-	execute(c, p, e) {
+	execute(c, p) {
 		const [register_no_1] = p;
 		assertU3(register_no_1);
 		// Math.random returns a value  n: 0 =< n < 1, thus
@@ -836,7 +869,7 @@ ISA.insertInstruction(0xff, {
 	name: "Set Pixel",
 	desc: "Sets the color constant (P2) for pixel at position in register (P1)",
 	params: [new RegisParam("Pixel Id"), new ConstParam("Pixel Value")],
-	execute(c, p, e) {
+	execute(c, p) {
 		const [register_no_1, pixel_val] = p;
 		assertU3(register_no_1);
 		const pixel_no = c.getRegister(register_no_1);
@@ -848,7 +881,7 @@ ISA.insertInstruction(0xfe, {
 	name: "Set Pixel",
 	desc: "Sets the color value in register (P2) for pixel at position in register (P1)",
 	params: [new NibbleRegisPairParam(ParamType.RegisterAddress, ParamType.Register)],
-	execute(c, p, e) {
+	execute(c, p) {
 		const [nibbles] = p;
 		const [register_no_1, register_no_2] = splitNibbles(nibbles);
 
@@ -864,7 +897,7 @@ ISA.insertInstruction(0xfd, {
 	name: "Get Pixel",
 	desc: "Stores the color value for pixel addressed in (R1) to register (R2)",
 	params: [new NibbleRegisPairParam(ParamType.RegisterAddress, ParamType.Register)],
-	execute(c, p, e) {
+	execute(c, p) {
 		const [nibbles] = p;
 		const [register_no_1, register_no_2] = splitNibbles(nibbles);
 

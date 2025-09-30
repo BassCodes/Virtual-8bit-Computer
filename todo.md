@@ -14,8 +14,6 @@ Favicon
 
 Better Memory colors
 
-Modulus Instruction
-
 nibregpair instruction explainer
 
 Add param description to all ISA
