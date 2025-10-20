@@ -17,8 +17,10 @@ class ElementInProgress<E extends HTMLElement> {
 	}
 
 	/** Add class */
-	cl(class_name: string): ElementInProgress<E> {
-		this.element.classList.add(class_name);
+	cl(...class_name: string[]): ElementInProgress<E> {
+		for (const cl of class_name) {
+			this.element.classList.add(cl);
+		}
 		return this;
 	}
 

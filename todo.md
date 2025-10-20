@@ -4,8 +4,6 @@ Instruction table, print parameter purpose
 
 Better Memory colors
 
-Nibregpair invalid parameter instr explainer
-
 Add param description to all ISA
 
 Three tab docs

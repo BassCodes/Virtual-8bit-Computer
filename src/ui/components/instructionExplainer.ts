@@ -4,7 +4,7 @@
  * @license GPL-3.0
  */
 import { el, formatHex } from "../../etc";
-import { CpuEvent, CpuEventHandler, UiCpuSignalHandler, UiEvent, UiEventHandler } from "../../events";
+import { CpuEvent, CpuEventHandler } from "../../events";
 import { Instruction, VarPairParam, ParamType, ParameterType } from "../../instructionSet";
 import { u8 } from "../../num";
 import UiComponent from "../uiComponent";
@@ -24,9 +24,11 @@ export default class InstructionExplainer implements UiComponent {
 	constructor(element: HTMLElement) {
 		this.container = element;
 		this.container.classList.add("window");
+		this.expl_container = el("div").cl("expl_container").fin();
 		el("div").cl("window_title").ch(el("div").id("text").tx("Instruction Explainer")).appendTo(this.container);
-		this.expl_container = el("div").cl("expl_container").appendTo(this.container);
+		this.container.appendChild(this.expl_container);
 	}
+
 	addInstruction(instr: Instruction, pos: u8, byte: u8): void {
 		this.reset();
 		this.addBox(formatHex(byte), instr.name, "instruction");
@@ -50,9 +52,7 @@ export default class InstructionExplainer implements UiComponent {
 		class_b: string
 	): void {
 		el("div")
-			.cl("expl_box")
-			.cl("multi")
-
+			.cl("expl_box", "multi")
 			.ch(
 				el("div")
 					.cl("top")
@@ -76,8 +76,8 @@ export default class InstructionExplainer implements UiComponent {
 			const type_a = p_map[param.roleA];
 			const type_b = p_map[param.roleB];
 			this.addDualBox(
-				((byte & 0xf) as u8).toString(16),
-				((byte >> 4) as u8).toString(16),
+				((byte & 0xf) as u8).toString(16).toUpperCase(),
+				((byte >> 4) as u8).toString(16).toUpperCase(),
 				param.desc,
 				param.descB,
 				type_a,
@@ -108,7 +108,22 @@ export default class InstructionExplainer implements UiComponent {
 		});
 		c.listen(CpuEvent.InstructionParseErrored, ({ instr, error, pos }) => {
 			if (error.err === "invalid_parameter") {
-				if (this.activated) this.addInvalidParam(error.expected, error.data, pos);
+				if (this.activated) {
+					if (error.expected instanceof VarPairParam) {
+						const param = error.expected;
+						const byte = error.data;
+						this.addDualBox(
+							((byte & 0xf) as u8).toString(16).toUpperCase(),
+							((byte >> 4) as u8).toString(16).toUpperCase(),
+							param.desc,
+							param.descB,
+							"invalid",
+							"invalid"
+						);
+					} else {
+						this.addInvalidParam(error.expected, error.data, pos);
+					}
+				}
 			} else {
 				if (this.activated) this.addInvalidInstr(pos, error.data);
 			}
