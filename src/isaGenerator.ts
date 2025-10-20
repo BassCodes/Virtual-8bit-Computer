@@ -4,14 +4,7 @@
  * @license GPL-3.0
  */
 import { el, formatHex, inRange } from "./etc";
-import {
-	InstrCategory,
-	Instruction,
-	InstructionSet,
-	NibbleRegisPairParam,
-	ParameterType,
-	ParamType,
-} from "./instructionSet";
+import { InstrCategory, Instruction, InstructionSet, VarPairParam, ParameterType, ParamType } from "./instructionSet";
 import { u8 } from "./num";
 
 function parameterDescription(params: Array<ParameterType>): string {
@@ -21,15 +14,17 @@ function parameterDescription(params: Array<ParameterType>): string {
 	}
 	for (const p of params) {
 		const p_map = {
-			[ParamType.Const]: "C",
-			[ParamType.ConstMemory]: "CM",
-			[ParamType.Register]: "R",
-			[ParamType.RegisterAddress]: "RA",
-			[ParamType.NibbleRegisterPair]: "NR2",
+			[ParamType.Constant]: "C",
+			[ParamType.ConstMemory]: "CA",
+			[ParamType.Variable]: "V",
+			[ParamType.VarMem]: "VA",
+			[ParamType.VarPair]: "",
 		};
 		let paramStr = "";
-		if (p.type === ParamType.NibbleRegisterPair) {
-			paramStr = `NR(${(p as NibbleRegisPairParam).roleA},&nbsp;${(p as NibbleRegisPairParam).roleB})`;
+		if (p.type === ParamType.VarPair) {
+			const p1_str = p_map[(p as VarPairParam).roleA];
+			const p2_str = p_map[(p as VarPairParam).roleB];
+			paramStr = `Pair(${p1_str},&nbsp;${p2_str})`;
 		} else {
 			paramStr = p_map[p.type];
 		}
@@ -70,7 +65,7 @@ export function generateIsaTable(iset: InstructionSet): HTMLTableElement {
 		}
 
 		el("tr")
-			.ch(el("td").tx(`0x${formatHex(code)}`))
+			.ch(el("td").tx(formatHex(code)))
 			.ch(el("td").ht(parameterDescription(instr.params)))
 			.ch(el("td").tx(instr.name))
 			.ch(el("td").tx(instr.desc))

@@ -1,4 +1,4 @@
-
+PAL 1
 goto :randgen
 
 L glider

@@ -15,7 +15,6 @@ export default class ButtonBox implements UiComponent {
 	start_button: HTMLButtonElement;
 	step_button: HTMLButtonElement;
 	speed_button: HTMLButtonElement;
-	edit_button: HTMLButtonElement;
 	reset_button: HTMLButtonElement;
 	events: UiEventHandler;
 	on: boolean = false;
@@ -62,12 +61,6 @@ export default class ButtonBox implements UiComponent {
 			.ev("click", () => this.cpu_signals.dispatch(UiCpuSignal.RequestCpuSoftReset))
 			.appendTo(this.container);
 
-		this.edit_button = el("button")
-			.tx("Edit")
-			.cl("edit_button")
-			.ev("click", () => this.editToggle())
-			.appendTo(this.container);
-
 		const s_width = this.start_button.offsetWidth;
 		this.start_button.style.width = `${s_width.toString()}px`;
 	}
@@ -83,9 +76,6 @@ export default class ButtonBox implements UiComponent {
 	}
 
 	reset(): void {
-		if (this.edit_button.classList.contains("on")) {
-			this.editToggle();
-		}
 		for (const button of [this.start_button, this.step_button, this.speed_button, this.reset_button]) {
 			button.removeAttribute("disabled");
 		}
@@ -95,20 +85,6 @@ export default class ButtonBox implements UiComponent {
 
 	softReset(): void {
 		this.reset();
-	}
-
-	editToggle(): void {
-		if (this.edit_button.classList.contains("on")) {
-			this.edit_button.classList.remove("on");
-			this.edit_button.classList.add("off");
-			this.events.dispatch(UiEvent.EditOff);
-			this.cpu_signals.dispatch(UiCpuSignal.RequestCpuSoftReset);
-		} else {
-			this.events.dispatch(UiEvent.EditOn);
-			this.cpu_signals.dispatch(UiCpuSignal.StopCpu);
-			this.edit_button.classList.add("on");
-			this.edit_button.classList.remove("off");
-		}
 	}
 
 	initUiEvents(u: UiEventHandler): void {

@@ -46,14 +46,19 @@ div#program_meta {
 	}
 
 	input[type="text"] {
-		text-decoration: underline;
 		margin-block: auto;
 		padding: 1ch;
+		font-family: inherit;
+		font-size: inherit;
+		font-size: 0.7rem;
 		&:hover {
-			background-color: darkslategray;
+			background-color: #5a5a5a;
+			text-decoration: underline;
 		}
 		&:focus {
-			background-color: darkslategray;
+			outline: 1px solid var(--border);
+			text-decoration: underline;
+			background-color: #303030;
 		}
 	}
 }

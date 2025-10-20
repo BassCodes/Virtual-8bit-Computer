@@ -231,7 +231,6 @@ export default class Computer implements GenericComputer {
 	halt(): void {
 		if (!this.halted) {
 			this.clock_on = false;
-			console.log("HALT");
 			this.halted = true;
 			this.clockStop();
 			this.events.dispatch(CpuEvent.Halted);

@@ -6,15 +6,15 @@ export type DivideByZeroError = {
 	register?: u3;
 };
 
-export interface InstructionReadError {
+export type InstructionReadError = {
 	err: "unknown_instruction";
 	data: u8;
-}
-export interface ParamReadError {
+};
+export type ParamReadError = {
 	err: "invalid_parameter";
 	expected: ParameterType;
 	data: u8;
-}
+};
 
 export type InstructionParseError = InstructionReadError | ParamReadError;
 

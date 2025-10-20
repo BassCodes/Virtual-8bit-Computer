@@ -14,13 +14,24 @@
 		<div id="ui">
 			<div id="grid">
 				<div id="title">VIRTUAL 8-BIT COMPUTER</div>
-				<div id="registers"></div>
-				<div id="reg_label">↯REGISTERS</div>
-				<div id="mem_label">MEMORY↯</div>
+				<div id="registers-container">
+					<div id="registers"></div>
+					<div id="regmem_label">
+						<div id="reg_label">
+							<div class="arrow-left"></div>
+							VARIABLES
+						</div>
+						<div id="mem_label">
+							MEMORY
+							<div class="arrow-down"></div>
+						</div>
+					</div>
+				</div>
 				<div id="memory"></div>
 
 				<div id="controls_bar">
 					<span id="controls_buttons"></span>
+					<span id="edit_buttons"></span>
 					<span id="indicators">
 						<span id="status_indicator"></span>
 						<span id="cycles"></span>
@@ -35,7 +46,6 @@
 				</div>
 				<div id="tv"></div>
 				<div id="instruction_explainer"></div>
-				<div id="preset_programs"></div>
 			</div>
 		</div>
 
@@ -75,13 +85,208 @@
 			</div>
 
 			<h1>Virtual 8-Bit Computer</h1>
-			<p>
-				Above is a virtual virtual virtual Lorem ipsum dolor sit amet consectetur adipisicing elit. Provident architecto
-				voluptas repudiandae eligendi mollitia necessitatibus tempore autem ea pariatur ex quae eum itaque ducimus,
-				velit nam voluptatem deserunt ad nesciunt.
-			</p>
-			<h2>How it works</h2>
-			<p></p>
+			<article id="short-intro">
+				<p>**Virtual 8-Bit Computer**:</p>
+				<p>
+					What is a computer? A computer processes a list of **instructions** to compute some data. Though this computer
+					is limited, it follows many of the same principles of computers today.
+				</p>
+
+				<p>
+					This computer uses 8-Bit **values** which simply means that all data (variables, memory values, TV pixels,
+					etc.) is stored as numbers which are sized from 0 to 255. It is customary to view these numbers in
+					<a href="https://en.wikipedia.org/wiki/Hexadecimal">hexadecimal</a>
+					with hex 'digits' (0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F). In this fashion, 0 becomes **00** and 255 becomes **FF**
+				</p>
+
+				<h2>Instructions</h2>
+
+				<p>
+					The Computer operates off of **instructions** which each perform small tasks (increment a number, halt, etc.).
+					These instructions are represented by numbers. As an example, "increment" could be `5E` and "halt" `2F`.
+				</p>
+
+				<p>
+					The computer finds these instructions in the **Memory** — a 16×16 grid of values. Starting at the top left,
+					the computer will look at each value as an instruction, and sequentially perform the specific task for that
+					instruction. For example, if the memory looked _something_ like:
+				</p>
+
+				<pre><code>5E 2F . . .</code></pre>
+
+				<p>
+					The computer would first see `5E` as the "increment" instruction and increment a variable. then it would see
+					`2F` as the "halt" instruction and stop. This is the general principle behind the computer: read next
+					instruction, do task, repeat. Many instructions are available for use. Some are simple arithmetic like "add"
+					or "divide", and some are more interesting like "goto" and "set pixel".
+				</p>
+
+				<h2>Variables</h2>
+
+				<p>
+					Of course, the question arises: "what are we incrementing? what numbers are we adding?" The answer lies in the
+					**parameters** and **variables**. Some instructions require values as parameters. For example, the earlier
+					example would be correct like:
+				</p>
+
+				<pre><code>5E 00 2F . . .</code></pre>
+
+				<p>
+					Along with the "increment" instruction (`5E`), we must tell the computer with a parameter which **variable**
+					should be incremented (`00`). In this updated example, the computer would look in memory and first see `5E` as
+					the "increment" instruction. The computer understands that the next value will be the variable to increment.
+					After incrementing variable number `00` the computer will then see `2F` as the "halt" instruction and stop.
+				</p>
+
+				<p>
+					In total the computer has 8 variables (`00`, `01`, `02`, `03`, `04`, `05`, `06`, `07`). Each variable is
+					simply an 8-bit value like each value in the memory. At the very top above the memory each variable is listed.
+					Variables start off as zero.
+				</p>
+
+				<h2>The TV</h2>
+
+				<p>
+					The **TV** is a screen which can be drawn on automatically by the computer. The TV has 16 rows of pixels and
+					16 pixels for a total resolution of 16x16. Each pixel is set as an 8-bit value by the computer. Each 8-bit
+					value represents a different color
+				</p>
+
+				<h2>A Simple Program</h2>
+
+				<p>
+					All computation happens on variables. When the computer adds two numbers together it adds two variables
+					together then puts the result in a variable. Additionally, there is another form of addition which adds a
+					**constant parameter** value to a variable, and puts the result in the variable. Constant parameters work just
+					like _variable parameters_ except their value is simply the value of the parameter.
+				</p>
+
+				<p>Let's write a simple program which:</p>
+
+				<ol>
+					<li>Generates a random number in variable `00`</li>
+					<li>Multiplies the value in variable `00` by three</li>
+					<li>Generates a random number in variable `01`</li>
+					<li>On the TV, Paints pixel at position in variable `01` with color in variable `00`</li>
+					<li>Ends</li>
+				</ol>
+
+				<p>Click the "Edit" button to go into edit mode.</p>
+
+				<p>
+					When writing programs it's helpful to reference the **ISA** which has details for each instruction. First we
+					need a random number. The ISA has "random number" as `F0`:
+				</p>
+
+				<pre><code>Value | Parameters | Name          | Task
+F0    | V          | Random Number | Sets variable (P1) to a random number
+</code></pre>
+
+				<p>
+					Per the ISA, this instruction has the value `F0` and takes one variable parameter. We begin our program by
+					setting the variable `00` to a random number:
+				</p>
+
+				<pre><code>
+F0 00
+</code></pre>
+
+				<p>Then, we want to multiply it by three. The ISA has the multiply instruction:</p>
+
+				<pre><code>Value | Parameters | Name     | Task
+55	  | V C 	   | Multiply | Multiplies the value in variable (P1) by constant (P2)
+</code></pre>
+
+				<p>
+					"multiply" takes one variable parameter and one constant parameter. We want to multiply the variable `00` by
+					`03`, so:
+				</p>
+
+				<pre><code>F0 00 55 00 03
+      --------
+      new
+</code></pre>
+
+				<p>Next we generate the second random variable (`01`) just like the last.</p>
+
+				<pre><code>F0 00 55 00 03 F0 01
+               -----
+               new
+</code></pre>
+
+				<p>Now we set the pixel on the TV, the ISA entry for "set pixel" looks like:</p>
+
+				<pre><code>FE | Pair(V, V) | Set Pixel | Sets the color value in variable (P2) for pixel at position in variable (P1)</code></pre>
+
+				<p>
+					"set pixel" uses a new type of parameter called a **pair variable parameter**. Pair variables parameters are
+					used when an instruction requires two variables. In this case, we have our position in `01` and our color in
+					`00`, so our pair would be `10`. The updated program looks like:
+				</p>
+
+				<pre><code>F0 00 55 00 03 F0 01 FE 10
+                     -----
+                     new
+</code></pre>
+
+				<p>Finally, we add a halt instruction:</p>
+
+				<pre><code>F0 00 55 00 03 F0 01 FE 10 2F
+</code></pre>
+
+				<p>And the program is complete!</p>
+
+				<a href="https://alexanderbass.com/share/untracked/froobuter/?fn=Random_Pixel&p=8ABVAAPwAf4QLw%253D%253D"
+					>Program Link</a
+				>
+
+				<p>Click **Step** to step through each instruction and parameter to see how the computer views it at it.</p>
+
+				<h2>Repetition</h2>
+
+				<p>
+					A single pixel is a bit boring though isn't it? We could modify our program to repeat and fill the TV with a
+					ton of random pixels.
+				</p>
+
+				<p>
+					The "goto" instruction tells the computer where in the memory it should look next. If have a "goto"
+					instruction which tells the computer to look at `00` the program will loop!
+				</p>
+
+				<p>(Note, there are bunch of different types of "goto" refer to the ISA)</p>
+
+				<pre><code>21 |	C  |	Goto |	Moves the CPU instruction counter to the value in (P1)
+</code></pre>
+
+				<p>We remove the "halt" instruction and replace it with a "goto":</p>
+
+				<pre><code>F0 00 55 00 03 F0 01 FE 10 21 00
+-----
+new
+</code></pre>
+
+				<a href="https://alexanderbass.com/share/untracked/froobuter/?fn=So_many_colors%21&p=8ABVAAPwAf4QIQ%253D%253D"
+					>Program Link</a
+				>
+
+				<p>
+					Now, when the computer sees the "goto" instruction `21` and the new position `00`, it will then look for the
+					next instruction at memory position `00`
+				</p>
+
+				<p>(turn the speed up from normal to turbo for a little fun)</p>
+
+				<h2>## Logic and conditionals</h2>
+
+				<h2>## Parameter types</h2>
+
+				<p>So far variable and constant</p>
+
+				<h2>## Wrapping</h2>
+
+				<p>Modular wrapping</p>
+			</article>
 		</div>
 	</body>
 </html>

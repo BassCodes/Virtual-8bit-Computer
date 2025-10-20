@@ -7,10 +7,10 @@ import MemoryView from "./ui/components/memoryView";
 import frequencyIndicator from "./ui/components/frequencyIndicator";
 import RegisterView from "./ui/components/registerView";
 import ButtonBox from "./ui/components/buttonBox";
+import EditButtons from "./ui/components/editButtons";
 import SaveLoad from "./ui/components/saveLoad";
 import TitleBox from "./ui/components/titleBox";
 import StatusIndicator from "./ui/components/statusIndicator";
-// Window Components
 import InstructionExplainer from "./ui/components/instructionExplainer";
 import Screen from "./ui/components/screen";
 import PresetPrograms from "./ui/components/presetPrograms";
@@ -27,11 +27,12 @@ export default class UI {
 		this.register_component(RegisterView, "registers");
 		this.register_component(Screen, "tv");
 		this.register_component(ButtonBox, "controls_buttons");
+		this.register_component(EditButtons, "edit_buttons");
 		this.register_component(SaveLoad, "save_load_buttons");
 		this.register_component(TitleBox, "title_box");
 		this.register_component(frequencyIndicator, "cycles");
 		this.register_component(StatusIndicator, "status_indicator");
-		this.register_component(PresetPrograms, "preset_programs");
+		// this.register_component(PresetPrograms, "preset_programs");
 	}
 
 	private register_component(ctor: UiComponentConstructor, el_id: string): void {

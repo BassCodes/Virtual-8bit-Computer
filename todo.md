@@ -1,18 +1,10 @@
-Improve instruction explainer. Clearly show what is an instruction and what is a parameter
-
-Hover explainer
-
-Ui showing CPU flag Carry
-
-Register/memory labels
-
 Documentation with standard names
 
 Instruction table, print parameter purpose
 
 Better Memory colors
 
-nibregpair instruction explainer
+Nibregpair invalid parameter instr explainer
 
 Add param description to all ISA
 
@@ -22,9 +14,11 @@ Three tab docs
 - ISA
 - Instruction Description and example
 
-## CSS Styles
+Fixup markdown
 
-regaddr color
+Make so: if instruction pointer increments past 255, halts
+
+## CSS Styles
 
 touchup state/frequency indicator
 
@@ -33,6 +27,8 @@ Replace font size with rm units
 mobile layout
 
 ## Stretch goal
+
+Ui showing CPU flag Carry
 
 16 bit instructions? for mandelbrot. :
 Each 16 bit instruction operates on registers 0 and 1 as the input/output

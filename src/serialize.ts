@@ -46,7 +46,7 @@ export function serialize_short(state: ISerializableState): URLSearchParams {
 			m.pop();
 		}
 
-		params.append("p", encodeURIComponent(b64_encode(m)));
+		params.append("p", b64_encode(m));
 	}
 
 	return params;
@@ -57,8 +57,19 @@ export function deserailize_short(params: URLSearchParams): ISerializableState |
 	let filename: undefined | string = undefined;
 	filename = params.get("fn") ?? undefined;
 	const mp = params.get("p");
-	if (mp) {
-		const decoded = b64_decode(mp);
+	if (mp !== null) {
+		let decoded_mp;
+		try {
+			decoded_mp = decodeURIComponent(mp);
+		} catch (e) {
+			console.log("Couldn't decode url memory parameter", e);
+			return;
+		}
+
+		const decoded = b64_decode(decoded_mp);
+		if (decoded === "unknown_characters") {
+			return;
+		}
 		memory = decoded;
 	}
 
@@ -111,7 +122,8 @@ export function serialize_long(state: ISerializableState): [string, string] {
 	return [filename_ext, out];
 }
 
-const parse_transitions = {
+type parse_modes = "start" | "filename" | "after_filename" | "memory" | "after_memory" | "vram" | "after_vram" | "end";
+const parse_transitions: Record<parse_modes, parse_modes[]> = {
 	start: ["filename", "memory"],
 	filename: ["after_filename"],
 	after_filename: ["memory", "vram"],
@@ -119,18 +131,10 @@ const parse_transitions = {
 	after_memory: ["vram", "end"],
 	vram: ["after_vram"],
 	after_vram: ["end"],
+	end: [],
 };
 
 export function deserialize_long(s: string): ISerializableState {
-	type parse_modes =
-		| "start"
-		| "filename"
-		| "after_filename"
-		| "memory"
-		| "after_memory"
-		| "vram"
-		| "after_vram"
-		| "end";
 	let lines = s.split("\n");
 	// trim whitespace
 	lines = lines.map((l) => l.trim());

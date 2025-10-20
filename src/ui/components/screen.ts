@@ -98,7 +98,7 @@ export default class Screen implements UiComponent {
 		const point: [number, number] = [x * this.scale, y * this.scale];
 
 		let color: string;
-		if (this.palette_id === 0) {
+		if (this.palette_id === 1) {
 			color = monochrome(value);
 		} else {
 			color = arbitrary_colors(value);

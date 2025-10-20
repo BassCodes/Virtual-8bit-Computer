@@ -57,8 +57,7 @@ function sextets_to_bytes(
 }
 
 export function b64_encode(array: number[]): string {
-	// Supposedly this functionally is becoming a web standard soon.
-
+	// Supposedly this functionally is becoming a web standard soon for uint8arrays.
 	let out = "";
 	for (let i = 0; i < array.length; i += 3) {
 		for (const sextet of bytes_to_sextets(array[i], array[i + 1], array[i + 2])) {
@@ -69,7 +68,10 @@ export function b64_encode(array: number[]): string {
 	return out;
 }
 
-export function b64_decode(s: string): u8[] {
+export function b64_decode(s: string): u8[] | "unknown_characters" {
+	if ([...s].some((ch) => ch !== "=" && B64_REVERSE_ALPHABET[ch] === undefined)) {
+		return "unknown_characters";
+	}
 	const sx = [...s].map((c) => B64_REVERSE_ALPHABET[c]);
 	const tmp: u8[] = [];
 	for (let i = 0; i < sx.length; i += 4) {

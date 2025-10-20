@@ -301,6 +301,11 @@ addInstruction("GET_VRAM", (p) => {
 	const dest = p.getRegis();
 	return [hex(0xfd), hex(merge(src, dest))];
 });
+addInstruction("PAL", (p) => {
+	const src = p.getNum();
+
+	return [hex(0xfa), hex(src)];
+});
 
 let asm = fs.readFileSync(0, "utf-8").toString();
 

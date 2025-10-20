@@ -4,18 +4,18 @@
  * @license GPL-3.0
  */
 import { CpuEvent, CpuEventHandler, UiCpuSignal, UiCpuSignalHandler, UiEvent, UiEventHandler } from "../../events";
-import { NibbleRegisPairParam, ParamType } from "../../instructionSet";
+import { VarPairParam, ParamType } from "../../instructionSet";
 import { m256, u8 } from "../../num";
 import UiComponent from "../uiComponent";
 import { el } from "../../etc";
 import CelledViewer from "../celledViewer";
 
 const p_map = {
-	[ParamType.Const]: "constant",
+	[ParamType.Constant]: "constant",
 	[ParamType.ConstMemory]: "memory",
-	[ParamType.Register]: "register",
-	[ParamType.RegisterAddress]: "regaddr",
-	[ParamType.NibbleRegisterPair]: "nibregpair",
+	[ParamType.Variable]: "register",
+	[ParamType.VarMem]: "regaddr",
+	[ParamType.VarPair]: "nibregpair",
 };
 
 /** Only to be run once */
@@ -96,7 +96,7 @@ export default class MemoryView implements UiComponent {
 		c.listen(CpuEvent.ParameterParsed, ({ param, code, pos }) => {
 			this.cells.addCellClass(pos, "instruction_argument");
 			const t = param.type;
-			if (param instanceof NibbleRegisPairParam) {
+			if (param instanceof VarPairParam) {
 				const left_role = param.roleA;
 				const right_role = param.roleB;
 				const left_role_fmt = p_map[left_role];
@@ -128,6 +128,38 @@ export default class MemoryView implements UiComponent {
 			} else if (error.err === "invalid_parameter") {
 				// todo
 			}
+		});
+	}
+
+	initUiEvents(u: UiEventHandler): void {
+		u.listen(UiEvent.RequestEditorCursorPosition, (callback) => {
+			const pos = this.cells.editor?.getCursorPosition();
+			if (pos === undefined) {
+				throw "Unreachable. Memory View must have editor context";
+			}
+
+			callback(pos);
+		});
+
+		u.listen(UiEvent.RequestChangeCursorPosition, (n) => {
+			this.cells.editor?.setCursorPosition(n);
+		});
+
+		u.listen(UiEvent.RequestInsertByte, () => {
+			this.cpu_signals.dispatch(UiCpuSignal.RequestMemoryDump, (d) => {
+				if (this.cells.editor === undefined) {
+					throw "Unreachable. Memory View must have editor context";
+				}
+				this.cells.editor.insertByte(this.cells.editor.getCursorPosition() ?? 0, d);
+			});
+		});
+		u.listen(UiEvent.RequestDeleteByte, () => {
+			this.cpu_signals.dispatch(UiCpuSignal.RequestMemoryDump, (d) => {
+				if (this.cells.editor === undefined) {
+					throw "Unreachable. Memory View must have editor context";
+				}
+				this.cells.editor.deleteByte(this.cells.editor.getCursorPosition() ?? 0, d);
+			});
 		});
 	}
 }

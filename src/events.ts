@@ -137,6 +137,10 @@ export enum UiEvent {
 	StateChange,
 	AddPresetProgram,
 	AttemptLoadFromUrl,
+	RequestEditorCursorPosition,
+	RequestChangeCursorPosition,
+	RequestInsertByte,
+	RequestDeleteByte,
 }
 
 interface UiEventMap {
@@ -144,9 +148,16 @@ interface UiEventMap {
 	[UiEvent.RequestFilename]: (s: string) => void;
 	[UiEvent.StateChange]: ComputerStateUiRepresentation;
 	[UiEvent.AddPresetProgram]: { name: string; data_func: () => Array<u8> };
+	[UiEvent.RequestEditorCursorPosition]: (n: u8 | null) => void;
+	[UiEvent.RequestChangeCursorPosition]: u8;
 }
 
-type VoidDataUiEventList = UiEvent.EditOn | UiEvent.EditOff | UiEvent.AttemptLoadFromUrl;
+type VoidDataUiEventList =
+	| UiEvent.EditOn
+	| UiEvent.EditOff
+	| UiEvent.AttemptLoadFromUrl
+	| UiEvent.RequestInsertByte
+	| UiEvent.RequestDeleteByte;
 
 export interface UiEventHandler extends EventHandler<UiEvent> {
 	listen<E extends keyof UiEventMap>(type: E, listener: (ev: UiEventMap[E]) => void): void;

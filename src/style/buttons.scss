@@ -28,6 +28,9 @@ button.nostyle {
 	font-size: inherit;
 	background-color: inherit;
 }
+button.hidden {
+	visibility: hidden;
+}
 
 button:hover,
 label.button:hover {

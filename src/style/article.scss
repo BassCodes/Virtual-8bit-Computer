@@ -4,27 +4,48 @@ h1,
 h2,
 h3 {
 	color: white;
-	font-family: charter;
+	font-family: inherit;
 	margin-block: unset;
 }
 
-p {
+p,
+ol,
+ul,
+pre,
+code {
 	margin-top: unset;
-	color: lightgray;
+	color: white;
+}
+
+article {
+	background-color: #151515;
+
+	ul,
+	ol {
+		padding-left: 4ch;
+	}
+
+	h1,
+	h2,
+	h3 {
+		margin-block: 1rem;
+	}
+	p,
+	pre,
+	ul,
+	ol {
+		margin-block: 2ch;
+	}
+
+	max-width: 60ch;
+	padding: 2ch 3ch;
+	a[href] {
+		color: yellow;
+	}
 }
 
 div#documentation {
 	margin-inline: auto;
 	max-width: 90ch;
 	line-height: 1.8;
-
-	h1,
-	h2,
-	h3,
-	p,
-	ul,
-	ol,
-	img {
-		max-width: 60ch;
-	}
 }

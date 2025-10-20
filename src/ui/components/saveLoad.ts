@@ -76,11 +76,11 @@ export default class SaveLoad implements UiComponent {
 			console.info("Did not load from url");
 		}
 		// reset url search
-		{
-			const existing = new URL(window.location.href);
-			existing.search = "";
-			window.history.pushState({}, "", existing);
-		}
+		// {
+		// 	const existing = new URL(window.location.href);
+		// 	existing.search = "";
+		// 	window.history.pushState({}, "", existing);
+		// }
 	}
 
 	private copy_link(): void {

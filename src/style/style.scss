@@ -54,18 +54,21 @@ body {
 		transition-duration: 0.2s;
 		transition-timing-function: ease-in-out;
 	}
+	&.ready button#pause_play_button {
+		outline: 1px solid pink;
+	}
 }
 
 #grid {
 	justify-content: center;
 	display: grid;
-	grid-template-columns: min-content min-content 1ch min-content 1ch auto;
+	grid-template-columns: min-content min-content min-content 1ch min-content 1ch min-content;
 	grid-template-rows: min-content min-content 1ch min-content;
 	grid-template-areas:
-		".        registers .		  titlebar 	.	.	   "
-		"title    memory	.         tv  		.	presets"
-		". 		  .         . 		  .    		.	.      "
-		".        buttons   .		  explainer .	.      ";
+		".        registers registers . titlebar 	.	.	   "
+		"title    memory	memory    . tv  		.	presets"
+		". 		  .         .         . .    		.	.      "
+		".        buttons   buttons   . explainer   .	.      ";
 
 	#instruction_explainer {
 		grid-area: explainer;
@@ -76,16 +79,14 @@ body {
 	#program_meta {
 		grid-area: titlebar;
 	}
-	#registers {
+	#registers-container {
+		display: flex;
+		flex-direction: row;
+		gap: 1.5ch;
 		grid-area: registers;
+		align-items: center;
 	}
 
-	#reg_label {
-		grid-area: reglabel;
-	}
-	#mem_label {
-		grid-area: memlabel;
-	}
 	#preset_programs {
 		grid-area: presets;
 	}
@@ -114,12 +115,27 @@ body {
 #reg_label,
 #mem_label {
 	user-select: none;
+	display: flex;
+	gap: 0.8ch;
+	align-items: center;
+	font-size: 0.8rem;
 }
 
 #mem_label {
-	writing-mode: vertical-lr;
-	text-align: right;
-	transform: scale(-1, -1);
+	justify-content: right;
+}
+
+.arrow-left {
+	border-top: 0.5em solid transparent;
+	border-bottom: 0.5em solid transparent;
+	border-right: 1ch solid var(--border);
+	filter: brightness(50%);
+}
+.arrow-down {
+	border-right: 0.5em solid transparent;
+	border-left: 0.5em solid transparent;
+	border-top: 1ch solid var(--border);
+	filter: brightness(50%);
 }
 
 .invalid {
@@ -130,6 +146,9 @@ body {
 }
 .register {
 	--color: var(--mem-register);
+}
+.regaddr {
+	--color: var(--mem-memory);
 }
 .memory {
 	--color: var(--mem-memory);
