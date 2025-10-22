@@ -1,10 +1,23 @@
 Add GPL license file
 
+Internally rename Registers -> Variables
+
+Finish 16 Bit instructions
+
+- Swap
+- Descriptions
+
+Rewrite assembler in TS using instructionSet.ts
+Implement mandelbrot
+
+Click on instruction explainer instruction -> Taken to ISA page for it.
+
 ## Docs
 
 - Value Wrapping
 - Logic & Conditionals
 - Memory
+- 16 bit operations (SIMD!)
 
 - Example programs
 
@@ -24,12 +37,6 @@ mobile layout
 ## Stretch goal
 
 Ui showing CPU flag Carry
-
-16 bit instructions? for mandelbrot. :
-Each 16 bit instruction operates on registers 0 and 1 as the input/output
-
-- Mul
-- Add
 
 Editor selections:
 

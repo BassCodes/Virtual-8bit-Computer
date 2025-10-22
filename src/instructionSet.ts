@@ -4,7 +4,7 @@
  * @license GPL-3.0
  */
 import { formatHex, inRange, splitNibbles } from "./etc";
-import { assertU3, isU3, m256, u8 } from "./num";
+import { assertU3, isU3, m256, modulus, u8 } from "./num";
 import { RuntimeError } from "./errorTypes";
 import { GenericComputer } from "./types";
 
@@ -148,18 +148,12 @@ function category(start: u8, end: u8, name: string): InstrCategory {
 
 export const ISA = new InstructionSet();
 
-ISA.addCategory(category(0x10, 0x1f, "Memory & Register Management"));
-ISA.addCategory(category(0x20, 0x2f, "Control Flow"));
-ISA.addCategory(category(0x30, 0x3f, "Comparison"));
-ISA.addCategory(category(0x40, 0x4f, "Logic / Bitwise"));
-ISA.addCategory(category(0x50, 0x5f, "Arithmetic"));
-ISA.addCategory(category(0xf0, 0xff, "IO"));
-
 // The definitions for actual instructions.
 
 //
-//  MEMORY & REGISTER MANAGEMENT
+// MEMORY & VARIABLE MANAGEMENT
 // 0x10 -> 0x1F
+ISA.addCategory(category(0x10, 0x1f, "Memory & Variable Management"));
 //
 
 // COPY
@@ -168,9 +162,9 @@ ISA.insertInstruction(0x10, {
 	desc: "Copy the value in variable (P1) to the memory address (P2)",
 	params: [new VarParam("copy the value in this variable"), new ConstMemoryParam("to this memory address")],
 	execute(c, p) {
-		const [register_no_1, mem_address] = p;
-		assertU3(register_no_1);
-		c.setMemory(mem_address, c.getRegister(register_no_1));
+		const [variable_no_1, mem_address] = p;
+		assertU3(variable_no_1);
+		c.setMemory(mem_address, c.getRegister(variable_no_1));
 	},
 });
 
@@ -179,9 +173,9 @@ ISA.insertInstruction(0x11, {
 	desc: "Copy the value in memory address (P1) to the variable (P2)",
 	params: [new ConstMemoryParam("copy the value in this memory address"), new VarParam("to this variable")],
 	execute(c, p) {
-		const [mem_address, register_no_1] = p;
-		assertU3(register_no_1);
-		c.setRegister(register_no_1, c.getMemory(mem_address));
+		const [mem_address, variable_no_1] = p;
+		assertU3(variable_no_1);
+		c.setRegister(variable_no_1, c.getMemory(mem_address));
 	},
 });
 
@@ -206,10 +200,10 @@ ISA.insertInstruction(0x13, {
 	],
 	execute(c, p) {
 		const [nibbles] = p;
-		const [register_no_1, register_no_2] = splitNibbles(nibbles);
-		assertU3(register_no_1);
-		assertU3(register_no_2);
-		c.setRegister(register_no_2, c.getRegister(register_no_1));
+		const [variable_no_1, variable_no_2] = splitNibbles(nibbles);
+		assertU3(variable_no_1);
+		assertU3(variable_no_2);
+		c.setRegister(variable_no_2, c.getRegister(variable_no_1));
 	},
 });
 
@@ -226,10 +220,10 @@ ISA.insertInstruction(0x14, {
 	],
 	execute(c, p) {
 		const [nibbles] = p;
-		const [register_no_1, register_no_2] = splitNibbles(nibbles);
-		assertU3(register_no_1);
-		assertU3(register_no_2);
-		c.setRegister(register_no_2, c.getMemory(c.getRegister(register_no_1)));
+		const [variable_no_1, variable_no_2] = splitNibbles(nibbles);
+		assertU3(variable_no_1);
+		assertU3(variable_no_2);
+		c.setRegister(variable_no_2, c.getMemory(c.getRegister(variable_no_1)));
 	},
 });
 
@@ -246,21 +240,21 @@ ISA.insertInstruction(0x15, {
 	],
 	execute(c, p) {
 		const [nibbles] = p;
-		const [register_no_1, register_no_2] = splitNibbles(nibbles);
-		assertU3(register_no_1);
-		assertU3(register_no_2);
-		c.setMemory(c.getRegister(register_no_2), c.getRegister(register_no_1));
+		const [variable_no_1, variable_no_2] = splitNibbles(nibbles);
+		assertU3(variable_no_1);
+		assertU3(variable_no_2);
+		c.setMemory(c.getRegister(variable_no_2), c.getRegister(variable_no_1));
 	},
 });
 
 ISA.insertInstruction(0x17, {
-	name: "Zero Register",
+	name: "Zero Variable",
 	desc: "Set the value in variable (P1) to 0",
 	params: [new VarParam("Set the value in this variable to 0")],
 	execute(c, p) {
-		const register_no_1 = p[0];
-		assertU3(register_no_1);
-		c.setRegister(register_no_1, 0);
+		const variable_no_1 = p[0];
+		assertU3(variable_no_1);
+		c.setRegister(variable_no_1, 0);
 	},
 });
 
@@ -275,13 +269,13 @@ ISA.insertInstruction(0x18, {
 });
 
 ISA.insertInstruction(0x19, {
-	name: "Set Register",
+	name: "Set Variable",
 	desc: "Assigns constant value (P2) to variable (P1)",
 	params: [new VarParam("set this variable"), new ConstParam("to this constant")],
 	execute(c, p) {
-		const [register_no_1, value] = p;
-		assertU3(register_no_1);
-		c.setRegister(register_no_1, value);
+		const [variable_no_1, value] = p;
+		assertU3(variable_no_1);
+		c.setRegister(variable_no_1, value);
 	},
 });
 
@@ -298,22 +292,23 @@ ISA.insertInstruction(0x1a, {
 	],
 	execute(c, p) {
 		const [v] = p;
-		const [register_no_1, register_no_2] = splitNibbles(v);
+		const [variable_no_1, variable_no_2] = splitNibbles(v);
 
-		assertU3(register_no_1);
-		assertU3(register_no_2);
+		assertU3(variable_no_1);
+		assertU3(variable_no_2);
 
-		const r1_val = c.getRegister(register_no_1);
-		const r2_val = c.getRegister(register_no_2);
+		const r1_val = c.getRegister(variable_no_1);
+		const r2_val = c.getRegister(variable_no_2);
 
-		c.setRegister(register_no_1, r2_val);
-		c.setRegister(register_no_2, r1_val);
+		c.setRegister(variable_no_1, r2_val);
+		c.setRegister(variable_no_2, r1_val);
 	},
 });
 
 //
 // CONTROL FLOW
 // 0x20 -> 0x2F
+ISA.addCategory(category(0x20, 0x2f, "Control Flow"));
 //
 
 ISA.insertInstruction(0x20, {
@@ -321,10 +316,10 @@ ISA.insertInstruction(0x20, {
 	desc: "Look for next instruction at memory position (P1)",
 	params: [new VarMemoryParam("look for next instruction at the memory addressed in this variable")],
 	execute: (c, p, nostep) => {
-		const register_no_1 = p[0];
-		assertU3(register_no_1);
+		const variable_no_1 = p[0];
+		assertU3(variable_no_1);
 
-		const new_address = c.getRegister(register_no_1);
+		const new_address = c.getRegister(variable_no_1);
 		c.setProgramCounter(new_address);
 		nostep();
 	},
@@ -354,12 +349,12 @@ ISA.insertInstruction(0x22, {
 	],
 	execute: (c, p, nostep) => {
 		const [v] = p;
-		const [register_no_1, register_no_2] = splitNibbles(v);
-		assertU3(register_no_1);
-		assertU3(register_no_2);
-		const bool = c.getRegister(register_no_1);
+		const [variable_no_1, variable_no_2] = splitNibbles(v);
+		assertU3(variable_no_1);
+		assertU3(variable_no_2);
+		const bool = c.getRegister(variable_no_1);
 		if (bool === 0) return;
-		const new_address = c.getRegister(register_no_2);
+		const new_address = c.getRegister(variable_no_2);
 		c.setProgramCounter(new_address);
 		nostep();
 	},
@@ -373,9 +368,9 @@ ISA.insertInstruction(0x23, {
 		new ConstMemoryParam("then look for next instruction at address in this constant"),
 	],
 	execute: (c, p, nostep) => {
-		const [register_no_1, constant_value] = p;
-		assertU3(register_no_1);
-		const bool = c.getRegister(register_no_1);
+		const [variable_no_1, constant_value] = p;
+		assertU3(variable_no_1);
+		const bool = c.getRegister(variable_no_1);
 		if (bool === 0) return;
 		c.setProgramCounter(constant_value);
 		nostep();
@@ -388,9 +383,9 @@ ISA.insertInstruction(0x28, {
 	params: [new VarMemoryParam("look for next instruction at address in this variable")],
 	execute: (c, p, nostep) => {
 		if (!c.getCarry()) return;
-		const register_no_1 = p[0];
-		assertU3(register_no_1);
-		const register_value = c.getRegister(register_no_1);
+		const variable_no_1 = p[0];
+		assertU3(variable_no_1);
+		const register_value = c.getRegister(variable_no_1);
 		c.setProgramCounter(register_value);
 		nostep();
 		c.setCarry(false);
@@ -427,8 +422,9 @@ ISA.insertInstruction(0x2f, {
 });
 
 //
-// Comparison
+// COMPARISON
 // 0x30 -> 0x3F
+ISA.addCategory(category(0x30, 0x3f, "Comparison"));
 //
 
 ISA.insertInstruction(0x30, {
@@ -444,13 +440,13 @@ ISA.insertInstruction(0x30, {
 		),
 	],
 	execute(c, p) {
-		const [register_no_1, nibbles] = p;
-		const [register_no_2, register_no_3] = splitNibbles(nibbles);
-		assertU3(register_no_1);
-		assertU3(register_no_2);
-		assertU3(register_no_3);
-		const truth = c.getRegister(register_no_2) === c.getRegister(register_no_3) ? 0x01 : 0x00;
-		c.setRegister(register_no_1, truth);
+		const [variable_no_1, nibbles] = p;
+		const [variable_no_2, variable_no_3] = splitNibbles(nibbles);
+		assertU3(variable_no_1);
+		assertU3(variable_no_2);
+		assertU3(variable_no_3);
+		const truth = c.getRegister(variable_no_2) === c.getRegister(variable_no_3) ? 0x01 : 0x00;
+		c.setRegister(variable_no_1, truth);
 	},
 });
 
@@ -463,11 +459,11 @@ ISA.insertInstruction(0x31, {
 		new ConstParam("this constant are equal (else 0)"),
 	],
 	execute(c, p) {
-		const [register_no_1, register_no_2, constant_value] = p;
-		assertU3(register_no_1);
-		assertU3(register_no_2);
-		const truth = c.getRegister(register_no_2) === constant_value ? 0x01 : 0x00;
-		c.setRegister(register_no_1, truth);
+		const [variable_no_1, variable_no_2, constant_value] = p;
+		assertU3(variable_no_1);
+		assertU3(variable_no_2);
+		const truth = c.getRegister(variable_no_2) === constant_value ? 0x01 : 0x00;
+		c.setRegister(variable_no_1, truth);
 	},
 });
 
@@ -484,13 +480,13 @@ ISA.insertInstruction(0x32, {
 		),
 	],
 	execute(c, p) {
-		const [register_no_1, nibbles] = p;
-		const [register_no_2, register_no_3] = splitNibbles(nibbles);
-		assertU3(register_no_1);
-		assertU3(register_no_2);
-		assertU3(register_no_3);
-		const truth = c.getRegister(register_no_2) < c.getRegister(register_no_3) ? 0x01 : 0x00;
-		c.setRegister(register_no_1, truth);
+		const [variable_no_1, nibbles] = p;
+		const [variable_no_2, variable_no_3] = splitNibbles(nibbles);
+		assertU3(variable_no_1);
+		assertU3(variable_no_2);
+		assertU3(variable_no_3);
+		const truth = c.getRegister(variable_no_2) < c.getRegister(variable_no_3) ? 0x01 : 0x00;
+		c.setRegister(variable_no_1, truth);
 	},
 });
 
@@ -503,11 +499,11 @@ ISA.insertInstruction(0x33, {
 		new ConstParam("this constant (else 0)"),
 	],
 	execute(c, p) {
-		const [register_no_1, register_no_2, constant_value] = p;
-		assertU3(register_no_1);
-		assertU3(register_no_2);
-		const truth = c.getRegister(register_no_2) < constant_value ? 0x01 : 0x00;
-		c.setRegister(register_no_1, truth);
+		const [variable_no_1, variable_no_2, constant_value] = p;
+		assertU3(variable_no_1);
+		assertU3(variable_no_2);
+		const truth = c.getRegister(variable_no_2) < constant_value ? 0x01 : 0x00;
+		c.setRegister(variable_no_1, truth);
 	},
 });
 
@@ -524,14 +520,14 @@ ISA.insertInstruction(0x34, {
 		),
 	],
 	execute(c, p) {
-		const [register_no_1, nibbles] = p;
-		const [register_no_2, register_no_3] = splitNibbles(nibbles);
+		const [variable_no_1, nibbles] = p;
+		const [variable_no_2, variable_no_3] = splitNibbles(nibbles);
 
-		assertU3(register_no_1);
-		assertU3(register_no_2);
-		assertU3(register_no_3);
-		const truth = c.getRegister(register_no_2) > c.getRegister(register_no_3) ? 0x01 : 0x00;
-		c.setRegister(register_no_1, truth);
+		assertU3(variable_no_1);
+		assertU3(variable_no_2);
+		assertU3(variable_no_3);
+		const truth = c.getRegister(variable_no_2) > c.getRegister(variable_no_3) ? 0x01 : 0x00;
+		c.setRegister(variable_no_1, truth);
 	},
 });
 
@@ -544,17 +540,18 @@ ISA.insertInstruction(0x35, {
 		new ConstParam("this constant (else 0)"),
 	],
 	execute(c, p) {
-		const [register_no_1, register_no_2, constant_value] = p;
-		assertU3(register_no_1);
-		assertU3(register_no_2);
-		const truth = c.getRegister(register_no_2) > constant_value ? 0x01 : 0x00;
-		c.setRegister(register_no_1, truth);
+		const [variable_no_1, variable_no_2, constant_value] = p;
+		assertU3(variable_no_1);
+		assertU3(variable_no_2);
+		const truth = c.getRegister(variable_no_2) > constant_value ? 0x01 : 0x00;
+		c.setRegister(variable_no_1, truth);
 	},
 });
 
 //
-// Logic / Bitwise
+// LOGIC & BITWISE
 // 0x40 -> 0x4F
+ISA.addCategory(category(0x40, 0x4f, "Logic / Bitwise"));
 //
 
 ISA.insertInstruction(0x40, {
@@ -570,11 +567,11 @@ ISA.insertInstruction(0x40, {
 	],
 	execute(c, p) {
 		const [nibbles] = p;
-		const [register_no_1, register_no_2] = splitNibbles(nibbles);
-		assertU3(register_no_1);
-		assertU3(register_no_2);
-		const new_value = c.getRegister(register_no_1) | c.getRegister(register_no_2);
-		c.setRegister(register_no_1, new_value as u8);
+		const [variable_no_1, variable_no_2] = splitNibbles(nibbles);
+		assertU3(variable_no_1);
+		assertU3(variable_no_2);
+		const new_value = c.getRegister(variable_no_1) | c.getRegister(variable_no_2);
+		c.setRegister(variable_no_1, new_value as u8);
 	},
 });
 
@@ -583,10 +580,10 @@ ISA.insertInstruction(0x41, {
 	desc: "Sets each bit in variable (P1) to its OR with the respective bit in constant value (P2)",
 	params: [new VarParam("OR each bit in this variable's value"), new ConstParam("with each bit in this constant")],
 	execute(c, p) {
-		const [register_no_1, constant_value] = p;
-		assertU3(register_no_1);
-		const new_value = c.getRegister(register_no_1) | constant_value;
-		c.setRegister(register_no_1, new_value as u8);
+		const [variable_no_1, constant_value] = p;
+		assertU3(variable_no_1);
+		const new_value = c.getRegister(variable_no_1) | constant_value;
+		c.setRegister(variable_no_1, new_value as u8);
 	},
 });
 
@@ -604,11 +601,11 @@ ISA.insertInstruction(0x42, {
 	execute(c, p) {
 		const [nibbles] = p;
 
-		const [register_no_1, register_no_2] = splitNibbles(nibbles);
-		assertU3(register_no_1);
-		assertU3(register_no_2);
-		const new_value = c.getRegister(register_no_1) & c.getRegister(register_no_2);
-		c.setRegister(register_no_1, new_value as u8);
+		const [variable_no_1, variable_no_2] = splitNibbles(nibbles);
+		assertU3(variable_no_1);
+		assertU3(variable_no_2);
+		const new_value = c.getRegister(variable_no_1) & c.getRegister(variable_no_2);
+		c.setRegister(variable_no_1, new_value as u8);
 	},
 });
 
@@ -617,10 +614,10 @@ ISA.insertInstruction(0x43, {
 	desc: "Sets each bit in variable (P1) to its AND with the respective bit in constant value (P2)",
 	params: [new VarParam("AND each bit in this variable's value"), new ConstParam("with each bit in this constant")],
 	execute(c, p) {
-		const [register_no_1, constant_value] = p;
-		assertU3(register_no_1);
-		const new_value = c.getRegister(register_no_1) & constant_value;
-		c.setRegister(register_no_1, new_value as u8);
+		const [variable_no_1, constant_value] = p;
+		assertU3(variable_no_1);
+		const new_value = c.getRegister(variable_no_1) & constant_value;
+		c.setRegister(variable_no_1, new_value as u8);
 	},
 });
 
@@ -638,11 +635,11 @@ ISA.insertInstruction(0x44, {
 	execute(c, p) {
 		const [nibbles] = p;
 
-		const [register_no_1, register_no_2] = splitNibbles(nibbles);
-		assertU3(register_no_1);
-		assertU3(register_no_2);
-		const new_value = c.getRegister(register_no_1) ^ c.getRegister(register_no_2);
-		c.setRegister(register_no_1, new_value as u8);
+		const [variable_no_1, variable_no_2] = splitNibbles(nibbles);
+		assertU3(variable_no_1);
+		assertU3(variable_no_2);
+		const new_value = c.getRegister(variable_no_1) ^ c.getRegister(variable_no_2);
+		c.setRegister(variable_no_1, new_value as u8);
 	},
 });
 
@@ -651,10 +648,10 @@ ISA.insertInstruction(0x45, {
 	desc: "Sets each bit in variable (P1) to its XOR with the respective bit in constant value (P2)",
 	params: [new VarParam("XOR each bit in this variable's value"), new ConstParam("with each bit in this constant")],
 	execute(c, p) {
-		const [register_no_1, constant_value] = p;
-		assertU3(register_no_1);
-		const new_value = c.getRegister(register_no_1) ^ constant_value;
-		c.setRegister(register_no_1, new_value as u8);
+		const [variable_no_1, constant_value] = p;
+		assertU3(variable_no_1);
+		const new_value = c.getRegister(variable_no_1) ^ constant_value;
+		c.setRegister(variable_no_1, new_value as u8);
 	},
 });
 
@@ -671,11 +668,11 @@ ISA.insertInstruction(0x46, {
 	],
 	execute(c, p) {
 		const [nibbles] = p;
-		const [register_no_1, register_no_2] = splitNibbles(nibbles);
-		assertU3(register_no_1);
-		assertU3(register_no_2);
-		const new_value = (c.getRegister(register_no_1) << c.getRegister(register_no_2)) & 0xff;
-		c.setRegister(register_no_1, new_value as u8);
+		const [variable_no_1, variable_no_2] = splitNibbles(nibbles);
+		assertU3(variable_no_1);
+		assertU3(variable_no_2);
+		const new_value = (c.getRegister(variable_no_1) << c.getRegister(variable_no_2)) & 0xff;
+		c.setRegister(variable_no_1, new_value as u8);
 	},
 });
 
@@ -684,10 +681,10 @@ ISA.insertInstruction(0x47, {
 	desc: "Shifts each bit in variable (P1) to the left by the constant value (P2). Fills new bits with 0",
 	params: [new VarParam("shift each bit in this variable left"), new ConstParam("by the amount in this constant")],
 	execute(c, p) {
-		const [register_no_1, constant_value] = p;
-		assertU3(register_no_1);
-		const new_value = (c.getRegister(register_no_1) << constant_value) & 0xff;
-		c.setRegister(register_no_1, new_value as u8);
+		const [variable_no_1, constant_value] = p;
+		assertU3(variable_no_1);
+		const new_value = (c.getRegister(variable_no_1) << constant_value) & 0xff;
+		c.setRegister(variable_no_1, new_value as u8);
 	},
 });
 
@@ -704,11 +701,11 @@ ISA.insertInstruction(0x48, {
 	],
 	execute(c, p) {
 		const [nibbles] = p;
-		const [register_no_1, register_no_2] = splitNibbles(nibbles);
-		assertU3(register_no_1);
-		assertU3(register_no_2);
-		const new_value = c.getRegister(register_no_1) >> c.getRegister(register_no_2);
-		c.setRegister(register_no_1, new_value as u8);
+		const [variable_no_1, variable_no_2] = splitNibbles(nibbles);
+		assertU3(variable_no_1);
+		assertU3(variable_no_2);
+		const new_value = c.getRegister(variable_no_1) >> c.getRegister(variable_no_2);
+		c.setRegister(variable_no_1, new_value as u8);
 	},
 });
 
@@ -717,10 +714,10 @@ ISA.insertInstruction(0x49, {
 	desc: "Shifts each bit in variable (P1) to the right by the constant value (P2). Fills new bits with 0",
 	params: [new VarParam("shift each bit in this variable right"), new ConstParam("by the amount in this constant")],
 	execute(c, p) {
-		const [register_no_1, constant_value] = p;
-		assertU3(register_no_1);
-		const new_value = c.getRegister(register_no_1) >> constant_value;
-		c.setRegister(register_no_1, new_value as u8);
+		const [variable_no_1, constant_value] = p;
+		assertU3(variable_no_1);
+		const new_value = c.getRegister(variable_no_1) >> constant_value;
+		c.setRegister(variable_no_1, new_value as u8);
 	},
 });
 
@@ -729,16 +726,17 @@ ISA.insertInstruction(0x4a, {
 	desc: "Flips each bit in variable (P1)",
 	params: [new VarParam("invert each bit in this variable")],
 	execute(c, p) {
-		const register_no_1 = p[0];
-		assertU3(register_no_1);
-		const new_value = ~c.getRegister(register_no_1) & 0xff;
-		c.setRegister(register_no_1, new_value as u8);
+		const variable_no_1 = p[0];
+		assertU3(variable_no_1);
+		const new_value = ~c.getRegister(variable_no_1) & 0xff;
+		c.setRegister(variable_no_1, new_value as u8);
 	},
 });
 
 //
-// Arithmetic
+// ARITHMETIC
 // 0x50 -> 0x5F
+ISA.addCategory(category(0x50, 0x5f, "Arithmetic"));
 //
 
 ISA.insertInstruction(0x50, {
@@ -754,14 +752,14 @@ ISA.insertInstruction(0x50, {
 	],
 	execute(c, p) {
 		const [nibbles] = p;
-		const [register_no_1, register_no_2] = splitNibbles(nibbles);
-		assertU3(register_no_1);
-		assertU3(register_no_2);
-		const sum = c.getRegister(register_no_1) + c.getRegister(register_no_2);
+		const [variable_no_1, variable_no_2] = splitNibbles(nibbles);
+		assertU3(variable_no_1);
+		assertU3(variable_no_2);
+		const sum = c.getRegister(variable_no_1) + c.getRegister(variable_no_2);
 		if (sum > 255) {
 			c.setCarry(true);
 		}
-		c.setRegister(register_no_1, m256(sum));
+		c.setRegister(variable_no_1, m256(sum));
 	},
 });
 
@@ -770,11 +768,11 @@ ISA.insertInstruction(0x51, {
 	desc: "Adds to the value in variable (P1) with the value in variable (P2)",
 	params: [new VarParam("set this variable to"), new ConstParam("its sum with this constant")],
 	execute(c, p) {
-		const [register_no_1, constant_value] = p;
-		assertU3(register_no_1);
-		const sum = c.getRegister(register_no_1) + constant_value;
+		const [variable_no_1, constant_value] = p;
+		assertU3(variable_no_1);
+		const sum = c.getRegister(variable_no_1) + constant_value;
 		if (sum > 255) c.setCarry(true);
-		c.setRegister(register_no_1, m256(sum));
+		c.setRegister(variable_no_1, m256(sum));
 	},
 });
 
@@ -791,15 +789,15 @@ ISA.insertInstruction(0x52, {
 	],
 	execute(c, p) {
 		const [nibbles] = p;
-		const [register_no_1, register_no_2] = splitNibbles(nibbles);
+		const [variable_no_1, variable_no_2] = splitNibbles(nibbles);
 
-		assertU3(register_no_1);
-		assertU3(register_no_2);
-		const difference = c.getRegister(register_no_1) - c.getRegister(register_no_2);
+		assertU3(variable_no_1);
+		assertU3(variable_no_2);
+		const difference = c.getRegister(variable_no_1) - c.getRegister(variable_no_2);
 		if (difference < 0) {
 			c.setCarry(true);
 		}
-		c.setRegister(register_no_1, m256(difference));
+		c.setRegister(variable_no_1, m256(difference));
 	},
 });
 
@@ -808,11 +806,11 @@ ISA.insertInstruction(0x53, {
 	desc: "Subtracts from the value in variable (P1) by the constant value (P2)",
 	params: [new VarParam("set this variable to"), new ConstParam("its difference with this constant")],
 	execute(c, p) {
-		const [register_no_1, constant_value] = p;
-		assertU3(register_no_1);
-		const difference = c.getRegister(register_no_1) - constant_value;
+		const [variable_no_1, constant_value] = p;
+		assertU3(variable_no_1);
+		const difference = c.getRegister(variable_no_1) - constant_value;
 		if (difference < 0) c.setCarry(true);
-		c.setRegister(register_no_1, m256(difference));
+		c.setRegister(variable_no_1, m256(difference));
 	},
 });
 
@@ -829,12 +827,12 @@ ISA.insertInstruction(0x54, {
 	],
 	execute(c, p) {
 		const [nibbles] = p;
-		const [register_no_1, register_no_2] = splitNibbles(nibbles);
+		const [variable_no_1, variable_no_2] = splitNibbles(nibbles);
 
-		assertU3(register_no_1);
-		assertU3(register_no_2);
-		const product = c.getRegister(register_no_1) * c.getRegister(register_no_2);
-		c.setRegister(register_no_1, m256(product));
+		assertU3(variable_no_1);
+		assertU3(variable_no_2);
+		const product = c.getRegister(variable_no_1) * c.getRegister(variable_no_2);
+		c.setRegister(variable_no_1, m256(product));
 	},
 });
 
@@ -843,10 +841,10 @@ ISA.insertInstruction(0x55, {
 	desc: "Multiplies the value in variable (P1) by constant value (P2)",
 	params: [new VarParam("set this variable to"), new ConstParam("its product with this constant")],
 	execute(c, p) {
-		const [register_no_1, constant_value] = p;
-		assertU3(register_no_1);
-		const product = c.getRegister(register_no_1) * constant_value;
-		c.setRegister(register_no_1, m256(product));
+		const [variable_no_1, constant_value] = p;
+		assertU3(variable_no_1);
+		const product = c.getRegister(variable_no_1) * constant_value;
+		c.setRegister(variable_no_1, m256(product));
 	},
 });
 
@@ -883,14 +881,14 @@ ISA.insertInstruction(0x57, {
 	desc: "Divides the value in variable (P1) by constant value (P2)",
 	params: [new VarParam("divide this variable by"), new ConstParam("the value in this constant")],
 	execute(c, p) {
-		const [register_no_1, constant_value] = p;
-		assertU3(register_no_1);
-		const numerator = c.getRegister(register_no_1);
+		const [variable_no_1, constant_value] = p;
+		assertU3(variable_no_1);
+		const numerator = c.getRegister(variable_no_1);
 		if (constant_value === 0) {
 			return { err: "divide_zero" };
 		}
 		const quotient = Math.floor(numerator / constant_value);
-		c.setRegister(register_no_1, m256(quotient));
+		c.setRegister(variable_no_1, m256(quotient));
 	},
 });
 ISA.insertInstruction(0x58, {
@@ -926,14 +924,14 @@ ISA.insertInstruction(0x59, {
 	desc: "Divides the value in variable (P1) by constant value (P2) stores remainder in (P1)",
 	params: [new VarParam("set this variable to the remainder"), new ConstParam("of the division by this constant")],
 	execute(c, p) {
-		const [register_no_1, constant_value] = p;
-		assertU3(register_no_1);
-		const numerator = c.getRegister(register_no_1);
+		const [variable_no_1, constant_value] = p;
+		assertU3(variable_no_1);
+		const numerator = c.getRegister(variable_no_1);
 		if (constant_value === 0) {
 			return { err: "divide_zero" };
 		}
 		const rem = numerator % constant_value;
-		c.setRegister(register_no_1, rem as u8);
+		c.setRegister(variable_no_1, rem as u8);
 	},
 });
 
@@ -942,12 +940,12 @@ ISA.insertInstruction(0x5e, {
 	desc: "Increments the value within variable (P1) by 1",
 	params: [new VarParam("this variable")],
 	execute(c, p) {
-		const register_no_1 = p[0];
-		assertU3(register_no_1);
-		const current_value = c.getRegister(register_no_1);
+		const variable_no_1 = p[0];
+		assertU3(variable_no_1);
+		const current_value = c.getRegister(variable_no_1);
 		const incremented = current_value + 1;
 		if (incremented > 255) c.setCarry(true);
-		c.setRegister(register_no_1, m256(incremented));
+		c.setRegister(variable_no_1, m256(incremented));
 	},
 });
 
@@ -956,29 +954,214 @@ ISA.insertInstruction(0x5f, {
 	desc: "Decrements the value within variable (P1) by 1",
 	params: [new VarParam("this variable")],
 	execute(c, p) {
-		const register_no_1 = p[0];
-		assertU3(register_no_1);
-		const current_value = c.getRegister(register_no_1);
+		const variable_no_1 = p[0];
+		assertU3(variable_no_1);
+		const current_value = c.getRegister(variable_no_1);
 		const decremented = current_value - 1;
 		if (decremented < 0) c.setCarry(true);
-		c.setRegister(register_no_1, m256(decremented) as u8);
+		c.setRegister(variable_no_1, m256(decremented) as u8);
 	},
 });
 
+//
+// 16-BIT ARITHMETIC
+// 0x60 -> 0x6F
+//
+ISA.addCategory(category(0x60, 0x6f, "16-Bit Arithmetic"));
+//
+
+ISA.insertInstruction(0x60, {
+	name: "Add 16",
+	desc: "todo",
+	params: [],
+	execute(c) {
+		const a_upper = c.getRegister(0);
+		const a_lower = c.getRegister(1);
+		const b_upper = c.getRegister(2);
+		const b_lower = c.getRegister(3);
+
+		const a = a_upper * 0xff + a_lower;
+		const b = b_upper * 0xff + b_lower;
+
+		const result = modulus(a + b, 65536);
+
+		const result_upper = (result >> 8) as u8;
+		const result_lower = (result & 0xff) as u8;
+		c.setRegister(0, result_upper);
+		c.setRegister(0, result_lower);
+	},
+});
+ISA.insertInstruction(0x61, {
+	name: "Subtract 16",
+	desc: "todo",
+	params: [],
+	execute(c) {
+		const a_upper = c.getRegister(0);
+		const a_lower = c.getRegister(1);
+		const b_upper = c.getRegister(2);
+		const b_lower = c.getRegister(3);
+
+		const a = a_upper * 0xff + a_lower;
+		const b = b_upper * 0xff + b_lower;
+
+		const result = modulus(a - b, 65536);
+
+		const result_upper = (result >> 8) as u8;
+		const result_lower = (result & 0xff) as u8;
+		c.setRegister(0, result_upper);
+		c.setRegister(0, result_lower);
+	},
+});
+ISA.insertInstruction(0x62, {
+	name: "Multiply 16",
+	desc: "todo",
+	params: [],
+	execute(c) {
+		const a_upper = c.getRegister(0);
+		const a_lower = c.getRegister(1);
+		const b_upper = c.getRegister(2);
+		const b_lower = c.getRegister(3);
+
+		const a = a_upper * 0xff + a_lower;
+		const b = b_upper * 0xff + b_lower;
+
+		const result = modulus(a * b, 65536);
+
+		const result_upper = (result >> 8) as u8;
+		const result_lower = (result & 0xff) as u8;
+		c.setRegister(0, result_upper);
+		c.setRegister(0, result_lower);
+	},
+});
+ISA.insertInstruction(0x63, {
+	name: "Divide 16",
+	desc: "todo",
+	params: [],
+	execute(c) {
+		const a_upper = c.getRegister(0);
+		const a_lower = c.getRegister(1);
+		const b_upper = c.getRegister(2);
+		const b_lower = c.getRegister(3);
+
+		const a = a_upper * 0xff + a_lower;
+		const b = b_upper * 0xff + b_lower;
+
+		const result = modulus(Math.floor(a / b), 65536);
+
+		const result_upper = (result >> 8) as u8;
+		const result_lower = (result & 0xff) as u8;
+		c.setRegister(0, result_upper);
+		c.setRegister(0, result_lower);
+	},
+});
+
+// TODO: modulus?
+
+ISA.insertInstruction(0x6a, {
+	name: "Copy 16VA -> 16V",
+	desc: "todo",
+	params: [new VarMemoryParam("todo"), new VarParam("todo")],
+	execute(c, p) {
+		const [variable_no_1, variable_no_2] = p;
+		assertU3(variable_no_1);
+		assertU3(variable_no_2);
+
+		const address = c.getRegister(variable_no_1);
+
+		const upper = c.getMemory(address);
+		const lower = c.getMemory(m256(address + 1));
+
+		c.setRegister(variable_no_2, upper);
+		const next_register = (variable_no_2 + 1) % 8;
+		assertU3(next_register);
+		c.setRegister(variable_no_2, lower);
+	},
+});
+
+ISA.insertInstruction(0x6b, {
+	name: "Copy 16CA -> 16V",
+	desc: "todo",
+	params: [new ConstMemoryParam("todo"), new VarParam("todo")],
+	execute(c, p) {
+		const [address, variable_no_1] = p;
+		assertU3(variable_no_1);
+
+		const upper = c.getMemory(address);
+		const lower = c.getMemory(m256(address + 1));
+
+		c.setRegister(variable_no_1, upper);
+		const next_register = (variable_no_1 + 1) % 8;
+		assertU3(next_register);
+		c.setRegister(variable_no_1, lower);
+	},
+});
+
+ISA.insertInstruction(0x6c, {
+	name: "Copy 16V -> 16VA",
+	desc: "todo",
+	params: [new VarParam("todo"), new VarMemoryParam("todo")],
+	execute(c, p) {
+		const [variable_no_1, variable_no_2] = p;
+		assertU3(variable_no_1);
+		assertU3(variable_no_2);
+
+		const address = c.getRegister(variable_no_2);
+
+		const upper = c.getRegister(variable_no_1);
+		const next_register = (variable_no_1 + 1) % 8;
+		assertU3(next_register);
+		const lower = c.getRegister(variable_no_2);
+
+		c.setMemory(address, upper);
+		c.setMemory(m256(address + 1), lower);
+	},
+});
+
+ISA.insertInstruction(0x6d, {
+	name: "Copy 16V -> 16CA",
+	desc: "todo",
+	params: [new VarParam("todo"), new VarMemoryParam("todo")],
+	execute(c, p) {
+		const [address, variable_no_1] = p;
+		assertU3(variable_no_1);
+
+		const upper = c.getRegister(variable_no_1);
+		const next_register = (variable_no_1 + 1) % 8;
+		assertU3(next_register);
+		const lower = c.getRegister(variable_no_1);
+
+		c.setMemory(address, upper);
+		c.setMemory(m256(address + 1), lower);
+	},
+});
+
+ISA.insertInstruction(0x6e, {
+	name: "Swap 16V <-> 16V",
+	desc: "todo",
+	params: [new VarPairParam(ParamType.Variable, ParamType.Variable, "todo", "todo")],
+	execute(c, p) {
+		// TODO
+	},
+});
+
+//
 // IO
+// 0xF0 -> 0xFF
+ISA.addCategory(category(0xf0, 0xff, "IO"));
+//
 
 ISA.insertInstruction(0xf0, {
 	name: "Random Number",
 	desc: "Sets variable (P1) to a random value",
 	params: [new VarParam("randomize this variable")],
 	execute(c, p) {
-		const [register_no_1] = p;
-		assertU3(register_no_1);
+		const [variable_no_1] = p;
+		assertU3(variable_no_1);
 		// Math.random returns a value  n: 0 =< n < 1, thus
 		// floor(n * 256): 0 =< floor(n * 256) < 256
 		// Mod256 it just for type safety
 		const value = m256(Math.floor(Math.random() * 256));
-		c.setRegister(register_no_1, value);
+		c.setRegister(variable_no_1, value);
 	},
 });
 
@@ -989,9 +1172,9 @@ ISA.insertInstruction(0xff, {
 	desc: "Sets the color constant (P2) for pixel at position in variable (P1)",
 	params: [new VarParam("at the position in this variable"), new ConstParam("to this color")],
 	execute(c, p) {
-		const [register_no_1, pixel_val] = p;
-		assertU3(register_no_1);
-		const pixel_no = c.getRegister(register_no_1);
+		const [variable_no_1, pixel_val] = p;
+		assertU3(variable_no_1);
+		const pixel_no = c.getRegister(variable_no_1);
 		c.setVram(pixel_no, pixel_val);
 	},
 });
@@ -1009,12 +1192,12 @@ ISA.insertInstruction(0xfe, {
 	],
 	execute(c, p) {
 		const [nibbles] = p;
-		const [register_no_1, register_no_2] = splitNibbles(nibbles);
+		const [variable_no_1, variable_no_2] = splitNibbles(nibbles);
 
-		assertU3(register_no_1);
-		assertU3(register_no_2);
-		const pixel_no = c.getRegister(register_no_1);
-		const pixel_val = c.getRegister(register_no_2);
+		assertU3(variable_no_1);
+		assertU3(variable_no_2);
+		const pixel_no = c.getRegister(variable_no_1);
+		const pixel_val = c.getRegister(variable_no_2);
 		c.setVram(pixel_no, pixel_val);
 	},
 });
@@ -1032,13 +1215,13 @@ ISA.insertInstruction(0xfd, {
 	],
 	execute(c, p) {
 		const [nibbles] = p;
-		const [register_no_1, register_no_2] = splitNibbles(nibbles);
+		const [variable_no_1, variable_no_2] = splitNibbles(nibbles);
 
-		assertU3(register_no_1);
-		assertU3(register_no_2);
-		const pixel_no = c.getRegister(register_no_1);
+		assertU3(variable_no_1);
+		assertU3(variable_no_2);
+		const pixel_no = c.getRegister(variable_no_1);
 		const value = c.getVram(pixel_no);
-		c.setRegister(register_no_2, value);
+		c.setRegister(variable_no_2, value);
 	},
 });
 
