@@ -10,6 +10,8 @@ label.button {
 	background-color: transparent;
 	cursor: pointer;
 	user-select: none;
+	font-size: inherit;
+	font-size: 0.8rem;
 }
 
 button:disabled {

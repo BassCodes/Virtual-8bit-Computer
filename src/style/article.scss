@@ -8,6 +8,11 @@ h3 {
 	margin-block: unset;
 }
 
+em {
+	font-weight: 600;
+	font-style: unset;
+}
+
 p,
 ol,
 ul,
@@ -18,8 +23,6 @@ code {
 }
 
 article {
-	background-color: #151515;
-
 	ul,
 	ol {
 		padding-left: 4ch;
@@ -34,10 +37,18 @@ article {
 	pre,
 	ul,
 	ol {
-		margin-block: 2ch;
+		margin-block: 1lh;
+	}
+	code {
+		font-size: 1.05rem;
 	}
 
-	max-width: 60ch;
+	table {
+		max-width: unset;
+	}
+	& > * {
+		max-width: 60ch;
+	}
 	padding: 2ch 3ch;
 	a[href] {
 		color: yellow;
@@ -47,5 +58,44 @@ article {
 div#documentation {
 	margin-inline: auto;
 	max-width: 90ch;
-	line-height: 1.8;
+	background-color: #151515;
+	line-height: 1.6;
+	.tab-panel {
+		display: none;
+	}
+
+	label {
+		user-select: none;
+	}
+	input:nth-of-type(1):checked ~ .tab-panels > .tab-panel:nth-child(1),
+	input:nth-of-type(2):checked ~ .tab-panels > .tab-panel:nth-child(2) {
+		display: block;
+	}
+
+	label {
+		position: relative;
+		display: inline-block;
+		padding: 1ch;
+		cursor: pointer;
+		background-color: white;
+	}
+
+	input:focus-visible + label {
+		outline: 2px solid rgba(0, 102, 204, 1);
+	}
+	input[type="radio"] {
+		position: absolute;
+		left: -200vw;
+	}
+	label:hover,
+	input:focus + label,
+	input:checked + label {
+		color: #06c;
+	}
+
+	label:hover::after,
+	input:focus + label::after,
+	input:checked + label::after {
+		background: #06c;
+	}
 }

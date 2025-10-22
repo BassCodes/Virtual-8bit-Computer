@@ -1,24 +1,21 @@
-Documentation with standard names
+Add GPL license file
 
-Instruction table, print parameter purpose
+## Docs
 
-Better Memory colors
+- Value Wrapping
+- Logic & Conditionals
+- Memory
 
-Add param description to all ISA
+- Example programs
 
-Three tab docs
+### Docs styling
 
-- 10 Minute explanation
-- ISA
-- Instruction Description and example
-
-Fixup markdown
-
-Make so: if instruction pointer increments past 255, halts
+- table
+- Different font?
+- Heading size
+- BG colors
 
 ## CSS Styles
-
-touchup state/frequency indicator
 
 Replace font size with rm units
 

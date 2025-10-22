@@ -94,6 +94,7 @@ export default class MemoryView implements UiComponent {
 			this.setProgramCounter(counter);
 		});
 		c.listen(CpuEvent.ParameterParsed, ({ param, code, pos }) => {
+			this.cells.clearCellClass(pos);
 			this.cells.addCellClass(pos, "instruction_argument");
 			const t = param.type;
 			if (param instanceof VarPairParam) {
@@ -101,11 +102,9 @@ export default class MemoryView implements UiComponent {
 				const right_role = param.roleB;
 				const left_role_fmt = p_map[left_role];
 				const right_role_fmt = p_map[right_role];
-				// todo remove classes too
 				this.cells.addCellClass(pos, `left_${left_role_fmt}`);
 				this.cells.addCellClass(pos, `right_${right_role_fmt}`);
 			}
-			this.cells.removeCellClass(pos, "constant", "register", "memory", "instruction", "invalid", "hasright");
 			const name = p_map[t];
 			this.cells.addCellClass(pos, name);
 			this.cells.addCellClass(pos, "active");
@@ -114,7 +113,7 @@ export default class MemoryView implements UiComponent {
 			this.cells.addCellClass(m256(pos - 1), "hasright");
 		});
 		c.listen(CpuEvent.InstructionParseBegin, ({ instr, code, pos }) => {
-			this.cells.removeCellClass(pos, "constant", "register", "memory", "invalid", "hasright");
+			this.cells.clearCellClass(pos);
 			this.cells.removeAllCellClass("active");
 			this.cells.addCellClass(pos, "instruction");
 			this.cells.addCellClass(pos, "active");
@@ -123,10 +122,11 @@ export default class MemoryView implements UiComponent {
 
 		c.listen(CpuEvent.InstructionParseErrored, ({ instr, pos, error }) => {
 			if (error.err === "unknown_instruction") {
-				this.cells.removeCellClass(pos, "constant", "register", "memory", "instruction");
+				this.cells.clearCellClass(pos);
 				this.cells.addCellClass(pos, "invalid");
 			} else if (error.err === "invalid_parameter") {
-				// todo
+				this.cells.clearCellClass(pos);
+				this.cells.addCellClass(pos, "invalid");
 			}
 		});
 	}
@@ -135,7 +135,7 @@ export default class MemoryView implements UiComponent {
 		u.listen(UiEvent.RequestEditorCursorPosition, (callback) => {
 			const pos = this.cells.editor?.getCursorPosition();
 			if (pos === undefined) {
-				throw "Unreachable. Memory View must have editor context";
+				throw new Error("Unreachable. Memory View must have editor context");
 			}
 
 			callback(pos);

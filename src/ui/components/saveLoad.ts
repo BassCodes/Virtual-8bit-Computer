@@ -1,5 +1,5 @@
 /**
- * @file Virtual 8-Bit Computer
+ * @file Save/Load component buttons and respective logic to do so
  * @copyright Alexander Bass 2025
  * @license GPL-3.0
  */
@@ -23,7 +23,7 @@ export default class SaveLoad implements UiComponent {
 
 		this.save_button = el("button")
 			.id("save_button")
-			.ch(el("img").at("src", "icons/save.png").at("alt", "save program").at("title", "save program"))
+			.ch(el("img").at("src", "icons/save.png").at("alt", "save program").ti("save program"))
 			.appendTo(this.container);
 		this.binary_upload = el("input")
 			.id("binary_upload")
@@ -34,12 +34,12 @@ export default class SaveLoad implements UiComponent {
 		const label = el("label")
 			.cl("button")
 			.at("for", "binary_upload")
-			.ch(el("img").at("src", "icons/upload.png").at("alt", "Upload program").at("title", "upload program"))
+			.ch(el("img").at("src", "icons/upload.png").at("alt", "Load program").ti("load program"))
 			.appendTo(this.container);
 
 		const link_button = el("button")
 			.id("link_button")
-			.ch(el("img").at("src", "icons/clipboard.png").at("alt", "link to program").at("title", "link to program"))
+			.ch(el("img").at("src", "icons/clipboard.png").at("alt", "link to program").ti("link to program"))
 			.ev("click", () => this.copy_link())
 			.appendTo(this.container);
 
@@ -51,7 +51,7 @@ export default class SaveLoad implements UiComponent {
 			})
 			.ti("Delete Code")
 			.cl("trash_button")
-			.ch(el("img").at("src", "icons/delete.png").at("alt", "delete program").at("title", "delete program"))
+			.ch(el("img").at("src", "icons/delete.png").at("alt", "delete program").ti("delete program"))
 			.appendTo(this.container);
 
 		this.save_button.addEventListener("click", () => {

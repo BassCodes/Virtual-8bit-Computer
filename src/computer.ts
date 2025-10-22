@@ -302,7 +302,11 @@ export default class Computer implements GenericComputer {
 	}
 
 	private stepForward(): void {
-		const pc = m256(this.program_counter + 1);
-		this.setProgramCounter(pc);
+		const pc = this.program_counter + 1;
+		if (pc > 255) {
+			this.halt();
+		} else {
+			this.setProgramCounter(m256(pc));
+		}
 	}
 }

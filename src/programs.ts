@@ -1,3 +1,8 @@
+/**
+ * @file Example Programs
+ * @copyright Alexander Bass 2025
+ * @license GPL-3.0
+ */
 import { u8 } from "./num";
 
 const game_of_life_raw: Array<u8> = [

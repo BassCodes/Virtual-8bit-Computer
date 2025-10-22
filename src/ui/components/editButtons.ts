@@ -1,3 +1,8 @@
+/**
+ * @file Virtual 8-Bit Computer
+ * @copyright Alexander Bass 2025
+ * @license GPL-3.0
+ */
 import { el } from "../../etc";
 import { UiCpuSignal, UiCpuSignalHandler, UiEvent, UiEventHandler } from "../../events";
 import { u8 } from "../../num.js";

@@ -6,7 +6,7 @@ $thickness: 2px;
 }
 
 #memory {
-	width: 100%;
+	// width: 100%;
 	height: 100%;
 	.celled_viewer > div {
 		border: $thickness solid transparent;
@@ -19,7 +19,7 @@ $thickness: 2px;
 	.celled_viewer {
 		height: 100%;
 		// aspect-ratio: 1;
-		grid-template-columns: repeat(16, min-content);
+		grid-template-columns: repeat(16, 6.25%);
 		display: grid;
 		.program_counter:not(.locked) {
 			border-bottom: $thickness solid orange !important;
@@ -34,10 +34,10 @@ $thickness: 2px;
 		}
 
 		.left_regaddr::first-letter {
-			color: var(--mem-memory);
+			color: var(--mem-reg-addr);
 		}
 		.right_regaddr {
-			color: var(--mem-memory);
+			color: var(--mem-reg-addr);
 		}
 		.left_register::first-letter {
 			color: var(--mem-register);

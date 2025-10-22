@@ -1,3 +1,8 @@
+/**
+ * @file 16x16 Image display to be drawn on by computer
+ * @copyright Alexander Bass 2025
+ * @license GPL-3.0
+ */
 import { el } from "../../etc";
 import { UiEventHandler, CpuEventHandler, CpuEvent, UiCpuSignalHandler, UiCpuSignal } from "../../events";
 import { u1, u4, u8 } from "../../num";
@@ -41,7 +46,14 @@ export default class Screen implements UiComponent {
 			this.screen.style.width = "initial";
 			this.screen.style.height = "initial";
 			const rect = canvas_container.getBoundingClientRect();
-			const h = rect.height;
+			const window_width = window.innerWidth;
+			const window_height = window.innerHeight;
+			let h;
+			if (window_width > (window_height * 3) / 2) {
+				h = rect.height;
+			} else {
+				h = rect.width;
+			}
 			this.screen.style.width = `${h}px`;
 			this.screen.style.height = `${h}px`;
 		};
@@ -49,15 +61,11 @@ export default class Screen implements UiComponent {
 		window.addEventListener("resize", resize);
 	}
 
-	private renderTestPattern(): void {
+	private renderTestPattern(pal: u8 = 0): void {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		this.palette_id = pal as any;
 		for (let x = 0; x < 256; x++) {
 			this.setPixel(x as u8, x as u8);
-		}
-	}
-
-	private clearScreen(): void {
-		for (let x = 0; x < 256; x++) {
-			this.setPixel(x as u8, 0);
 		}
 	}
 
@@ -65,6 +73,7 @@ export default class Screen implements UiComponent {
 		for (let i = 0; i < 256; i++) {
 			this.setPixel(i as u8, 0);
 		}
+		this.palette_id = 0;
 	}
 
 	softReset(): void {
@@ -110,10 +119,14 @@ export default class Screen implements UiComponent {
 }
 
 function monochrome(value: u8): string {
-	value = (value & 1) === 1 ? 255 : 0;
-	return `rgb(${value},${value},${value})`;
+	if ((value & 1) === 1) {
+		return "#fff";
+	} else {
+		return "#000";
+	}
 }
 
+// Arbitrary, yet consistent color scheme
 function arbitrary_colors(value: u8): string {
 	const RED_SCALE = 255 / 2 ** 3;
 	const GREEN_SCALE = 255 / 2 ** 3;

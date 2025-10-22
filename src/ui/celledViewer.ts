@@ -61,6 +61,9 @@ export default class CelledViewer {
 			cell.el.classList.remove(css_class);
 		}
 	}
+	clearCellClass(address: u8): void {
+		this.cells[address].el.classList.value = "";
+	}
 
 	clearAllClasses(): void {
 		for (const cell of this.cells) {

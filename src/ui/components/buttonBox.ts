@@ -7,6 +7,7 @@ import { $, el } from "../../etc";
 import { UiEventHandler, UiEvent, UiCpuSignalHandler, UiCpuSignal } from "../../events";
 import { CpuSpeed } from "../../types";
 import UiComponent from "../uiComponent";
+import { ComputerStateUiRepresentation } from "./stateManager";
 
 const SPEED_STATES: CpuSpeed[] = ["slow", "normal", "fast", "super fast", "turbo"];
 
@@ -20,6 +21,7 @@ export default class ButtonBox implements UiComponent {
 	on: boolean = false;
 	cpu_signals: UiCpuSignalHandler;
 	current_speed: CpuSpeed;
+	state: ComputerStateUiRepresentation;
 
 	constructor(element: HTMLElement, events: UiEventHandler, cpu_signals: UiCpuSignalHandler) {
 		this.container = element;
@@ -41,6 +43,8 @@ export default class ButtonBox implements UiComponent {
 			.tx("Step")
 			.ev("click", () => this.step())
 			.appendTo(this.container);
+
+		this.state = "Ready";
 
 		this.current_speed = "normal";
 		this.speed_button = el("button")
@@ -72,7 +76,11 @@ export default class ButtonBox implements UiComponent {
 	}
 
 	step(): void {
-		this.cpu_signals.dispatch(UiCpuSignal.StepCpu);
+		if (this.state === "Halted") {
+			this.cpu_signals.dispatch(UiCpuSignal.RequestCpuSoftReset);
+		} else {
+			this.cpu_signals.dispatch(UiCpuSignal.StepCpu);
+		}
 	}
 
 	reset(): void {
@@ -89,6 +97,7 @@ export default class ButtonBox implements UiComponent {
 
 	initUiEvents(u: UiEventHandler): void {
 		u.listen(UiEvent.StateChange, (s) => {
+			this.state = s;
 			switch (s) {
 				case "Edit":
 					this.disable();

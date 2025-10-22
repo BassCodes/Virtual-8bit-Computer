@@ -6,6 +6,13 @@
 import { CpuEvent, CpuEventHandler, UiEventHandler } from "../../events";
 import UiComponent from "../uiComponent";
 
+function formatRate(r: number): string {
+	if (r > 999) {
+		return `${Math.round(r / 100) / 10}kHz`;
+	}
+	return `${r}Hz`;
+}
+
 export default class frequencyIndicator implements UiComponent {
 	container: HTMLElement;
 	running: number | null = null;
@@ -39,7 +46,7 @@ export default class frequencyIndicator implements UiComponent {
 		const value = Math.round(this.count / dt);
 
 		if (this.last_value !== value) {
-			this.container.textContent = `${value}hz`;
+			this.container.textContent = formatRate(value);
 			this.last_value = value;
 		}
 		if (value === 0) {

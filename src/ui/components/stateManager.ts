@@ -1,3 +1,9 @@
+/**
+ * @file Dummy Component which stores and determines the UI state and informs
+ * 		 other components
+ * @copyright Alexander Bass 2025
+ * @license GPL-3.0
+ */
 import { CpuEvent, CpuEventHandler, UiCpuSignalHandler, UiEvent, UiEventHandler } from "../../events";
 import UiComponent from "../uiComponent";
 

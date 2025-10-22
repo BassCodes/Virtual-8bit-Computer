@@ -2,6 +2,11 @@
 
 // yeah I know it's crap.
 // ... but it works :)
+// this was brain-vibe-coded at 3am with only 2 brain cells active in the ol'
+// brain cell mine.
+
+// Probably doesn't work right with all instructions.
+// Probably contains instructions which no longer exist.
 const fs = require("fs");
 const { stdout } = require("process");
 

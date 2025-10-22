@@ -1,3 +1,8 @@
+/**
+ * @file Virtual 8-Bit Computer
+ * @copyright Alexander Bass 2025
+ * @license GPL-3.0
+ */
 import { CpuEvent, CpuEventHandler, UiCpuSignalHandler, UiEventHandler } from "./events";
 import { $ } from "./etc";
 import UiComponent, { UiComponentConstructor } from "./ui/uiComponent";

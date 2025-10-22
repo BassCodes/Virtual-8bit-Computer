@@ -1,4 +1,12 @@
+/**
+ * @file Byte-array base64 transcoding
+ * @copyright Alexander Bass 2025
+ * @license GPL-3.0
+ */
 import { u8 } from "../num";
+
+// Probably buggy. There's a web standard available to do just this, but it too new to rely upon.
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array/toBase64
 
 const B64_ALPHABET: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 

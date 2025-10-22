@@ -10,7 +10,7 @@
 @use "vars" as *;
 
 :root {
-	font-size: 110%;
+	font-size: min(110%, 3.5vw);
 }
 
 * {
@@ -24,6 +24,10 @@ body {
 
 	color: #808080;
 	background-color: black;
+}
+
+img {
+	image-rendering: pixelated;
 }
 
 #ui {
@@ -60,15 +64,20 @@ body {
 }
 
 #grid {
+	min-width: 0;
+	min-height: 0;
+	// Default layout
+	margin-inline: auto;
+
 	justify-content: center;
 	display: grid;
-	grid-template-columns: min-content min-content min-content 1ch min-content 1ch min-content;
+	grid-template-columns: min-content min-content 1ch min-content;
 	grid-template-rows: min-content min-content 1ch min-content;
 	grid-template-areas:
-		".        registers registers . titlebar 	.	.	   "
-		"title    memory	memory    . tv  		.	presets"
-		". 		  .         .         . .    		.	.      "
-		".        buttons   buttons   . explainer   .	.      ";
+		".     registers . titlebar  "
+		"title memory    . tv        "
+		". 	   .         . .         "
+		".     buttons   . explainer ";
 
 	#instruction_explainer {
 		grid-area: explainer;
@@ -112,6 +121,25 @@ body {
 	}
 }
 
+@media (max-width: 160ch) {
+	#ui {
+		// Mobile / single-column layout
+		margin-inline: auto;
+		max-width: 55ch;
+		#grid {
+			#title {
+				writing-mode: unset;
+				text-align: left;
+				user-select: none;
+				transform: unset;
+				font-size: 1.3rem;
+			}
+			display: flex;
+			flex-direction: column;
+		}
+	}
+}
+
 #reg_label,
 #mem_label {
 	user-select: none;
@@ -119,6 +147,18 @@ body {
 	gap: 0.8ch;
 	align-items: center;
 	font-size: 0.8rem;
+}
+#indicators {
+	user-select: none;
+	margin-left: auto;
+	#status_indicator {
+		text-transform: uppercase;
+		font-size: 0.8rem;
+	}
+	#cycles {
+		font-size: 0.7rem;
+		text-align: center;
+	}
 }
 
 #mem_label {
@@ -148,7 +188,7 @@ body {
 	--color: var(--mem-register);
 }
 .regaddr {
-	--color: var(--mem-memory);
+	--color: var(--mem-reg-addr);
 }
 .memory {
 	--color: var(--mem-memory);

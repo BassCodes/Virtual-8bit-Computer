@@ -1,3 +1,8 @@
+/**
+ * @file Create detailed HTML elements by method chaining
+ * @copyright Alexander Bass 2025
+ * @license GPL-3.0
+ */
 class ElementInProgress<E extends HTMLElement> {
 	private element: E;
 	constructor(el: E) {

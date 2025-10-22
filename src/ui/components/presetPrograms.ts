@@ -1,3 +1,11 @@
+/**
+ * @file A list of preset programs
+ * @copyright Alexander Bass 2025
+ * @license GPL-3.0
+ */
+
+// (dead code)
+
 import { el } from "../../etc";
 import { UiCpuSignal, UiCpuSignalHandler, UiEvent, UiEventHandler } from "../../events";
 import { u8 } from "../../num";

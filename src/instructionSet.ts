@@ -66,6 +66,10 @@ export class VarMemoryParam extends ParameterType {
 	constructor(d: string) {
 		super(d, ParamType.VarMem);
 	}
+	// eslint-disable-next-line class-methods-use-this
+	validate(n: u8): boolean {
+		return isU3(n);
+	}
 }
 type VarPairRole = ParamType.Variable | ParamType.VarMem;
 export class VarPairParam extends ParameterType {
@@ -210,7 +214,7 @@ ISA.insertInstruction(0x13, {
 });
 
 ISA.insertInstruction(0x14, {
-	name: "Load VA -> V",
+	name: "Copy VA -> V",
 	desc: "Copy the value in memory addressed by variable (P1) to variable (P2)",
 	params: [
 		new VarPairParam(
@@ -230,8 +234,8 @@ ISA.insertInstruction(0x14, {
 });
 
 ISA.insertInstruction(0x15, {
-	name: "Save V -> VA",
-	desc: "Copy the value in variable (P1) to the memory cell addressed in variable (P2)",
+	name: "Copy V -> VA",
+	desc: "Copy the value in variable (P1) to the memory addressed in variable (P2)",
 	params: [
 		new VarPairParam(
 			ParamType.Variable,
@@ -965,7 +969,7 @@ ISA.insertInstruction(0x5f, {
 
 ISA.insertInstruction(0xf0, {
 	name: "Random Number",
-	desc: "Sets variable (R1) to a random value",
+	desc: "Sets variable (P1) to a random value",
 	params: [new VarParam("randomize this variable")],
 	execute(c, p) {
 		const [register_no_1] = p;
@@ -1017,7 +1021,7 @@ ISA.insertInstruction(0xfe, {
 
 ISA.insertInstruction(0xfd, {
 	name: "Get Pixel",
-	desc: "Stores the color value for pixel addressed in (R1) to variable (R2)",
+	desc: "Stores the color value for pixel addressed in (P1) to variable (P2)",
 	params: [
 		new VarPairParam(
 			ParamType.VarMem,

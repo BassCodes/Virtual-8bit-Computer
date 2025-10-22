@@ -11,9 +11,16 @@
 		<noscript>
 			This computer requires JavaScript. Your browser either doesn't support it, or you have it disabled.
 		</noscript>
-		<div id="ui">
+		<div id="ui" class="">
 			<div id="grid">
 				<div id="title">VIRTUAL 8-BIT COMPUTER</div>
+				<div id="program_meta">
+					<div id="title_box"></div>
+					<div id="btn_div">
+						<span id="save_load_buttons"></span>
+						<div id="trash_button_box"></div>
+					</div>
+				</div>
 				<div id="registers-container">
 					<div id="registers"></div>
 					<div id="regmem_label">
@@ -26,267 +33,332 @@
 							<div class="arrow-down"></div>
 						</div>
 					</div>
+					<div id="indicators">
+						<div id="status_indicator"></div>
+						<div id="cycles"></div>
+					</div>
 				</div>
 				<div id="memory"></div>
 
 				<div id="controls_bar">
 					<span id="controls_buttons"></span>
 					<span id="edit_buttons"></span>
-					<span id="indicators">
-						<span id="status_indicator"></span>
-						<span id="cycles"></span>
-					</span>
 				</div>
-				<div id="program_meta">
-					<div id="title_box"></div>
-					<div id="btn_div">
-						<span id="save_load_buttons"></span>
-						<div id="trash_button_box"></div>
-					</div>
-				</div>
+
 				<div id="tv"></div>
 				<div id="instruction_explainer"></div>
 			</div>
 		</div>
 
-		<details id="isa_container">
-			<summary>Instruction Set</summary>
-			<pre id="ISA"></pre>
-		</details>
-
 		<div id="documentation">
-			<div id="memory_color_explainer">
-				<ul>
-					<li>
-						<div class="color instruction"></div>
-						<div class="purpose">Instruction</div>
-					</li>
-					<li>
-						<div class="color memory"></div>
-						<div class="purpose">Memory Address (CM)</div>
-					</li>
-					<li>
-						<div class="color register"></div>
-						<div class="purpose">Register Number (R)</div>
-					</li>
-					<li>
-						<div class="color constant"></div>
-						<div class="purpose">Constant Value (C)</div>
-					</li>
-					<li>
-						<div class="color nibregpair"></div>
-						<div class="purpose">Register Number Pair NR(a,b)</div>
-					</li>
-					<li>
-						<div class="color invalid"></div>
-						<div class="purpose">Invalid Value</div>
-					</li>
-				</ul>
-			</div>
-
 			<h1>Virtual 8-Bit Computer</h1>
-			<article id="short-intro">
-				<p>**Virtual 8-Bit Computer**:</p>
-				<p>
-					What is a computer? A computer processes a list of **instructions** to compute some data. Though this computer
-					is limited, it follows many of the same principles of computers today.
-				</p>
 
-				<p>
-					This computer uses 8-Bit **values** which simply means that all data (variables, memory values, TV pixels,
-					etc.) is stored as numbers which are sized from 0 to 255. It is customary to view these numbers in
-					<a href="https://en.wikipedia.org/wiki/Hexadecimal">hexadecimal</a>
-					with hex 'digits' (0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F). In this fashion, 0 becomes **00** and 255 becomes **FF**
-				</p>
+			<input type="radio" name="tabset" id="tab1" checked />
+			<label for="tab1">Introduction</label>
+			<input type="radio" name="tabset" id="tab2" />
+			<label for="tab2">ISA</label>
+			<input type="radio" name="tabset" id="tab3" />
+			<label for="tab3">Example Programs</label>
 
-				<h2>Instructions</h2>
+			<div class="tab-panels">
+				<article id="short-intro" class="tab-panel">
+					<!-- Artisanal hand crafted and compiled markdown because I couldn't be bothered to setup something automatic -->
+					<p>
+						What is a computer? A computer processes a list of <em>instructions</em> to compute some data. Though this
+						computer is limited, it follows many of the same principles of computers today.
+					</p>
 
-				<p>
-					The Computer operates off of **instructions** which each perform small tasks (increment a number, halt, etc.).
-					These instructions are represented by numbers. As an example, "increment" could be `5E` and "halt" `2F`.
-				</p>
+					<p>
+						This computer uses 8-Bit <em>values</em> which simply means that all data (variables, memory values, TV
+						pixels, etc.) is stored as numbers which are sized from 0 to 255. It is customary to view these numbers in
+						<a href="https://en.wikipedia.org/wiki/Hexadecimal">hexadecimal</a>
+						with hex &lsquo;digits&rsquo; (0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F). In this fashion, 0 becomes <em>00</em> and
+						255 becomes
+						<em>FF</em>
+					</p>
 
-				<p>
-					The computer finds these instructions in the **Memory** — a 16×16 grid of values. Starting at the top left,
-					the computer will look at each value as an instruction, and sequentially perform the specific task for that
-					instruction. For example, if the memory looked _something_ like:
-				</p>
+					<h2>Instructions</h2>
 
-				<pre><code>5E 2F . . .</code></pre>
+					<p>
+						The Computer operates off of <em>instructions</em> which each perform small tasks (increment a number, halt,
+						etc.). These instructions are represented by numbers. As an example, &ldquo;increment&rdquo; could be
+						<code>5E</code> and &ldquo;halt&rdquo; <code>2F</code>.
+					</p>
 
-				<p>
-					The computer would first see `5E` as the "increment" instruction and increment a variable. then it would see
-					`2F` as the "halt" instruction and stop. This is the general principle behind the computer: read next
-					instruction, do task, repeat. Many instructions are available for use. Some are simple arithmetic like "add"
-					or "divide", and some are more interesting like "goto" and "set pixel".
-				</p>
+					<p>
+						The computer finds these instructions in the <em>Memory</em> — a 16×16 grid of values. Starting at the top
+						left, the computer will look at each value as an instruction, and sequentially perform the specific task for
+						that instruction. For example, if the memory looked _something_ like:
+					</p>
 
-				<h2>Variables</h2>
+					<pre><code>5E 2F . . .</code></pre>
 
-				<p>
-					Of course, the question arises: "what are we incrementing? what numbers are we adding?" The answer lies in the
-					**parameters** and **variables**. Some instructions require values as parameters. For example, the earlier
-					example would be correct like:
-				</p>
+					<p>
+						The computer would first see <code>5E</code> as the &ldquo;increment&rdquo; instruction and increment a
+						variable. then it would see <code>2F</code> as the &ldquo;halt&rdquo; instruction and stop. This is the
+						general principle behind the computer: read next instruction, do task, repeat. Many instructions are
+						available for use. Some are simple arithmetic like &ldquo;add&rdquo; or &ldquo;divide&rdquo;, and some are
+						more interesting like &ldquo;goto&rdquo; and &ldquo;set pixel&rdquo;.
+					</p>
 
-				<pre><code>5E 00 2F . . .</code></pre>
+					<h2>Variables</h2>
 
-				<p>
-					Along with the "increment" instruction (`5E`), we must tell the computer with a parameter which **variable**
-					should be incremented (`00`). In this updated example, the computer would look in memory and first see `5E` as
-					the "increment" instruction. The computer understands that the next value will be the variable to increment.
-					After incrementing variable number `00` the computer will then see `2F` as the "halt" instruction and stop.
-				</p>
+					<p>
+						Of course, the question arises: &ldquo;what are we incrementing? what numbers are we adding?&rdquo; The
+						answer lies in the
+						<em>parameters</em> and <em>variables</em>. Some instructions require values as parameters. For example, the
+						earlier example would be correct like:
+					</p>
 
-				<p>
-					In total the computer has 8 variables (`00`, `01`, `02`, `03`, `04`, `05`, `06`, `07`). Each variable is
-					simply an 8-bit value like each value in the memory. At the very top above the memory each variable is listed.
-					Variables start off as zero.
-				</p>
+					<pre><code>5E 00 2F . . .</code></pre>
 
-				<h2>The TV</h2>
+					<p>
+						Along with the &ldquo;increment&rdquo; instruction (<code>5E</code>), we must tell the computer with a
+						parameter which
+						<em>variable</em> should be incremented (<code>00</code>). In this updated example, the computer would look
+						in memory and first see <code>5E</code> as the &ldquo;increment&rdquo; instruction. The computer understands
+						that the next value will be the variable to increment. After incrementing variable number
+						<code>00</code> the computer will then see <code>2F</code> as the &ldquo;halt&rdquo; instruction and stop.
+					</p>
 
-				<p>
-					The **TV** is a screen which can be drawn on automatically by the computer. The TV has 16 rows of pixels and
-					16 pixels for a total resolution of 16x16. Each pixel is set as an 8-bit value by the computer. Each 8-bit
-					value represents a different color
-				</p>
+					<p>
+						In total the computer has 8 variables (<code>00</code>, <code>01</code>, <code>02</code>, <code>03</code>,
+						<code>04</code>, <code>05</code>, <code>06</code>, <code>07</code>). Each variable is simply an 8-bit value
+						like each value in the memory. At the very top above the memory each variable is listed. Variables start off
+						as zero.
+					</p>
 
-				<h2>A Simple Program</h2>
+					<h2>The TV</h2>
 
-				<p>
-					All computation happens on variables. When the computer adds two numbers together it adds two variables
-					together then puts the result in a variable. Additionally, there is another form of addition which adds a
-					**constant parameter** value to a variable, and puts the result in the variable. Constant parameters work just
-					like _variable parameters_ except their value is simply the value of the parameter.
-				</p>
+					<p>
+						The <em>TV</em> is a screen which can be drawn on automatically by the computer. The TV has 16 rows of
+						pixels and 16 pixels for a total resolution of 16x16. Each pixel is set as an 8-bit value by the computer.
+						Each 8-bit value represents a different color
+					</p>
 
-				<p>Let's write a simple program which:</p>
+					<h2>A Simple Program</h2>
 
-				<ol>
-					<li>Generates a random number in variable `00`</li>
-					<li>Multiplies the value in variable `00` by three</li>
-					<li>Generates a random number in variable `01`</li>
-					<li>On the TV, Paints pixel at position in variable `01` with color in variable `00`</li>
-					<li>Ends</li>
-				</ol>
+					<p>
+						All computation happens on variables. When the computer adds two numbers together it adds two variables
+						together then puts the result in a variable. Additionally, there is another form of addition which adds a
+						<em>constant parameter</em> value to a variable, and puts the result in the variable. Constant parameters
+						work just like _variable parameters_ except their value is simply the value of the parameter.
+					</p>
 
-				<p>Click the "Edit" button to go into edit mode.</p>
+					<p>Let's write a simple program which:</p>
 
-				<p>
-					When writing programs it's helpful to reference the **ISA** which has details for each instruction. First we
-					need a random number. The ISA has "random number" as `F0`:
-				</p>
+					<ol>
+						<li>Generates a random number in variable <code>00</code></li>
+						<li>Multiplies the value in variable <code>00</code> by three</li>
+						<li>Generates a random number in variable <code>01</code></li>
+						<li>
+							On the TV, Paints pixel at position in variable <code>01</code> with color in variable <code>00</code>
+						</li>
+						<li>Ends</li>
+					</ol>
 
-				<pre><code>Value | Parameters | Name          | Task
-F0    | V          | Random Number | Sets variable (P1) to a random number
-</code></pre>
+					<p>Click the &ldquo;Edit&rdquo; button to go into edit mode.</p>
 
-				<p>
-					Per the ISA, this instruction has the value `F0` and takes one variable parameter. We begin our program by
-					setting the variable `00` to a random number:
-				</p>
+					<p>
+						When writing programs it's helpful to reference the <em>ISA</em> which has details for each instruction.
+						First we need a random number. The ISA has &ldquo;random number&rdquo; as <code>F0</code>:
+					</p>
 
-				<pre><code>
+					<table>
+						<tr>
+							<td>Code</td>
+							<td>Parameters</td>
+							<td>Action</td>
+							<td>Description</td>
+						</tr>
+						<tr>
+							<td>F0</td>
+							<td>V</td>
+							<td>Random Number</td>
+							<td>Sets variable (P1) to a random value</td>
+						</tr>
+					</table>
+
+					<p>
+						Per the ISA, this instruction has the value <code>F0</code> and takes one variable parameter. We begin our
+						program by setting the variable <code>00</code> to a random number:
+					</p>
+
+					<pre><code>
 F0 00
 </code></pre>
 
-				<p>Then, we want to multiply it by three. The ISA has the multiply instruction:</p>
+					<p>Then, we want to multiply it by three. The ISA has the multiply instruction:</p>
 
-				<pre><code>Value | Parameters | Name     | Task
-55	  | V C 	   | Multiply | Multiplies the value in variable (P1) by constant (P2)
-</code></pre>
+					<table>
+						<tr>
+							<td>Code</td>
+							<td>Parameters</td>
+							<td>Action</td>
+							<td>Description</td>
+						</tr>
+						<tr>
+							<td>55</td>
+							<td>V C</td>
+							<td>Multiply</td>
+							<td>Multiplies the value in variable (P1) by constant value (P2)</td>
+						</tr>
+					</table>
 
-				<p>
-					"multiply" takes one variable parameter and one constant parameter. We want to multiply the variable `00` by
-					`03`, so:
-				</p>
+					<p>
+						&ldquo;multiply&rdquo; takes one variable parameter and one constant parameter. We want to multiply the
+						variable
+						<code>00</code> by <code>03</code>, so:
+					</p>
 
-				<pre><code>F0 00 55 00 03
+					<pre><code>F0 00 55 00 03
       --------
       new
 </code></pre>
 
-				<p>Next we generate the second random variable (`01`) just like the last.</p>
+					<p>Next we generate the second random variable (<code>01</code>) just like the last.</p>
 
-				<pre><code>F0 00 55 00 03 F0 01
+					<pre><code>F0 00 55 00 03 F0 01
                -----
                new
 </code></pre>
 
-				<p>Now we set the pixel on the TV, the ISA entry for "set pixel" looks like:</p>
+					<p>Now we set the pixel on the TV, the ISA entry for &ldquo;set pixel&rdquo; looks like:</p>
 
-				<pre><code>FE | Pair(V, V) | Set Pixel | Sets the color value in variable (P2) for pixel at position in variable (P1)</code></pre>
+					<table>
+						<tr>
+							<td>Code</td>
+							<td>Parameters</td>
+							<td>Action</td>
+							<td>Description</td>
+						</tr>
+						<tr>
+							<td>FE</td>
+							<td>Pair(VA,&nbsp;V)</td>
+							<td>Set Pixel</td>
+							<td>Sets the color value in variable (P2) for pixel at position in variable (P1)</td>
+						</tr>
+					</table>
 
-				<p>
-					"set pixel" uses a new type of parameter called a **pair variable parameter**. Pair variables parameters are
-					used when an instruction requires two variables. In this case, we have our position in `01` and our color in
-					`00`, so our pair would be `10`. The updated program looks like:
-				</p>
+					<p>
+						&ldquo;set pixel&rdquo; uses a new type of parameter called a <em>pair variable parameter</em>. Pair
+						variables parameters are used when an instruction requires two variables. In this case, we have our position
+						in <code>01</code> and our color in <code>00</code>, so our pair would be <code>10</code>. The updated
+						program looks like:
+					</p>
 
-				<pre><code>F0 00 55 00 03 F0 01 FE 10
+					<pre><code>F0 00 55 00 03 F0 01 FE 10
                      -----
                      new
 </code></pre>
 
-				<p>Finally, we add a halt instruction:</p>
+					<p>Finally, we add a halt instruction:</p>
 
-				<pre><code>F0 00 55 00 03 F0 01 FE 10 2F
+					<pre><code>F0 00 55 00 03 F0 01 FE 10 2F
 </code></pre>
 
-				<p>And the program is complete!</p>
+					<p>And the program is complete!</p>
 
-				<a href="https://alexanderbass.com/share/untracked/froobuter/?fn=Random_Pixel&p=8ABVAAPwAf4QLw%253D%253D"
-					>Program Link</a
-				>
+					<a href="?fn=Random_Pixel&p=8ABVAAPwAf4QLw%253D%253D">Program Link</a>
 
-				<p>Click **Step** to step through each instruction and parameter to see how the computer views it at it.</p>
+					<p>
+						Click <em>Step</em> to step through each instruction and parameter to see how the computer views it at it.
+					</p>
 
-				<h2>Repetition</h2>
+					<h2>Repetition</h2>
 
-				<p>
-					A single pixel is a bit boring though isn't it? We could modify our program to repeat and fill the TV with a
-					ton of random pixels.
-				</p>
+					<p>
+						A single pixel is a bit boring though isn't it? We could modify our program to repeat and fill the TV with a
+						ton of random pixels.
+					</p>
 
-				<p>
-					The "goto" instruction tells the computer where in the memory it should look next. If have a "goto"
-					instruction which tells the computer to look at `00` the program will loop!
-				</p>
+					<p>
+						The &ldquo;goto&rdquo; instruction tells the computer where in the memory it should look next. If have a
+						&ldquo;goto&rdquo; instruction which tells the computer to look at <code>00</code> the program will loop!
+					</p>
 
-				<p>(Note, there are bunch of different types of "goto" refer to the ISA)</p>
+					<p>(Note, there are bunch of different types of &ldquo;goto&rdquo; refer to the ISA)</p>
 
-				<pre><code>21 |	C  |	Goto |	Moves the CPU instruction counter to the value in (P1)
+					<table>
+						<tr>
+							<td>Code</td>
+							<td>Parameters</td>
+							<td>Action</td>
+							<td>Description</td>
+						</tr>
+						<tr>
+							<td>21</td>
+							<td>CA</td>
+							<td>Goto</td>
+							<td>Look for next instruction at memory position (P1)</td>
+						</tr>
+					</table>
+
+					<p>We remove the &ldquo;halt&rdquo; instruction and replace it with a &ldquo;goto&rdquo;:</p>
+
+					<pre><code>F0 00 55 00 03 F0 01 FE 10 21 00
+                           -----
+                           new
 </code></pre>
 
-				<p>We remove the "halt" instruction and replace it with a "goto":</p>
+					<a href="?fn=So_many_colors%21&p=8ABVAAPwAf4QIQ%253D%253D">Program Link</a>
 
-				<pre><code>F0 00 55 00 03 F0 01 FE 10 21 00
------
-new
-</code></pre>
+					<p>
+						Now, when the computer sees the &ldquo;goto&rdquo; instruction <code>21</code> and the memory position
+						parameter <code>00</code>, it will then look for the next instruction at memory position <code>00</code>
+					</p>
 
-				<a href="https://alexanderbass.com/share/untracked/froobuter/?fn=So_many_colors%21&p=8ABVAAPwAf4QIQ%253D%253D"
-					>Program Link</a
-				>
+					<p>(turn the speed up from normal to turbo for a little fun)</p>
 
-				<p>
-					Now, when the computer sees the "goto" instruction `21` and the new position `00`, it will then look for the
-					next instruction at memory position `00`
-				</p>
+					<h2>Logic and conditionals</h2>
 
-				<p>(turn the speed up from normal to turbo for a little fun)</p>
+					<h2>Parameter types</h2>
 
-				<h2>## Logic and conditionals</h2>
+					<p>So far variable and constant</p>
 
-				<h2>## Parameter types</h2>
+					<h2>Memory</h2>
+					<h2>Wrapping</h2>
 
-				<p>So far variable and constant</p>
-
-				<h2>## Wrapping</h2>
-
-				<p>Modular wrapping</p>
-			</article>
+					<p>Modular wrapping</p>
+				</article>
+				<article id="isa" class="tab-panel">
+					<div id="memory_color_explainer">
+						<h2>Parameter Types</h2>
+						<ul>
+							<li>
+								<div class="color instruction"></div>
+								<div class="purpose">Instruction</div>
+							</li>
+							<li>
+								<div class="color memory"></div>
+								<div class="purpose"><code>(CA)</code> Memory Address</div>
+							</li>
+							<li>
+								<div class="color regaddr"></div>
+								<div class="purpose"><code>(VA)</code> Variable Holding a Memory Address</div>
+							</li>
+							<li>
+								<div class="color register"></div>
+								<div class="purpose"><code>(V)</code> Variable</div>
+							</li>
+							<li>
+								<div class="color constant"></div>
+								<div class="purpose"><code>(C)</code> Constant Value</div>
+							</li>
+							<li>
+								<div class="color nibregpair"></div>
+								<div class="purpose"><code>(Pair(a,b))</code> Variable Pair (two variables in one value)</div>
+							</li>
+							<li>
+								<div class="color invalid"></div>
+								<div class="purpose">Invalid Value</div>
+							</li>
+						</ul>
+					</div>
+					<h2>ISA</h2>
+				</article>
+			</div>
 		</div>
 	</body>
 </html>
+<!-- What are you looking at? -->

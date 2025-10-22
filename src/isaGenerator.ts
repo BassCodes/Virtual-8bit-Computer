@@ -40,7 +40,7 @@ export function generateIsaTable(iset: InstructionSet): HTMLTableElement {
 	// Headers
 	el("tr")
 		.ch(el("td").tx("Code"))
-		.ch(el("td").tx("Name"))
+		.ch(el("td").tx("Parameter"))
 		.ch(el("td").tx("Action"))
 		.ch(el("td").tx("Description"))
 		.appendTo(table);

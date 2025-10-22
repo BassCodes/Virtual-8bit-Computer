@@ -1,4 +1,9 @@
-import { Instruction, ParameterType } from "./instructionSet";
+/**
+ * @file Assorted Error Types
+ * @copyright Alexander Bass 2025
+ * @license GPL-3.0
+ */
+import { ParameterType } from "./instructionSet";
 import { u3, u8 } from "./num";
 
 export type DivideByZeroError = {

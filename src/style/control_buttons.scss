@@ -1,6 +1,7 @@
 #controls_bar {
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
+	flex-wrap: wrap;
 	gap: 0.5ch;
 
 	#controls_buttons {
@@ -9,7 +10,9 @@
 		gap: inherit;
 	}
 	#edit_buttons {
+		height: min-content;
 		display: flex;
+		flex-wrap: wrap;
 		gap: inherit;
 	}
 }

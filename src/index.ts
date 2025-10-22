@@ -29,10 +29,8 @@ function main(): void {
 	ui.initEvents(computer.events);
 	computer.loadMemory(game_of_life());
 	ui.ui_events.dispatch(UiEvent.FileNameChange, "Game of Life");
-	// Load program
+	// Load program (dead code)
 	ui.ui_events.dispatch(UiEvent.AddPresetProgram, { name: "Game of Life", data_func: game_of_life });
-	ui.ui_events.dispatch(UiEvent.AddPresetProgram, { name: "Mandelbrot", data_func: game_of_life });
-	ui.ui_events.dispatch(UiEvent.AddPresetProgram, { name: "Flerble", data_func: game_of_life });
 	// Computer reacts to UI signals (Start execution, reset, etc.)
 	computer.initEvents(ui.cpu_signaler);
 	ui.ui_events.dispatch(UiEvent.AttemptLoadFromUrl);
@@ -40,7 +38,7 @@ function main(): void {
 	window.comp = computer;
 	window.ui = ui;
 
-	$("ISA").replaceWith(generateIsaTable(ISA));
+	$("isa").appendChild(generateIsaTable(ISA));
 
 	// to log all cpu events, run `firehose()` in console
 	let fire = false;
@@ -61,7 +59,7 @@ function main(): void {
 		}
 	};
 
-	window.firehose();
+	// window.firehose();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
