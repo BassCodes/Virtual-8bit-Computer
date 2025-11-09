@@ -39,6 +39,14 @@ export const modulus = (n: number, d: number): number => ((n % d) + d) % d;
 export const m256 = (number: number): u8 => modulus(number, 256) as u8;
 
 /**
+ * Takes the input number and returns it modulus 8. Converts to `u3`
+ *
+ * @param number
+ * @returns number mod 8 (u3)
+ */
+export const m8 = (number: number): u3 => modulus(number, 8) as u3;
+
+/**
  * Determines whether a number is a u2 type (unsigned 2-bit integer).
  * Does not check for non integers
  *

@@ -41,6 +41,7 @@ export function generateIsaTable(iset: InstructionSet): HTMLTableElement {
 	el("tr")
 		.ch(el("td").tx("Code"))
 		.ch(el("td").tx("Parameter"))
+		// .ch(el("td").tx("pneumonic"))
 		.ch(el("td").tx("Action"))
 		.ch(el("td").tx("Description"))
 		.appendTo(table);
@@ -50,6 +51,9 @@ export function generateIsaTable(iset: InstructionSet): HTMLTableElement {
 
 	let current_category: InstrCategory | null = null;
 	for (const [code, instr] of instructions) {
+		if (instr.hidden === true) {
+			continue;
+		}
 		const cat = iset.category_ranges.find((i) => inRange(code, i.start, i.end));
 		if (cat === undefined) {
 			throw new Error(`Instruction found which is not part of category ${code}`);
@@ -67,6 +71,7 @@ export function generateIsaTable(iset: InstructionSet): HTMLTableElement {
 		el("tr")
 			.ch(el("td").tx(formatHex(code)))
 			.ch(el("td").ht(parameterDescription(instr.params)))
+			// .ch(el("td").tx(instr.pneumonic))
 			.ch(el("td").tx(instr.name))
 			.ch(el("td").tx(instr.desc))
 			.appendTo(table);

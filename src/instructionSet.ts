@@ -4,7 +4,7 @@
  * @license GPL-3.0
  */
 import { formatHex, inRange, splitNibbles } from "./etc";
-import { assertU3, isU3, m256, modulus, u8 } from "./num";
+import { assertU3, isU3, m256, m8, modulus, u8 } from "./num";
 import { RuntimeError } from "./errorTypes";
 import { GenericComputer } from "./types";
 
@@ -93,6 +93,8 @@ export class VarPairParam extends ParameterType {
 export interface Instruction {
 	readonly name: string;
 	readonly desc: string;
+	readonly pneumonic: string;
+	readonly hidden?: boolean;
 	readonly params: Array<ParameterType>;
 	readonly execute: (
 		computer_reference: GenericComputer,
@@ -160,6 +162,7 @@ ISA.addCategory(category(0x10, 0x1f, "Memory & Variable Management"));
 ISA.insertInstruction(0x10, {
 	name: "Copy V -> CA",
 	desc: "Copy the value in variable (P1) to the memory address (P2)",
+	pneumonic: "COPY_V_CA",
 	params: [new VarParam("copy the value in this variable"), new ConstMemoryParam("to this memory address")],
 	execute(c, p) {
 		const [variable_no_1, mem_address] = p;
@@ -171,6 +174,7 @@ ISA.insertInstruction(0x10, {
 ISA.insertInstruction(0x11, {
 	name: "Copy CA -> V",
 	desc: "Copy the value in memory address (P1) to the variable (P2)",
+	pneumonic: "COPY_CA_V",
 	params: [new ConstMemoryParam("copy the value in this memory address"), new VarParam("to this variable")],
 	execute(c, p) {
 		const [mem_address, variable_no_1] = p;
@@ -182,6 +186,7 @@ ISA.insertInstruction(0x11, {
 ISA.insertInstruction(0x12, {
 	name: "Copy CA -> CA",
 	desc: "Copy the value in memory address (P1) to memory address (P2)",
+	pneumonic: "COPY_CA_CA",
 	params: [
 		new ConstMemoryParam("copy the value in this memory address"),
 		new ConstMemoryParam("to this memory address"),
@@ -195,6 +200,7 @@ ISA.insertInstruction(0x12, {
 ISA.insertInstruction(0x13, {
 	name: "Copy V -> V",
 	desc: "Copy the value in variable (P1) to variable (P2)",
+	pneumonic: "COPY_V_V",
 	params: [
 		new VarPairParam(ParamType.Variable, ParamType.Variable, "copy the value in this variable", "to this variable"),
 	],
@@ -210,6 +216,7 @@ ISA.insertInstruction(0x13, {
 ISA.insertInstruction(0x14, {
 	name: "Copy VA -> V",
 	desc: "Copy the value in memory addressed by variable (P1) to variable (P2)",
+	pneumonic: "COPY_VA_V",
 	params: [
 		new VarPairParam(
 			ParamType.VarMem,
@@ -230,6 +237,7 @@ ISA.insertInstruction(0x14, {
 ISA.insertInstruction(0x15, {
 	name: "Copy V -> VA",
 	desc: "Copy the value in variable (P1) to the memory addressed in variable (P2)",
+	pneumonic: "COPY_V_VA",
 	params: [
 		new VarPairParam(
 			ParamType.Variable,
@@ -250,6 +258,7 @@ ISA.insertInstruction(0x15, {
 ISA.insertInstruction(0x17, {
 	name: "Zero Variable",
 	desc: "Set the value in variable (P1) to 0",
+	pneumonic: "ZERO_V",
 	params: [new VarParam("Set the value in this variable to 0")],
 	execute(c, p) {
 		const variable_no_1 = p[0];
@@ -261,6 +270,7 @@ ISA.insertInstruction(0x17, {
 ISA.insertInstruction(0x18, {
 	name: "Zero Memory",
 	desc: "Set the value in memory address (P1) to 0",
+	pneumonic: "ZERO_VA",
 	params: [new VarMemoryParam("Set the value in this memory address to 0")],
 	execute(c, p) {
 		const mem_address = p[0];
@@ -271,6 +281,7 @@ ISA.insertInstruction(0x18, {
 ISA.insertInstruction(0x19, {
 	name: "Set Variable",
 	desc: "Assigns constant value (P2) to variable (P1)",
+	pneumonic: "SET",
 	params: [new VarParam("set this variable"), new ConstParam("to this constant")],
 	execute(c, p) {
 		const [variable_no_1, value] = p;
@@ -282,6 +293,7 @@ ISA.insertInstruction(0x19, {
 ISA.insertInstruction(0x1a, {
 	name: "Swap Variables",
 	desc: "Swaps the value in variable (P1) with the value in variable (P2)",
+	pneumonic: "SWAP",
 	params: [
 		new VarPairParam(
 			ParamType.Variable,
@@ -314,6 +326,7 @@ ISA.addCategory(category(0x20, 0x2f, "Control Flow"));
 ISA.insertInstruction(0x20, {
 	name: "Goto",
 	desc: "Look for next instruction at memory position (P1)",
+	pneumonic: "GOTO_V",
 	params: [new VarMemoryParam("look for next instruction at the memory addressed in this variable")],
 	execute: (c, p, nostep) => {
 		const variable_no_1 = p[0];
@@ -328,6 +341,7 @@ ISA.insertInstruction(0x20, {
 ISA.insertInstruction(0x21, {
 	name: "Goto",
 	desc: "Look for next instruction at memory position (P1)",
+	pneumonic: "GOTO_CA",
 	params: [new ConstMemoryParam("look for next instruction at the memory address in this constant")],
 	execute: (c, p, nostep) => {
 		const new_address = p[0];
@@ -339,6 +353,7 @@ ISA.insertInstruction(0x21, {
 ISA.insertInstruction(0x22, {
 	name: "Goto if Not equal to zero",
 	desc: "Look for next instruction at memory address within variable (P2) if the value in variable (P1) ≠ 0",
+	pneumonic: "GOTONZ_V",
 	params: [
 		new VarPairParam(
 			ParamType.Variable,
@@ -363,6 +378,7 @@ ISA.insertInstruction(0x22, {
 ISA.insertInstruction(0x23, {
 	name: "Goto if Not equal to zero",
 	desc: "Look for next instruction at memory address in constant (P2) if the value in variable (P1) ≠ 0",
+	pneumonic: "GOTONZ_C",
 	params: [
 		new VarParam("if the value in this variable is not zero"),
 		new ConstMemoryParam("then look for next instruction at address in this constant"),
@@ -380,6 +396,7 @@ ISA.insertInstruction(0x23, {
 ISA.insertInstruction(0x28, {
 	name: "Goto if Carry Flag set",
 	desc: "Look for next instruction at memory address in variable (P1) if CPU Carry flag is true",
+	pneumonic: "GOTO_CARRY_V",
 	params: [new VarMemoryParam("look for next instruction at address in this variable")],
 	execute: (c, p, nostep) => {
 		if (!c.getCarry()) return;
@@ -395,6 +412,7 @@ ISA.insertInstruction(0x28, {
 ISA.insertInstruction(0x29, {
 	name: "Goto if Carry Flag set",
 	desc: "Look for next instruction at memory position within constant (P1) if CPU Carry flag is true",
+	pneumonic: "GOTO_CARRY_C",
 	params: [new ConstParam("look for next instruction at address in this constant")],
 	execute: (c, p, nostep) => {
 		if (!c.getCarry()) return;
@@ -408,6 +426,7 @@ ISA.insertInstruction(0x29, {
 ISA.insertInstruction(0x2e, {
 	name: "Nothing",
 	desc: "Do nothing",
+	pneumonic: "NOOP",
 	params: [],
 	execute: () => {},
 });
@@ -415,6 +434,7 @@ ISA.insertInstruction(0x2e, {
 ISA.insertInstruction(0x2f, {
 	name: "Halt",
 	desc: "Stops CPU execution and resets",
+	pneumonic: "HALT",
 	params: [],
 	execute(c, p, n, halt) {
 		halt();
@@ -430,6 +450,7 @@ ISA.addCategory(category(0x30, 0x3f, "Comparison"));
 ISA.insertInstruction(0x30, {
 	name: "Equals",
 	desc: "If value in variable (P2) equals value in variable (P3), set value in variable (P1) to true",
+	pneumonic: "EQ_V",
 	params: [
 		new VarParam("Set this variable to 1"),
 		new VarPairParam(
@@ -453,6 +474,7 @@ ISA.insertInstruction(0x30, {
 ISA.insertInstruction(0x31, {
 	name: "Equals",
 	desc: "If value in variable (P2) equals constant value (P3), set value in variable (P1) to true",
+	pneumonic: "EQ_C",
 	params: [
 		new VarParam("Set this variable to 1"),
 		new VarParam("if this variable and"),
@@ -470,6 +492,7 @@ ISA.insertInstruction(0x31, {
 ISA.insertInstruction(0x32, {
 	name: "Less Than",
 	desc: "Sets variable (P1) to 1 if value in variable (P2) is less than the value in variable (P3)",
+	pneumonic: "LT_V",
 	params: [
 		new VarParam("set this variable to 1"),
 		new VarPairParam(
@@ -493,6 +516,7 @@ ISA.insertInstruction(0x32, {
 ISA.insertInstruction(0x33, {
 	name: "Less Than",
 	desc: "Sets variable (P1) to 1 if value in variable (P2) is less than the constant value (P3)",
+	pneumonic: "LT_C",
 	params: [
 		new VarParam("Set this variable to 1"),
 		new VarParam("if this variable's value is less than"),
@@ -510,6 +534,7 @@ ISA.insertInstruction(0x33, {
 ISA.insertInstruction(0x34, {
 	name: "Greater Than",
 	desc: "Sets variable (P1) to 1 if value in variable (P2) is greater than the value in variable (P3)",
+	pneumonic: "GT_V",
 	params: [
 		new VarParam("Set this variable to true"),
 		new VarPairParam(
@@ -534,6 +559,7 @@ ISA.insertInstruction(0x34, {
 ISA.insertInstruction(0x35, {
 	name: "Greater than",
 	desc: "Sets variable (P1) to 1 if value in variable (P2) is greater than the constant value (P3)",
+	pneumonic: "GT_C",
 	params: [
 		new VarParam("Set this variable to true"),
 		new VarParam("if this variable's value is greater than"),
@@ -557,6 +583,7 @@ ISA.addCategory(category(0x40, 0x4f, "Logic / Bitwise"));
 ISA.insertInstruction(0x40, {
 	name: "Bitwise OR",
 	desc: "Sets each bit in variable (P1) to its OR with the respective bit in variable (P2)",
+	pneumonic: "OR_V",
 	params: [
 		new VarPairParam(
 			ParamType.Variable,
@@ -578,6 +605,7 @@ ISA.insertInstruction(0x40, {
 ISA.insertInstruction(0x41, {
 	name: "Bitwise OR",
 	desc: "Sets each bit in variable (P1) to its OR with the respective bit in constant value (P2)",
+	pneumonic: "OR_C",
 	params: [new VarParam("OR each bit in this variable's value"), new ConstParam("with each bit in this constant")],
 	execute(c, p) {
 		const [variable_no_1, constant_value] = p;
@@ -590,6 +618,7 @@ ISA.insertInstruction(0x41, {
 ISA.insertInstruction(0x42, {
 	name: "Bitwise AND",
 	desc: "Sets each bit in variable (P1) to its AND with the respective bit in variable (P2)",
+	pneumonic: "AND_V",
 	params: [
 		new VarPairParam(
 			ParamType.Variable,
@@ -612,6 +641,7 @@ ISA.insertInstruction(0x42, {
 ISA.insertInstruction(0x43, {
 	name: "Bitwise AND",
 	desc: "Sets each bit in variable (P1) to its AND with the respective bit in constant value (P2)",
+	pneumonic: "AND_C",
 	params: [new VarParam("AND each bit in this variable's value"), new ConstParam("with each bit in this constant")],
 	execute(c, p) {
 		const [variable_no_1, constant_value] = p;
@@ -624,6 +654,7 @@ ISA.insertInstruction(0x43, {
 ISA.insertInstruction(0x44, {
 	name: "Bitwise XOR",
 	desc: "Sets each bit in variable (P1) to its XOR with the respective bit in variable (P2)",
+	pneumonic: "XOR_V",
 	params: [
 		new VarPairParam(
 			ParamType.Variable,
@@ -646,6 +677,7 @@ ISA.insertInstruction(0x44, {
 ISA.insertInstruction(0x45, {
 	name: "Bitwise XOR",
 	desc: "Sets each bit in variable (P1) to its XOR with the respective bit in constant value (P2)",
+	pneumonic: "XOR_C",
 	params: [new VarParam("XOR each bit in this variable's value"), new ConstParam("with each bit in this constant")],
 	execute(c, p) {
 		const [variable_no_1, constant_value] = p;
@@ -658,6 +690,7 @@ ISA.insertInstruction(0x45, {
 ISA.insertInstruction(0x46, {
 	name: "Left Bit Shift",
 	desc: "Shifts each bit in variable (P1) to the left by the amount in variable (P2). Fills new bits with 0",
+	pneumonic: "LSB_V",
 	params: [
 		new VarPairParam(
 			ParamType.Variable,
@@ -679,6 +712,7 @@ ISA.insertInstruction(0x46, {
 ISA.insertInstruction(0x47, {
 	name: "Left Bit Shift",
 	desc: "Shifts each bit in variable (P1) to the left by the constant value (P2). Fills new bits with 0",
+	pneumonic: "LSB_C",
 	params: [new VarParam("shift each bit in this variable left"), new ConstParam("by the amount in this constant")],
 	execute(c, p) {
 		const [variable_no_1, constant_value] = p;
@@ -691,6 +725,7 @@ ISA.insertInstruction(0x47, {
 ISA.insertInstruction(0x48, {
 	name: "Right Bit Shift",
 	desc: "Shifts each bit in variable (P1) to the right by the amount in variable (P2). Fills new bits with 0",
+	pneumonic: "RSB_V",
 	params: [
 		new VarPairParam(
 			ParamType.Variable,
@@ -712,6 +747,7 @@ ISA.insertInstruction(0x48, {
 ISA.insertInstruction(0x49, {
 	name: "Right Bit Shift",
 	desc: "Shifts each bit in variable (P1) to the right by the constant value (P2). Fills new bits with 0",
+	pneumonic: "RSB_C",
 	params: [new VarParam("shift each bit in this variable right"), new ConstParam("by the amount in this constant")],
 	execute(c, p) {
 		const [variable_no_1, constant_value] = p;
@@ -724,6 +760,7 @@ ISA.insertInstruction(0x49, {
 ISA.insertInstruction(0x4a, {
 	name: "Bitwise NOT",
 	desc: "Flips each bit in variable (P1)",
+	pneumonic: "NOT",
 	params: [new VarParam("invert each bit in this variable")],
 	execute(c, p) {
 		const variable_no_1 = p[0];
@@ -742,6 +779,7 @@ ISA.addCategory(category(0x50, 0x5f, "Arithmetic"));
 ISA.insertInstruction(0x50, {
 	name: "Add",
 	desc: "Adds to the value in variable (P1) with the value in variable (P2)",
+	pneumonic: "ADD_V",
 	params: [
 		new VarPairParam(
 			ParamType.Variable,
@@ -766,6 +804,7 @@ ISA.insertInstruction(0x50, {
 ISA.insertInstruction(0x51, {
 	name: "Add",
 	desc: "Adds to the value in variable (P1) with the value in variable (P2)",
+	pneumonic: "ADD_C",
 	params: [new VarParam("set this variable to"), new ConstParam("its sum with this constant")],
 	execute(c, p) {
 		const [variable_no_1, constant_value] = p;
@@ -779,6 +818,7 @@ ISA.insertInstruction(0x51, {
 ISA.insertInstruction(0x52, {
 	name: "Subtract",
 	desc: "Subtracts from the value in variable (P1) by the value in variable (P2)",
+	pneumonic: "SUB_V",
 	params: [
 		new VarPairParam(
 			ParamType.Variable,
@@ -804,6 +844,7 @@ ISA.insertInstruction(0x52, {
 ISA.insertInstruction(0x53, {
 	name: "Subtract",
 	desc: "Subtracts from the value in variable (P1) by the constant value (P2)",
+	pneumonic: "SUB_C",
 	params: [new VarParam("set this variable to"), new ConstParam("its difference with this constant")],
 	execute(c, p) {
 		const [variable_no_1, constant_value] = p;
@@ -817,6 +858,7 @@ ISA.insertInstruction(0x53, {
 ISA.insertInstruction(0x54, {
 	name: "Multiply",
 	desc: "Multiplies the value in variable (P1) by value in variable (P2)",
+	pneumonic: "MUL_V",
 	params: [
 		new VarPairParam(
 			ParamType.Variable,
@@ -839,6 +881,7 @@ ISA.insertInstruction(0x54, {
 ISA.insertInstruction(0x55, {
 	name: "Multiply",
 	desc: "Multiplies the value in variable (P1) by constant value (P2)",
+	pneumonic: "MUL_C",
 	params: [new VarParam("set this variable to"), new ConstParam("its product with this constant")],
 	execute(c, p) {
 		const [variable_no_1, constant_value] = p;
@@ -851,6 +894,7 @@ ISA.insertInstruction(0x55, {
 ISA.insertInstruction(0x56, {
 	name: "Divide",
 	desc: "Divides the value in variable (P1) by value in variable (P2)",
+	pneumonic: "DIV_V",
 	params: [
 		new VarPairParam(
 			ParamType.Variable,
@@ -879,6 +923,7 @@ ISA.insertInstruction(0x56, {
 ISA.insertInstruction(0x57, {
 	name: "Divide",
 	desc: "Divides the value in variable (P1) by constant value (P2)",
+	pneumonic: "DIV_C",
 	params: [new VarParam("divide this variable by"), new ConstParam("the value in this constant")],
 	execute(c, p) {
 		const [variable_no_1, constant_value] = p;
@@ -894,6 +939,7 @@ ISA.insertInstruction(0x57, {
 ISA.insertInstruction(0x58, {
 	name: "Modulus",
 	desc: "Divides the value in variable (P1) by value in variable (P2) stores remainder in (P1)",
+	pneumonic: "MOD_V",
 	params: [
 		new VarPairParam(
 			ParamType.Variable,
@@ -922,6 +968,7 @@ ISA.insertInstruction(0x58, {
 ISA.insertInstruction(0x59, {
 	name: "Modulus",
 	desc: "Divides the value in variable (P1) by constant value (P2) stores remainder in (P1)",
+	pneumonic: "MOD_C",
 	params: [new VarParam("set this variable to the remainder"), new ConstParam("of the division by this constant")],
 	execute(c, p) {
 		const [variable_no_1, constant_value] = p;
@@ -938,6 +985,7 @@ ISA.insertInstruction(0x59, {
 ISA.insertInstruction(0x5e, {
 	name: "Increment",
 	desc: "Increments the value within variable (P1) by 1",
+	pneumonic: "INC",
 	params: [new VarParam("this variable")],
 	execute(c, p) {
 		const variable_no_1 = p[0];
@@ -952,6 +1000,7 @@ ISA.insertInstruction(0x5e, {
 ISA.insertInstruction(0x5f, {
 	name: "Decrement",
 	desc: "Decrements the value within variable (P1) by 1",
+	pneumonic: "DEC",
 	params: [new VarParam("this variable")],
 	execute(c, p) {
 		const variable_no_1 = p[0];
@@ -965,14 +1014,19 @@ ISA.insertInstruction(0x5f, {
 
 //
 // 16-BIT ARITHMETIC
+// These aren't documented or tested. I was going to implement these fully,
+// but they're left here as an easter egg instead.
+// (Maybe somebody can implement mandelbrot with them :)
 // 0x60 -> 0x6F
 //
-ISA.addCategory(category(0x60, 0x6f, "16-Bit Arithmetic"));
+// ISA.addCategory(category(0x60, 0x6f, "16-Bit Arithmetic"));
 //
 
 ISA.insertInstruction(0x60, {
 	name: "Add 16",
 	desc: "todo",
+	pneumonic: "ADD16",
+	hidden: true,
 	params: [],
 	execute(c) {
 		const a_upper = c.getRegister(0);
@@ -994,6 +1048,8 @@ ISA.insertInstruction(0x60, {
 ISA.insertInstruction(0x61, {
 	name: "Subtract 16",
 	desc: "todo",
+	pneumonic: "SUB16",
+	hidden: true,
 	params: [],
 	execute(c) {
 		const a_upper = c.getRegister(0);
@@ -1015,6 +1071,8 @@ ISA.insertInstruction(0x61, {
 ISA.insertInstruction(0x62, {
 	name: "Multiply 16",
 	desc: "todo",
+	pneumonic: "MUL",
+	hidden: true,
 	params: [],
 	execute(c) {
 		const a_upper = c.getRegister(0);
@@ -1036,6 +1094,8 @@ ISA.insertInstruction(0x62, {
 ISA.insertInstruction(0x63, {
 	name: "Divide 16",
 	desc: "todo",
+	pneumonic: "DIV16",
+	hidden: true,
 	params: [],
 	execute(c) {
 		const a_upper = c.getRegister(0);
@@ -1060,6 +1120,8 @@ ISA.insertInstruction(0x63, {
 ISA.insertInstruction(0x6a, {
 	name: "Copy 16VA -> 16V",
 	desc: "todo",
+	hidden: true,
+	pneumonic: "COPY16_VA_V",
 	params: [new VarMemoryParam("todo"), new VarParam("todo")],
 	execute(c, p) {
 		const [variable_no_1, variable_no_2] = p;
@@ -1072,15 +1134,17 @@ ISA.insertInstruction(0x6a, {
 		const lower = c.getMemory(m256(address + 1));
 
 		c.setRegister(variable_no_2, upper);
-		const next_register = (variable_no_2 + 1) % 8;
-		assertU3(next_register);
-		c.setRegister(variable_no_2, lower);
+		const next_register = m8(variable_no_2 + 1);
+		c.setRegister(next_register, lower);
 	},
 });
 
 ISA.insertInstruction(0x6b, {
 	name: "Copy 16CA -> 16V",
 	desc: "todo",
+	pneumonic: "COPY16_CA_V",
+	hidden: true,
+
 	params: [new ConstMemoryParam("todo"), new VarParam("todo")],
 	execute(c, p) {
 		const [address, variable_no_1] = p;
@@ -1090,7 +1154,7 @@ ISA.insertInstruction(0x6b, {
 		const lower = c.getMemory(m256(address + 1));
 
 		c.setRegister(variable_no_1, upper);
-		const next_register = (variable_no_1 + 1) % 8;
+		const next_register = m8(variable_no_1 + 1);
 		assertU3(next_register);
 		c.setRegister(variable_no_1, lower);
 	},
@@ -1099,6 +1163,9 @@ ISA.insertInstruction(0x6b, {
 ISA.insertInstruction(0x6c, {
 	name: "Copy 16V -> 16VA",
 	desc: "todo",
+	pneumonic: "COPY16_V_VA",
+	hidden: true,
+
 	params: [new VarParam("todo"), new VarMemoryParam("todo")],
 	execute(c, p) {
 		const [variable_no_1, variable_no_2] = p;
@@ -1108,9 +1175,8 @@ ISA.insertInstruction(0x6c, {
 		const address = c.getRegister(variable_no_2);
 
 		const upper = c.getRegister(variable_no_1);
-		const next_register = (variable_no_1 + 1) % 8;
-		assertU3(next_register);
-		const lower = c.getRegister(variable_no_2);
+		const next_register = m8(variable_no_1 + 1);
+		const lower = c.getRegister(next_register);
 
 		c.setMemory(address, upper);
 		c.setMemory(m256(address + 1), lower);
@@ -1120,15 +1186,17 @@ ISA.insertInstruction(0x6c, {
 ISA.insertInstruction(0x6d, {
 	name: "Copy 16V -> 16CA",
 	desc: "todo",
+	pneumonic: "COPY16_V_CA",
+	hidden: true,
+
 	params: [new VarParam("todo"), new VarMemoryParam("todo")],
 	execute(c, p) {
 		const [address, variable_no_1] = p;
 		assertU3(variable_no_1);
 
 		const upper = c.getRegister(variable_no_1);
-		const next_register = (variable_no_1 + 1) % 8;
-		assertU3(next_register);
-		const lower = c.getRegister(variable_no_1);
+		const next_register = m8(variable_no_1 + 1);
+		const lower = c.getRegister(next_register);
 
 		c.setMemory(address, upper);
 		c.setMemory(m256(address + 1), lower);
@@ -1138,9 +1206,32 @@ ISA.insertInstruction(0x6d, {
 ISA.insertInstruction(0x6e, {
 	name: "Swap 16V <-> 16V",
 	desc: "todo",
+	pneumonic: "SWAP16",
+	hidden: true,
+
 	params: [new VarPairParam(ParamType.Variable, ParamType.Variable, "todo", "todo")],
 	execute(c, p) {
-		// TODO
+		const [pair] = p;
+		const [register_no_1, register_no_2] = splitNibbles(pair);
+		assertU3(register_no_1);
+		assertU3(register_no_2);
+
+		const a_upper_reg = register_no_1;
+		const a_lower_reg = m8(register_no_1 + 1);
+		const a_upper = c.getRegister(a_upper_reg);
+		const a_lower = c.getRegister(a_lower_reg);
+
+		const b_upper_reg = register_no_2;
+		const b_lower_reg = m8(register_no_2 + 1);
+		const b_upper = c.getRegister(b_upper_reg);
+		const b_lower = c.getRegister(b_lower_reg);
+
+		// swap
+		c.setRegister(a_upper_reg, b_upper);
+		c.setRegister(a_lower_reg, b_lower);
+
+		c.setRegister(b_upper_reg, a_upper);
+		c.setRegister(b_lower_reg, a_lower);
 	},
 });
 
@@ -1153,6 +1244,7 @@ ISA.addCategory(category(0xf0, 0xff, "IO"));
 ISA.insertInstruction(0xf0, {
 	name: "Random Number",
 	desc: "Sets variable (P1) to a random value",
+	pneumonic: "RNG",
 	params: [new VarParam("randomize this variable")],
 	execute(c, p) {
 		const [variable_no_1] = p;
@@ -1170,7 +1262,8 @@ ISA.insertInstruction(0xf0, {
 ISA.insertInstruction(0xff, {
 	name: "Set Pixel",
 	desc: "Sets the color constant (P2) for pixel at position in variable (P1)",
-	params: [new VarParam("at the position in this variable"), new ConstParam("to this color")],
+	pneumonic: "PAINT_C",
+	params: [new VarMemoryParam("at the position in this variable"), new ConstParam("to this color")],
 	execute(c, p) {
 		const [variable_no_1, pixel_val] = p;
 		assertU3(variable_no_1);
@@ -1182,6 +1275,7 @@ ISA.insertInstruction(0xff, {
 ISA.insertInstruction(0xfe, {
 	name: "Set Pixel",
 	desc: "Sets the color value in variable (P2) for pixel at position in variable (P1)",
+	pneumonic: "PAINT_V",
 	params: [
 		new VarPairParam(
 			ParamType.VarMem,
@@ -1205,6 +1299,7 @@ ISA.insertInstruction(0xfe, {
 ISA.insertInstruction(0xfd, {
 	name: "Get Pixel",
 	desc: "Stores the color value for pixel addressed in (P1) to variable (P2)",
+	pneumonic: "ADMIRE",
 	params: [
 		new VarPairParam(
 			ParamType.VarMem,
@@ -1228,6 +1323,7 @@ ISA.insertInstruction(0xfd, {
 ISA.insertInstruction(0xfa, {
 	name: "Set Palette",
 	desc: "Changes the color palette. The TV uses the color palette to interpret pixel values",
+	pneumonic: "PAL",
 	params: [new ConstParam("to this constant palette number")],
 	execute(c, p) {
 		const [pal] = p;
@@ -1238,6 +1334,7 @@ ISA.insertInstruction(0xfa, {
 ISA.insertInstruction(0xf1, {
 	name: "Clear Screen",
 	desc: "Sets all pixels on screen to zero.",
+	pneumonic: "CLS",
 	params: [],
 	execute(c) {
 		for (let i = 0; i < 256; i++) {

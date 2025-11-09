@@ -58,7 +58,6 @@ function main(): void {
 			console.error("Firehose already started");
 		}
 	};
-
 	// window.firehose();
 }
 

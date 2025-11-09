@@ -51,33 +51,35 @@
 		</div>
 
 		<div id="documentation">
-			<h1>Virtual 8-Bit Computer</h1>
+			<h1 id="virtual-computer">Virtual 8-Bit Computer</h1>
 
 			<input type="radio" name="tabset" id="tab1" checked />
 			<label for="tab1">Introduction</label>
 			<input type="radio" name="tabset" id="tab2" />
 			<label for="tab2">ISA</label>
-			<input type="radio" name="tabset" id="tab3" />
-			<label for="tab3">Example Programs</label>
 
 			<div class="tab-panels">
 				<article id="short-intro" class="tab-panel">
-					<!-- Artisanal hand crafted and compiled markdown because I couldn't be bothered to setup something automatic -->
+					<!-- Artisanal bespoke hand crafted and compiled markdown
+					     because I couldn't be bothered to setup something automatic -->
+
+					<p>(note, this is best used on a wide computer monitor (sorry phones))</p>
+
 					<p>
 						What is a computer? A computer processes a list of <em>instructions</em> to compute some data. Though this
 						computer is limited, it follows many of the same principles of computers today.
 					</p>
 
 					<p>
-						This computer uses 8-Bit <em>values</em> which simply means that all data (variables, memory values, TV
-						pixels, etc.) is stored as numbers which are sized from 0 to 255. It is customary to view these numbers in
+						This computer uses 8-Bit <em>values</em> which simply means that all data (variables, memory values, pixels,
+						etc.) is stored as numbers which are sized between 0 and 255. It is customary to view these numbers in
 						<a href="https://en.wikipedia.org/wiki/Hexadecimal">hexadecimal</a>
 						with hex &lsquo;digits&rsquo; (0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F). In this fashion, 0 becomes <em>00</em> and
 						255 becomes
 						<em>FF</em>
 					</p>
 
-					<h2>Instructions</h2>
+					<h2 id="section-instructions">Instructions</h2>
 
 					<p>
 						The Computer operates off of <em>instructions</em> which each perform small tasks (increment a number, halt,
@@ -101,7 +103,7 @@
 						more interesting like &ldquo;goto&rdquo; and &ldquo;set pixel&rdquo;.
 					</p>
 
-					<h2>Variables</h2>
+					<h2 id="section-variables">Variables</h2>
 
 					<p>
 						Of course, the question arises: &ldquo;what are we incrementing? what numbers are we adding?&rdquo; The
@@ -113,36 +115,37 @@
 					<pre><code>5E 00 2F . . .</code></pre>
 
 					<p>
-						Along with the &ldquo;increment&rdquo; instruction (<code>5E</code>), we must tell the computer with a
-						parameter which
-						<em>variable</em> should be incremented (<code>00</code>). In this updated example, the computer would look
-						in memory and first see <code>5E</code> as the &ldquo;increment&rdquo; instruction. The computer understands
-						that the next value will be the variable to increment. After incrementing variable number
-						<code>00</code> the computer will then see <code>2F</code> as the &ldquo;halt&rdquo; instruction and stop.
+						Along with the &ldquo;increment&rdquo; instruction (<code>5E</code>), we must tell the computer which
+						<em>variable</em> should be incremented (<code>00</code>) with a parameter. In this updated example, the
+						computer would look in memory and first see <code>5E</code> as the &ldquo;increment&rdquo; instruction. The
+						computer understands that the next value will be the variable to increment. After incrementing variable
+						number <code>00</code> the computer will then see <code>2F</code> as the &ldquo;halt&rdquo; instruction and
+						stop.
 					</p>
 
 					<p>
 						In total the computer has 8 variables (<code>00</code>, <code>01</code>, <code>02</code>, <code>03</code>,
-						<code>04</code>, <code>05</code>, <code>06</code>, <code>07</code>). Each variable is simply an 8-bit value
-						like each value in the memory. At the very top above the memory each variable is listed. Variables start off
-						as zero.
+						<code>04</code>, <code>05</code>, <code>06</code>, <code>07</code>). Each variable simply contains an 8-bit
+						value like each value in the memory. At the very top above the memory each variable is listed. Variables
+						start off as zero.
 					</p>
 
-					<h2>The TV</h2>
+					<h2 id="section-tv">The TV</h2>
 
 					<p>
-						The <em>TV</em> is a screen which can be drawn on automatically by the computer. The TV has 16 rows of
-						pixels and 16 pixels for a total resolution of 16x16. Each pixel is set as an 8-bit value by the computer.
-						Each 8-bit value represents a different color
+						The <em>TV</em> is a screen of pixels which can be drawn on automatically by the computer. The TV has 16
+						rows of pixels and 16 pixels for a total resolution of 16x16. Each pixel is set as an 8-bit value by the
+						computer. Each 8-bit value represents a different color TODO (pals)
 					</p>
 
-					<h2>A Simple Program</h2>
+					<h2 id="section-simple-program">A Simple Program</h2>
 
 					<p>
-						All computation happens on variables. When the computer adds two numbers together it adds two variables
+						All computation happens on variables. When the computer adds two numbers together, it adds two variables
 						together then puts the result in a variable. Additionally, there is another form of addition which adds a
 						<em>constant parameter</em> value to a variable, and puts the result in the variable. Constant parameters
-						work just like _variable parameters_ except their value is simply the value of the parameter.
+						work just like <em>variable parameters</em> except their value is simply the value of the parameter in
+						memory.
 					</p>
 
 					<p>Let's write a simple program which:</p>
@@ -160,8 +163,9 @@
 					<p>Click the &ldquo;Edit&rdquo; button to go into edit mode.</p>
 
 					<p>
-						When writing programs it's helpful to reference the <em>ISA</em> which has details for each instruction.
-						First we need a random number. The ISA has &ldquo;random number&rdquo; as <code>F0</code>:
+						When writing programs it's helpful to reference the <em>ISA</em> (TODO what does ISA mean?) (in tab above)
+						which has details for each instruction. First we need a random number. The ISA has &ldquo;random
+						number&rdquo; as <code>F0</code>:
 					</p>
 
 					<table>
@@ -265,7 +269,7 @@ F0 00
 						Click <em>Step</em> to step through each instruction and parameter to see how the computer views it at it.
 					</p>
 
-					<h2>Repetition</h2>
+					<h2 id="section-repetition">Repetition</h2>
 
 					<p>
 						A single pixel is a bit boring though isn't it? We could modify our program to repeat and fill the TV with a
@@ -277,7 +281,7 @@ F0 00
 						&ldquo;goto&rdquo; instruction which tells the computer to look at <code>00</code> the program will loop!
 					</p>
 
-					<p>(Note, there are bunch of different types of &ldquo;goto&rdquo; refer to the ISA)</p>
+					<p>(Note, there are bunch of different types of &ldquo;goto&rdquo;. refer to the ISA)</p>
 
 					<table>
 						<tr>
@@ -310,20 +314,138 @@ F0 00
 
 					<p>(turn the speed up from normal to turbo for a little fun)</p>
 
-					<h2>Logic and conditionals</h2>
+					<h2 id="section-conditionals">Conditionals</h2>
 
-					<h2>Parameter types</h2>
+					<p>
+						In the repeating example, we used "goto" to unconditionally go back to the start of the program, in effect
+						creating an infinite loop. If instead we wanted to, for example, paint 20 random pixels and then halt, we
+						would need the conditional "goto if not equal to zero" instruction.
+					</p>
 
-					<p>So far variable and constant</p>
+					<table>
+						<tr>
+							<td>Code</td>
+							<td>Parameters</td>
+							<td>Action</td>
+							<td>Description</td>
+						</tr>
+						<tr>
+							<td>23</td>
+							<td>V CA</td>
+							<td>Goto if Not equal to zero</td>
+							<td>Look for next instruction at memory address in constant (P2) if the value in variable (P1) ≠ 0</td>
+						</tr>
+					</table>
 
-					<h2>Memory</h2>
-					<h2>Wrapping</h2>
+					<p>
+						We use this "goto ≠ 0" to repeat the program in the same way as the last example, except we additionally
+						keep a counter counting down from 20. When this counter variable reaches zero, the "goto ≠ 0" will stop
+						repeating and 'fall though' to the next instruction, which will be a "halt".
+					</p>
 
-					<p>Modular wrapping</p>
+					<p>
+						First we need to setup the counter variable (<code>07</code>) to be <code>14</code> (20 in decimal) The "Set
+						Variable" instruction is used.
+					</p>
+
+					<table>
+						<tr>
+							<td>Code</td>
+							<td>Parameters</td>
+							<td>Action</td>
+							<td>Description</td>
+						</tr>
+						<tr>
+							<td>19</td>
+							<td>V C</td>
+							<td>Set Variable</td>
+							<td>Assigns constant value (P2) to variable (P1)</td>
+						</tr>
+					</table>
+
+					<pre><code>19 07 14 
+</code></pre>
+
+					<p>Now, lets reuse of the code from the previous example, with the goto removed</p>
+
+					<pre><code>19 07 14 F0 00 55 00 03 F0 01 FE 10
+         ---------------------------
+          reused                    
+</code></pre>
+
+					<p>At the end of each repetition, a few things need to happen:</p>
+
+					<ol>
+						<li>The counter variable (<code>07</code>) must be lowered by one</li>
+						<li>
+							If the counter (<code>07</code>) is <code>0</code>, then go back to right after the counter was set to 20
+						</li>
+						<li>Else, Halt</li>
+					</ol>
+
+					<p>The first step uses the "decrement" instruction.</p>
+
+					<table>
+						<tr>
+							<td>Code</td>
+							<td>Parameters</td>
+							<td>Action</td>
+							<td>Description</td>
+						</tr>
+						<tr>
+							<td>5F</td>
+							<td>V</td>
+							<td>Decrement</td>
+							<td>Decrements the value within variable (P1) by 1</td>
+						</tr>
+					</table>
+
+					<pre><code>19 07 14 F0 00 55 00 03 F0 01 FE 10 5F 07
+                                    -----
+                                     new
+</code></pre>
+
+					<p>
+						Then, the "goto ≠ 0" instruction to goto the beginning of the program. Note that the memory address the goto
+						points to is <code>03</code> instead of <code>00</code>. If it was <code>00</code>, the counter would reset
+						every repitition.
+					</p>
+
+					<pre><code>19 07 14 F0 00 55 00 03 F0 01 FE 10 5F 07 23 07
+03						       
+</code></pre>
+
+					<p>Finally, a "halt" (<code>2F</code>) instruction is added</p>
+
+					<pre><code>19 07 14 F0 00 55 00 03 F0 01 FE 10 5F 07 23 07
+03 2F			       
+</code></pre>
+
+					<a href="./?fn=Limited_Run&p=GQcU8ABVAAPwAf4QXwcjBwMv">Program Link</a>
+
+					<h2 id="section-wrapping">Wrapping</h2>
+
+					<p>
+						One question you might have is: "what happens when a number becomes too big to fit into an 8-bit value?" For
+						example, with the multiplication 16×17=272. In cases like these, the computer wraps the number around using
+						modular wrapping. The simplest way to think about it is to add/subtract 256 until the number is within the
+						valid range.
+					</p>
+
+					<p>For example. 600 is way out of range, yet can be wrapped easily like so:</p>
+
+					<pre><code>600 - 256 = 344
+344 - 256 = 88</code></pre>
+
+					<p>Another example, say a subtraction that results in a negative number:</p>
+
+					<pre><code>8 - 100 = -92
+-92 + 256 = 164</code>
+					</pre>
 				</article>
 				<article id="isa" class="tab-panel">
 					<div id="memory_color_explainer">
-						<h2>Parameter Types</h2>
+						<h2 id="section-param-types">Parameter Types</h2>
 						<ul>
 							<li>
 								<div class="color instruction"></div>
