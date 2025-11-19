@@ -2,7 +2,7 @@
 
 Information on my website <https://alexanderbass.com/show/2025/virtual-8bit-computer>
 
-Run the computer <https://alexanderbass.com/show/2025/virtual-8bit-computer/run>
+Run the computer <https://alexanderbass.com/share/2025/computer/>
 
 ## Building
 
